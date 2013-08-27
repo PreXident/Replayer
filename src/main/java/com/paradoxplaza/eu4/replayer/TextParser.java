@@ -39,6 +39,7 @@ public class TextParser {
         s.wordChars('a', 'z');
         s.wordChars('A', 'Z');
         s.wordChars('_', '_');
+        s.wordChars(128, Integer.MAX_VALUE);
         s.whitespaceChars('\t', '\t');
         s.whitespaceChars(' ', ' ');
         s.whitespaceChars('\n', '\n');
@@ -125,6 +126,8 @@ public class TextParser {
                         return new Date(saveGame.date);
                     case "start_date":
                         return new Date(saveGame.startDate);
+                    case "flags":
+                        return new Flags();
                     default:
                         return this;
                 }
@@ -152,16 +155,22 @@ public class TextParser {
 
             @Override
             public State processChar(final SaveGame saveGame, final char token) {
+                if (afterEquals) {
+                    throw new RuntimeException(String.format("Invalid character \"%1$s\" after equals, expected date", token));
+                }
                 if (token == '=') {
                     afterEquals = true;
+                    return this;
                 } else {
                     throw new RuntimeException(String.format("Invalid character \"%1$s\" after date, expected \"=\"", token));
                 }
-                return this;
             }
 
             @Override
             public State processWord(final SaveGame saveGame, final String word) {
+                if (!afterEquals) {
+                    throw new RuntimeException(String.format("Invalid word \"%1$s\" after date, expected \"=\"", word));
+                }
                 date.setDate(word);
                 return State.START;
             }
@@ -184,6 +193,91 @@ public class TextParser {
                     case '}':
                         return --rightCount == 0 ? State.START : this;
                     default:
+                        return this;
+                }
+            }
+        }
+
+        /**
+         * Starts processing global flags.
+         */
+        static class Flags extends State {
+
+            boolean afterEquals = false;
+
+            @Override
+            public State processChar(final SaveGame saveGame, final char token) {
+                if (afterEquals) {
+                    if (token == '{') {
+                        return new InFlags();
+                    } else {
+                        throw new RuntimeException(String.format("Invalid character \"%1$s\" after equals, expected {", token));
+                    }
+                } else {
+                    if (token == '=') {
+                        afterEquals = true;
+                        return this;
+                    } else {
+                        throw new RuntimeException(String.format("Invalid character \"%1$s\" after date, expected \"=\"", token));
+                    }
+                }
+            }
+
+            @Override
+            public State processWord(final SaveGame saveGame, final String word) {
+                switch (word) {
+                    case "date":
+                        return new Date(saveGame.date);
+                    case "start_date":
+                        return new Date(saveGame.startDate);
+                    case "flags":
+                        return new Flags();
+                    default:
+                        return this;
+                }
+            }
+        }
+
+        static class InFlags extends State {
+            enum Expecting { IDENT, EQUALS, DATE };
+            Expecting expecting = Expecting.IDENT;
+            String flag;
+
+            @Override
+            public State processChar(final SaveGame saveGame, final char token) {
+                switch (expecting) {
+                    case EQUALS:
+                        expecting = Expecting.DATE;
+                        return this;
+                    case DATE:
+                        throw new RuntimeException(String.format("Invalid character \"%1$s\" after equals, expected date", token));
+                    case IDENT:
+                        if (token == '}') {
+                            return State.START;
+                        } else {
+                            throw new RuntimeException(String.format("Invalid character \"%1$s\" in flags, expected \"}\"", token));
+                        }
+                    default:
+                        assert false : "Expecting invalid token in flags!";
+                        return this;
+                }
+            }
+
+            @Override
+            public State processWord(final SaveGame saveGame, final String word) {
+                switch (expecting) {
+                    case EQUALS:
+                        throw new RuntimeException(String.format("Invalid word \"%1$s\" after flag, expected \"=\"", word));
+                    case DATE:
+                        saveGame.addEvent(new com.paradoxplaza.eu4.replayer.Date(word), new FlagSet(flag));
+                        expecting = Expecting.IDENT;
+                        return this;
+                    case IDENT:
+                        flag = word;
+                        expecting = Expecting.EQUALS;
+                        return this;
+                    default:
+                        assert false : "Expecting invalid token in flags!";
                         return this;
                 }
             }
