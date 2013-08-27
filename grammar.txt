@@ -1,0 +1,67 @@
+date="DATE"
+flags=
+{
+	IDENT=DATE
+}
+start_date="DATE"
+old_emperor=
+{
+	id=NUM
+	country="TAG"
+	date="DATE"
+}*
+religions=
+{
+	IDENT=
+	{
+		defender="TAG"
+		defender_date="DATE"
+		enable="DATE"
+	}*
+}
+provinces=
+{
+-INT=
+	{
+		name="STRING"
+		history=
+		{
+			PROV_INIT
+			PROV_HISTORY
+		}
+	}*
+}
+countries=
+{
+	TAG={
+		history={
+			COUNTRY_INIT
+			COUNTRY_HISTORY
+		}
+	}*
+}
+active_war=
+{
+	name="STRING"
+	history=
+	{
+		WAR_HISTORY
+	}
+}*
+active_war=
+{
+	name="STRING"
+	history=
+	{
+		WAR_HISTORY
+	}
+}*
+previous_war=
+{
+	name="STRING"
+	history=
+	{
+		WAR_HISTORY
+	}
+}*
+STATISTICS

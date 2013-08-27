@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+
+<BorderPane fx:id="root" prefHeight="600" prefWidth="800" xmlns:fx="http://javafx.com/fxml"
+			fx:controller="com.paradoxplaza.eu4.replayer.ReplayerController">
+	<top>
+		<HBox style="-fx-background-color: rgba(255, 255, 255, 1.0);">
+			<Button text="Click!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+		</HBox>
+	</top>
+	<bottom>
+		<HBox style="-fx-background-color: rgba(0, 0, 0, 1.0);">
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+		</HBox>
+	</bottom>
+	<left>
+		<VBox style="-fx-background-color: rgba(255, 0, 0, 1.0);" >
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+		</VBox>
+	</left>
+	<right>
+		<VBox style="-fx-background-color: rgba(0, 255, 0, 1.0);" >
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+			<Label text="Hi!" />
+		</VBox>
+	</right>
+	<center>
+		<VBox style="-fx-background-color: rgba(100, 100, 100, 1.0);" />
+	</center>
+</BorderPane>
