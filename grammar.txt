@@ -48,14 +48,6 @@ active_war=
 		WAR_HISTORY
 	}
 }*
-active_war=
-{
-	name="STRING"
-	history=
-	{
-		WAR_HISTORY
-	}
-}*
 previous_war=
 {
 	name="STRING"

@@ -14,6 +14,7 @@ public class TextParser {
     /** State of the parser. */
     State state = State.START;
 
+    /** Processed savegame. */
     SaveGame saveGame = new SaveGame();
 
     /**
