@@ -89,15 +89,6 @@ public class TextParser {
         /** Starting state. */
         static State START = new Start();
 
-        /** Processes word and changes savegame.
-         * @param saveGame saveGame to apply changes
-         * @param word token from input
-         * @return new state
-         */
-        public State processWord(final SaveGame saveGame, final String word) {
-            return this;
-        }
-
         /** Processes charancter and changes savegame.
          * @param saveGame saveGame to apply changes
          * @param char token from input
@@ -107,10 +98,24 @@ public class TextParser {
             return this;
         }
 
+        /** Processes word and changes savegame.
+         * @param saveGame saveGame to apply changes
+         * @param word token from input
+         * @return new state
+         */
+        public State processWord(final SaveGame saveGame, final String word) {
+            return this;
+        }
+
         /**
          * Represents new starting state of TextParser.
          */
         static class Start extends State {
+
+            @Override
+            public State processChar(final SaveGame saveGame, final char token) {
+                return token == '{' ? new Ignore() : this;
+            }
 
             @Override
             public State processWord(final SaveGame saveGame, final String word) {
@@ -123,26 +128,25 @@ public class TextParser {
                         return this;
                 }
             }
-
-            @Override
-            public State processChar(final SaveGame saveGame, final char token) {
-                return token == '{' ? new Ignore() : this;
-            }
         }
 
+        /**
+         * Processes dates in format xxx=Y.M.D.
+         */
         static class Date extends State {
 
+            /** Flag if equals has been encountered. */
             boolean afterEquals = false;
+
+            /** Date where to set the value. */
             com.paradoxplaza.eu4.replayer.Date date;
 
+            /**
+             * Only constructor.
+             * @param date where to store extracted value
+             */
             public Date(final com.paradoxplaza.eu4.replayer.Date date) {
                 this.date = date;
-            }
-
-            @Override
-            public State processWord(final SaveGame saveGame, final String word) {
-                date.setDate(word);
-                return State.START;
             }
 
             @Override
@@ -154,10 +158,20 @@ public class TextParser {
                 }
                 return this;
             }
+
+            @Override
+            public State processWord(final SaveGame saveGame, final String word) {
+                date.setDate(word);
+                return State.START;
+            }
         }
 
+        /**
+         * Ignores everything till matching "}".
+         */
         static class Ignore extends State {
 
+            /** Number of opened "{". */
             int rightCount = 1;
 
             @Override
