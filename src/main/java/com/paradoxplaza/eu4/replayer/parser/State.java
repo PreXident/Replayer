@@ -1,17 +1,31 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.paradoxplaza.eu4.replayer.parser;
 
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.Flag;
 
-/** Represents state of the TextParser. */
+/**
+ * Represents state of the TextParser.
+ */
 abstract class State {
-    
-    /** Starting state. */
-    static State START = new Start();
+
+    /**
+     * Returns new starting state.
+     * @return new starting state
+     */
+    static public State newStart() {
+        return new Start();
+    }
+
+    /** Intented for subclasses. Parent state to which the control should return. */
+    final Start start;
+
+    /**
+     * Only constructor. Sets start field.
+     * @param start
+     */
+    protected State(final Start start) {
+        this.start = start;
+    }
 
     /** Processes charancter and changes savegame.
      * @param saveGame saveGame to apply changes
@@ -36,20 +50,36 @@ abstract class State {
      */
     static class Start extends State {
 
+        /** State processing dates. */
+        final Date date = new Date(this);
+
+        /** State processing flags. */
+        final Flags flags = new Flags(this);
+
+        /** State ignoring everything till matching }. */
+        final Ignore ignore = new Ignore(this);
+
+        /**
+         * Only constructor. Sets start to null.
+         */
+        public Start() {
+            super(null);
+        }
+
         @Override
         public State processChar(final SaveGame saveGame, final char token) {
-            return token == '{' ? new Ignore() : this;
+            return token == '{' ? ignore : this;
         }
 
         @Override
         public State processWord(final SaveGame saveGame, final String word) {
             switch (word) {
                 case "date":
-                    return new Date(saveGame.date);
+                    return date.withOutput(saveGame.date);
                 case "start_date":
-                    return new Date(saveGame.startDate);
+                    return date.withOutput(saveGame.startDate);
                 case "flags":
-                    return new Flags();
+                    return flags;
                 default:
                     return this;
             }
@@ -58,29 +88,44 @@ abstract class State {
 
     /**
      * Processes dates in format xxx=Y.M.D.
+     * It's mimicking non-static inner class because of need to declare enums.
      */
     static class Date extends State {
 
-        /** Flag if equals has been encountered. */
-        boolean afterEquals = false;
+        /** What tokens can be expected. */
+        enum Expecting { EQUALS, DATE }
+
+        /** What token is expected now. */
+        Expecting expecting = Expecting.EQUALS;
+
         /** Date where to set the value. */
-        com.paradoxplaza.eu4.replayer.Date date;
+        com.paradoxplaza.eu4.replayer.Date output;
 
         /**
          * Only constructor.
-         * @param date where to store extracted value
+         * @param start parent state
          */
-        public Date(final com.paradoxplaza.eu4.replayer.Date date) {
-            this.date = date;
+        public Date(final Start start) {
+            super(start);
+        }
+
+        /**
+         * Sets output date to given value.
+         * @param output where to store output value
+         * @return this
+         */
+        public Date withOutput(final com.paradoxplaza.eu4.replayer.Date output) {
+            this.output = output;
+            return this;
         }
 
         @Override
         public State processChar(final SaveGame saveGame, final char token) {
-            if (afterEquals) {
+            if (expecting == Expecting.DATE) {
                 throw new RuntimeException(String.format("Invalid character \"%1$s\" after equals, expected date", token));
             }
             if (token == '=') {
-                afterEquals = true;
+                expecting = Expecting.DATE;
                 return this;
             } else {
                 throw new RuntimeException(String.format("Invalid character \"%1$s\" after date, expected \"=\"", token));
@@ -89,21 +134,31 @@ abstract class State {
 
         @Override
         public State processWord(final SaveGame saveGame, final String word) {
-            if (!afterEquals) {
+            if (expecting == Expecting.EQUALS) {
                 throw new RuntimeException(String.format("Invalid word \"%1$s\" after date, expected \"=\"", word));
             }
-            date.setDate(word);
-            return State.START;
+            output.setDate(word);
+            expecting = Expecting.EQUALS;
+            return start;
         }
     }
 
     /**
      * Ignores everything till matching "}".
+     * It's mimicking non-static inner class because of need to declare enums.
      */
     static class Ignore extends State {
 
         /** Number of opened "{". */
         int rightCount = 1;
+
+        /**
+         * Only constructor.
+         * @param start parent state
+         */
+        public Ignore(final Start start) {
+            super(start);
+        }
 
         @Override
         public State processChar(final SaveGame saveGame, final char token) {
@@ -112,7 +167,12 @@ abstract class State {
                     ++rightCount;
                     return this;
                 case '}':
-                    return --rightCount == 0 ? State.START : this;
+                    if (--rightCount == 0) {
+                        rightCount = 1;
+                        return start;
+                    } else {
+                        return this;
+                    }
                 default:
                     return this;
             }
@@ -121,22 +181,52 @@ abstract class State {
 
     /**
      * Starts processing global flags.
+     * It's mimicking non-static inner class because of need to declare enums.
      */
     static class Flags extends State {
 
-        boolean afterEquals = false;
+        /** What tokens can be expected. */
+        enum Expecting {
+            EQUALS {
+                @Override
+                public String toString() {
+                    return "=";
+                }
+            },
+            OPENING {
+                @Override
+                public String toString() {
+                    return "}";
+                }
+            }
+        };
+
+        /** What token is expected. */
+        Expecting expecting = Expecting.EQUALS;
+
+        /** State for processing individual flags. */
+        final InFlags inFlags;
+
+        /**
+         * Only constructor.
+         * @param start parent state
+         */
+        public Flags(final Start start) {
+            super(start);
+            inFlags = new InFlags(start);
+        }
 
         @Override
         public State processChar(final SaveGame saveGame, final char token) {
-            if (afterEquals) {
+            if (expecting == Expecting.OPENING) {
                 if (token == '{') {
-                    return new InFlags();
+                    return inFlags;
                 } else {
                     throw new RuntimeException(String.format("Invalid character \"%1$s\" after equals, expected {", token));
                 }
             } else {
                 if (token == '=') {
-                    afterEquals = true;
+                    expecting = Expecting.OPENING;
                     return this;
                 } else {
                     throw new RuntimeException(String.format("Invalid character \"%1$s\" after date, expected \"=\"", token));
@@ -146,26 +236,28 @@ abstract class State {
 
         @Override
         public State processWord(final SaveGame saveGame, final String word) {
-            switch (word) {
-                case "date":
-                    return new Date(saveGame.date);
-                case "start_date":
-                    return new Date(saveGame.startDate);
-                case "flags":
-                    return new Flags();
-                default:
-                    return this;
-            }
+            throw new RuntimeException(String.format("Invalid word \"%1$s\", expected \"%2$s\"", word, expecting));
         }
 
+        /**
+         * Processes individual flags.
+         */
         static class InFlags extends State {
 
+            /** What tokens can be expected. */
             enum Expecting {
-
                 IDENT, EQUALS, DATE
             }
+
+            /** What token is expected. */
             Expecting expecting = Expecting.IDENT;
+
+            /** Identifier of currently processed flag. */
             String flag;
+
+            public InFlags(final Start start) {
+                super(start);
+            }
 
             @Override
             public State processChar(final SaveGame saveGame, final char token) {
@@ -177,7 +269,7 @@ abstract class State {
                         throw new RuntimeException(String.format("Invalid character \"%1$s\" after equals, expected date", token));
                     case IDENT:
                         if (token == '}') {
-                            return State.START;
+                            return start;
                         } else {
                             throw new RuntimeException(String.format("Invalid character \"%1$s\" in flags, expected \"}\"", token));
                         }

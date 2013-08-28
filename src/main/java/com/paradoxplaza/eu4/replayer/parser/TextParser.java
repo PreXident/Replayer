@@ -1,6 +1,5 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
-import com.paradoxplaza.eu4.replayer.events.Flag;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +13,7 @@ import java.io.StreamTokenizer;
 public class TextParser {
 
     /** State of the parser. */
-    State state = State.START;
+    State state = State.newStart();
 
     /** Processed savegame. */
     SaveGame saveGame = new SaveGame();
