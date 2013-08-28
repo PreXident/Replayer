@@ -76,6 +76,7 @@ public class TextParser {
                 }
                 ++counter;
             } while (!eof);
+            state.end(saveGame);
         } catch (IOException e) {
             throw new IOException(
                     String.format("Encountered IOException on line %1$d when processing token number %2$d:\n", s.lineno(), counter),

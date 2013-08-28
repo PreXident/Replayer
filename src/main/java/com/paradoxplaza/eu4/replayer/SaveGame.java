@@ -1,7 +1,9 @@
 package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.events.Event;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,13 +12,13 @@ import java.util.Map;
 public class SaveGame {
 
     /** Current date. */
-    public final Date date = new Date();
+    public Date date = new Date();
 
     /** Starting date. */
-    public final Date startDate = new Date();
+    public Date startDate = new Date();
 
     /** Timeline containing displayable events. */
-    final Map<Date, Event> timeline = new HashMap<>();
+    final Map<Date, List<Event>> timeline = new HashMap<>();
 
     /**
      * Adds event on given date to timeline.
@@ -24,6 +26,11 @@ public class SaveGame {
      * @param event displayable event
      */
     public void addEvent(final Date date, final Event event) {
-        timeline.put(date, event);
+        List<Event> list = timeline.get(date);
+        if (list == null) {
+            list = new ArrayList<>();
+            timeline.put(date, list);
+        }
+        list.add(event);
     }
 }

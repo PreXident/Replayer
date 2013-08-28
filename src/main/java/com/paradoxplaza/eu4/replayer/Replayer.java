@@ -2,9 +2,7 @@ package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.parser.TextParser;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.InputStream;
-import java.io.StreamTokenizer;
 import java.util.List;
 import java.util.Properties;
 import javafx.application.Application;

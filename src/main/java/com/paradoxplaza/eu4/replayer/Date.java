@@ -22,13 +22,13 @@ public class Date {
     }
 
     /** Year of this date. */
-    short year;
+    final short year;
 
     /** Month of this date. */
-    byte month;
+    final byte month;
 
     /** Day of this date. */
-    byte day;
+    final byte day;
 
     /**
      * Contructs new Date 1.1.1.
@@ -59,14 +59,7 @@ public class Date {
      * @throws IllegalArgumentException if date is invalid
      */
     public Date(final String date) {
-        this.setDate(date);
-    }
-
-    /**
-     * Sets the date for this Date.
-     * @param date date to set
-     */
-    public final void setDate(final String date) {
+        //this.setDate(date);
         final String[] s = date.split("\\.");
         if (s.length != 3) {
             throw new IllegalArgumentException(String.format("Invalid date: %1$s", date));
