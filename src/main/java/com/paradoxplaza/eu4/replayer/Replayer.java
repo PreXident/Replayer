@@ -53,8 +53,8 @@ public class Replayer extends Application {
         final List<String> args = getParameters().getRaw();
         if (helpNeeded(args)) {
             //TODO
-            System.out.printf("USAGE: java -jar replayer.jar [property_file]");
-            System.out.printf("If property_file argument is not provided, default property file \"%s\" will be used", DEFAULT_PROPERTIES);
+            System.out.printf("USAGE: java -jar replayer.jar [property_file]\n");
+            System.out.printf("If property_file argument is not provided, default property file \"%s\" will be used\n", DEFAULT_PROPERTIES);
             System.exit(0);
         }
         System.out.printf("Starting...\n");
@@ -62,15 +62,15 @@ public class Replayer extends Application {
             try {
                 settings.load(new FileInputStream(args.get(0)));
             } catch(Exception e) {
-                System.err.printf("Error with specified property file");
+                System.err.printf("Error with specified property file\n");
                 e.printStackTrace();
             }
         } else /*if (args.length == 0)*/ { //no property file provided
             try {
-                System.out.printf("No property file specified, using default path.");
+                System.out.printf("No property file specified, using default path.\n");
                 settings.load(new FileInputStream(DEFAULT_PROPERTIES));
             } catch(Exception e) {
-                System.err.printf(String.format("Error with default property file \"%s\"", DEFAULT_PROPERTIES));
+                System.err.printf(String.format("Error with default property file \"%s\"\n", DEFAULT_PROPERTIES));
                 e.printStackTrace();
             }
         }

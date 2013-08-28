@@ -11,25 +11,25 @@ import com.paradoxplaza.eu4.replayer.utils.Ref;
 class Emperor extends CompoundState {
 
     /** Monarch's id. */
-    Ref<String> id = new Ref<>();
+    final Ref<String> id = new Ref<>();
 
     /** Country tag. */
-    Ref<String> tag = new Ref<>();
+    final Ref<String> tag = new Ref<>();
 
     /** Coronation date. */
-    Ref<Date> date = new Ref<>();
+    final Ref<Date> date = new Ref<>();
 
     /** State processing date. */
-    DateState dateState = new DateState(this).withOutput(date);
+    final DateState dateState = new DateState(this).withOutput(date);
 
     /** State processing both id and tag. */
-    StringState stringState = new StringState(this);
+    final StringState stringState = new StringState(this);
 
     /**
      * Only constructor.
      * @param start parent state
      */
-    public Emperor(final Start start) {
+    public Emperor(final State start) {
         super(start);
     }
 
@@ -66,6 +66,7 @@ class Emperor extends CompoundState {
     @Override
     protected void reset() {
         super.reset();
+        //values could be null because reset() is called in super constructor
         if (id != null) {
             id.val = null;
         }

@@ -14,16 +14,16 @@ class Flags extends CompoundState {
     String flag;
 
     /** Date of currently processed flag. */
-    Ref<Date> date = new Ref<>();
+    final Ref<Date> date = new Ref<>();
 
     /** State to process individual flags. */
-    DateState inFlags = new DateState(this).withOutput(date);
+    final DateState inFlags = new DateState(this).withOutput(date);
 
     /**
      * Only constructor.
      * @param start parent state
      */
-    public Flags(final Start start) {
+    public Flags(final State start) {
         super(start);
     }
 
@@ -49,6 +49,7 @@ class Flags extends CompoundState {
     protected final void reset() {
         super.reset();
         flag = null;
+        //value could be null because reset() is called in super constructor
         if (date != null) {
             date.val = null;
         }

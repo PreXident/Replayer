@@ -21,11 +21,13 @@ class Start extends State {
     /** State processing emperors. */
     final Emperor emperor = new Emperor(this);
 
+    final Religions religions = new Religions(this);
+
     /** Current date in save game. */
-    Ref<Date> currentDate = new Ref<>();
-    
+    final Ref<Date> currentDate = new Ref<>();
+
     /** Save game's starting date. */
-    Ref<Date> startDate = new Ref<>();
+    final Ref<Date> startDate = new Ref<>();
 
     /**
      * Only constructor. Sets start to null.
@@ -63,6 +65,8 @@ class Start extends State {
                 return flags;
             case "old_emperor":
                 return emperor;
+            case "religions":
+                return religions;
             default:
                 return this;
         }
@@ -70,6 +74,7 @@ class Start extends State {
 
     @Override
     protected void reset() {
+        //values could be null because reset() is called in super constructor
         if (currentDate != null) {
             currentDate.setVal(null);
         }

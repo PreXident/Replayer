@@ -35,6 +35,7 @@ abstract class CompoundState extends State {
                 return "{";
             }
         },
+        
         /** Final } or inner word. */
         CLOSING {
             @Override
@@ -62,7 +63,7 @@ abstract class CompoundState extends State {
      * Only constructor.
      * @param start parent state
      */
-    public CompoundState(final Start start) {
+    public CompoundState(final State start) {
         super(start);
     }
 
