@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.events.Event;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,10 +10,10 @@ import java.util.Map;
 public class SaveGame {
 
     /** Current date. */
-    final Date date = new Date();
+    public final Date date = new Date();
 
     /** Starting date. */
-    final Date startDate = new Date();
+    public final Date startDate = new Date();
 
     /** Timeline containing displayable events. */
     final Map<Date, Event> timeline = new HashMap<>();

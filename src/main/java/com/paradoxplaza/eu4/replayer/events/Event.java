@@ -1,4 +1,4 @@
-package com.paradoxplaza.eu4.replayer;
+package com.paradoxplaza.eu4.replayer.events;
 
 /**
  * Ancestor of all displayable events.

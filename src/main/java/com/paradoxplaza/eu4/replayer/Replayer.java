@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.parser.TextParser;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.InputStream;

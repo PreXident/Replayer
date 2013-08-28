@@ -1,9 +1,9 @@
-package com.paradoxplaza.eu4.replayer;
+package com.paradoxplaza.eu4.replayer.events;
 
 /**
  * Represents setting a flag.
  */
-public class FlagSet extends Event {
+public class Flag extends Event {
 
     /** Name of the flag. */
     final String name;
@@ -12,7 +12,7 @@ public class FlagSet extends Event {
      * Only constructor.
      * @param name identifier of the flag
      */
-    public FlagSet(final String name) {
+    public Flag(final String name) {
         this.name = name;
     }
 }

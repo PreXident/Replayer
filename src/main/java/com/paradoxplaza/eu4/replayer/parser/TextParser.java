@@ -1,5 +1,7 @@
-package com.paradoxplaza.eu4.replayer;
+package com.paradoxplaza.eu4.replayer.parser;
 
+import com.paradoxplaza.eu4.replayer.events.Flag;
+import com.paradoxplaza.eu4.replayer.SaveGame;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -269,7 +271,7 @@ public class TextParser {
                     case EQUALS:
                         throw new RuntimeException(String.format("Invalid word \"%1$s\" after flag, expected \"=\"", word));
                     case DATE:
-                        saveGame.addEvent(new com.paradoxplaza.eu4.replayer.Date(word), new FlagSet(flag));
+                        saveGame.addEvent(new com.paradoxplaza.eu4.replayer.Date(word), new Flag(flag));
                         expecting = Expecting.IDENT;
                         return this;
                     case IDENT:
