@@ -20,4 +20,9 @@ public class Defender extends Event {
         this.religion = religion;
         this.tag = tag;
     }
+
+    @Override
+    public String toString() {
+        return String.format("Religion %1$s got new defender %2$s", religion, tag);
+    }
 }

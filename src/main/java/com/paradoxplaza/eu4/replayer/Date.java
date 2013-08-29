@@ -3,10 +3,10 @@ package com.paradoxplaza.eu4.replayer;
 /**
  * Represents one date.
  */
-public class Date {
+public class Date implements Comparable<Date> {
 
     /** Number of days in each month ignoring leap years. */
-    static int[] monthsDays = new int[] { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    static byte[] monthsDays = new byte[] { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
     /**
      * Throws InvalidArgumentException if given date is invalid.
@@ -75,6 +75,20 @@ public class Date {
     }
 
     @Override
+    public int compareTo(Date o) {
+        if (year != o.year) {
+            return year < o.year ? -1 : 1;
+        }
+        if (month != o.month) {
+            return month < o.month ? -1 : 1;
+        }
+        if (day != o.day) {
+            return day < o.day ? -1 : 1;
+        }
+        return 0;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -102,5 +116,50 @@ public class Date {
         hash = 47 * hash + this.month;
         hash = 47 * hash + this.day;
         return hash;
+    }
+
+    /**
+     * Returns next date.
+     * @return next date
+     */
+    public Date next() {
+        byte d = day;
+        byte m = month;
+        short y = year;
+        ++d;
+        if (d > monthsDays[m-1]) {
+            d = 1;
+            ++m;
+            if (m / 12 > 0) {
+                m = 1;
+                ++y;
+            }
+        }
+        return new Date(y, m, d);
+    }
+
+    /**
+     * Returns previous date.
+     * @return previous date
+     */
+    public Date prev() {
+        byte d = day;
+        byte m = month;
+        short y = year;
+        --d;
+        if (d < 1) {
+            --m;
+            if (m < 1) {
+                m = 12;
+                --y;
+            }
+            d = monthsDays[m-1];
+        }
+        return new Date(y, m, d);
+    }
+
+    @Override
+    public String toString() {
+        return year + "." + month + "." + day;
     }
 }

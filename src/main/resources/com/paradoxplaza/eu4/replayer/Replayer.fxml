@@ -51,6 +51,8 @@
 		</VBox>
 	</right>
 	<center>
-		<VBox style="-fx-background-color: rgba(100, 100, 100, 1.0);" />
+		<ScrollPane>
+			<ImageView fx:id="image" preserveRatio="true" fitHeight="500" fitWidth="500"/>
+		</ScrollPane>
 	</center>
 </BorderPane>

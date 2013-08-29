@@ -12,4 +12,9 @@ public class NewEmperor extends Event {
         this.id = id;
         this.tag = tag;
     }
+
+    @Override
+    public String toString() {
+        return String.format("HRE got new emeperor %1$s (%2$s)", id, tag);
+    }
 }

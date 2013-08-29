@@ -7,6 +7,7 @@ import com.paradoxplaza.eu4.replayer.SaveGame;
  */
 class Religions extends CompoundState {
 
+    /** State processing individual religion. */
     final Religion religion = new Religion(this);
 
     /**
@@ -15,11 +16,6 @@ class Religions extends CompoundState {
      */
     public Religions(final Start start) {
         super(start);
-    }
-
-    @Override
-    protected void endCompound(final SaveGame saveGame) {
-        //nothing
     }
 
     @Override

@@ -22,6 +22,15 @@ public class TextParser {
      * Only contructor for the TextParser class.
      */
     public TextParser() {
+        //nothing
+    }
+
+    /**
+     * Returns processed save game.
+     * @return processed save game
+     */
+    public SaveGame getSaveGame() {
+        return saveGame;
     }
 
     /**
@@ -40,6 +49,7 @@ public class TextParser {
         s.wordChars('a', 'z');
         s.wordChars('A', 'Z');
         s.wordChars('_', '_');
+        s.wordChars('-', '-');
         s.wordChars(128, Integer.MAX_VALUE);
         s.whitespaceChars('\t', '\t');
         s.whitespaceChars(' ', ' ');
@@ -64,6 +74,8 @@ public class TextParser {
                     case StreamTokenizer.TT_EOF:
                         eof = true;
                         break;
+                    case StreamTokenizer.TT_EOL:
+                        break;
                     case StreamTokenizer.TT_WORD:
                         state = state.processWord(saveGame, s.sval);
                         break;
@@ -82,7 +94,7 @@ public class TextParser {
                     String.format("Encountered IOException on line %1$d when processing token number %2$d:\n", s.lineno(), counter),
                     e);
         } catch (Exception e) {
-            throw new IOException(
+            throw new RuntimeException(
                     String.format("Encountered exception on line %1$d when processing token number %2$d:\n", s.lineno(), counter),
                     e);
         }

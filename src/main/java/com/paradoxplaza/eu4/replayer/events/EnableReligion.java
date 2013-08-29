@@ -15,4 +15,9 @@ public class EnableReligion extends Event {
     public EnableReligion(final String name) {
         this.name = name;
     }
+
+    @Override
+    public String toString() {
+        return String.format("Religion %1$s enabled", name);
+    }
 }

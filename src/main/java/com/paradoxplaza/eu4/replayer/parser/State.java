@@ -1,10 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
-import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
-import com.paradoxplaza.eu4.replayer.events.Flag;
-import com.paradoxplaza.eu4.replayer.events.NewEmperor;
-import com.paradoxplaza.eu4.replayer.utils.Ref;
 
 /**
  * Represents state of the TextParser.
@@ -12,10 +8,10 @@ import com.paradoxplaza.eu4.replayer.utils.Ref;
 abstract class State {
 
     /** Error message. */
-    static protected final String INVALID_TOKEN_EXPECTED_VALUE = "Invalid token \"%1$s\" after date, expected %2$s";
+    static protected final String INVALID_TOKEN_EXPECTED_VALUE = "Invalid token \"%1$s\", expected %2$s";
 
     /** Error message. */
-    static protected final String INVALID_TOKEN_EXPECTED_KEYWORD = "Invalid token \"%1$s\" after date, expected \"%2$s\"";
+    static protected final String INVALID_TOKEN_EXPECTED_KEYWORD = "Invalid token \"%1$s\", expected \"%2$s\"";
 
     /**
      * Returns new starting state.

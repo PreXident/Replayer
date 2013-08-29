@@ -21,7 +21,11 @@ class Start extends State {
     /** State processing emperors. */
     final Emperor emperor = new Emperor(this);
 
+    /** State processing religions. */
     final Religions religions = new Religions(this);
+
+    /** State processing provinces. */
+    final Provinces provinces = new Provinces(this);
 
     /** Current date in save game. */
     final Ref<Date> currentDate = new Ref<>();
@@ -51,12 +55,14 @@ class Start extends State {
 
     @Override
     public State processChar(final SaveGame saveGame, final char token) {
-        return token == '{' ? ignore : this;
+        throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, "date|start_date|flags|old_emperor|religions|provinces"));
     }
 
     @Override
     public State processWord(final SaveGame saveGame, final String word) {
         switch (word) {
+            case "EU4txt":
+                return this;
             case "date":
                 return date.withOutput(currentDate);
             case "start_date":
@@ -67,8 +73,10 @@ class Start extends State {
                 return emperor;
             case "religions":
                 return religions;
+            case "provinces":
+                return provinces;
             default:
-                return this;
+                return ignore;
         }
     }
 

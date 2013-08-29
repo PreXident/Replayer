@@ -27,6 +27,15 @@ class Flags extends CompoundState {
         super(start);
     }
 
+    @Override
+    protected final void compoundReset() {
+        flag = null;
+        //value could be null because reset() is called in super constructor
+        if (date != null) {
+            date.val = null;
+        }
+    }
+
     /**
      * If any flag is processed, it's inserted into saveGame.
      * @param saveGame SaveGame to modify
@@ -43,15 +52,5 @@ class Flags extends CompoundState {
         endCompound(saveGame);
         flag = word;
         return inFlags;
-    }
-
-    @Override
-    protected final void reset() {
-        super.reset();
-        flag = null;
-        //value could be null because reset() is called in super constructor
-        if (date != null) {
-            date.val = null;
-        }
     }
 }

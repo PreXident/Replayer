@@ -1,7 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
 import com.paradoxplaza.eu4.replayer.Date;
-import com.paradoxplaza.eu4.replayer.utils.Ref;
+import javafx.beans.value.WritableValue;
 
 /**
  * Processes dates in format xxx=Y.M.D.
@@ -17,7 +17,7 @@ class DateState extends ValueState<Date> {
     }
 
     @Override
-    public DateState withOutput(final Ref<Date> output) {
+    public DateState withOutput(final WritableValue<Date> output) {
         return (DateState) super.withOutput(output);
     }
 

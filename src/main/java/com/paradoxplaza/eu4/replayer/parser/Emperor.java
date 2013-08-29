@@ -33,6 +33,20 @@ class Emperor extends CompoundState {
         super(start);
     }
 
+    @Override
+    protected void compoundReset() {
+        //values could be null because reset() is called in super constructor
+        if (id != null) {
+            id.val = null;
+        }
+        if (tag != null) {
+            tag.val = null;
+        }
+        if (date != null) {
+            date.val = null;
+        }
+    }
+
     /**
      * If any flag is processed, it's inserted into saveGame.
      * @param saveGame SaveGame to modify
@@ -57,24 +71,9 @@ class Emperor extends CompoundState {
             case "country":
                 return stringState.withOutput(tag);
             case "date":
-                return dateState;
+                return dateState.withOutput(date);
             default:
                 throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, "id|country|date"));
-        }
-    }
-
-    @Override
-    protected void reset() {
-        super.reset();
-        //values could be null because reset() is called in super constructor
-        if (id != null) {
-            id.val = null;
-        }
-        if (tag != null) {
-            tag.val = null;
-        }
-        if (date != null) {
-            date.val = null;
         }
     }
 }

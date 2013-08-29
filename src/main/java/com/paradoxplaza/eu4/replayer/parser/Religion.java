@@ -48,6 +48,20 @@ class Religion extends CompoundState {
     }
 
     @Override
+    protected final void compoundReset() {
+        //values could be null because reset() is called in super constructor
+        if (defender != null) {
+            defender.val = null;
+        }
+        if (defenderDate != null) {
+            defenderDate.val = null;
+        }
+        if (enable != null) {
+            enable.val = null;
+        }
+    }
+
+    @Override
     protected void endCompound(final SaveGame saveGame) {
         if (enable.val != null) {
             saveGame.addEvent(enable.val, new EnableReligion(name));
@@ -68,21 +82,6 @@ class Religion extends CompoundState {
                 return dateState.withOutput(enable);
             default:
                 throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, "defender|defender_date|enable"));
-        }
-    }
-
-    @Override
-    protected final void reset() {
-        super.reset();
-        //values could be null because reset() is called in super constructor
-        if (defender != null) {
-            defender.val = null;
-        }
-        if (defenderDate != null) {
-            defenderDate.val = null;
-        }
-        if (enable != null) {
-            enable.val = null;
         }
     }
 }

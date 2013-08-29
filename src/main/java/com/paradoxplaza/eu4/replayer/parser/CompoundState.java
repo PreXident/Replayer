@@ -35,7 +35,7 @@ abstract class CompoundState extends State {
                 return "{";
             }
         },
-        
+
         /** Final } or inner word. */
         CLOSING {
             @Override
@@ -68,10 +68,21 @@ abstract class CompoundState extends State {
     }
 
     /**
+     * Called from reset.
+     * Descendants tend to forget to call super.reset(), which causes errors,
+     * so this is the place to reset state.
+     */
+    protected void compoundReset() {
+        //nothing
+    }
+
+    /**
      * Informs descendant that element is finished.
      * @param saveGame
      */
-    protected abstract void endCompound(final SaveGame saveGame);
+    protected void endCompound(final SaveGame saveGame) {
+        //nothing
+    }
 
     @Override
     public State processChar(final SaveGame saveGame, final char token) {
@@ -96,7 +107,8 @@ abstract class CompoundState extends State {
     }
 
     @Override
-    protected void reset() {
+    protected final void reset() {
         expecting = Expecting.EQUALS;
+        compoundReset();
     }
 }

@@ -1,9 +1,11 @@
 package com.paradoxplaza.eu4.replayer.utils;
 
+import javafx.beans.value.WritableValue;
+
 /**
  * Holder for (in)out parameters.
  */
-public class Ref<T> {
+public class Ref<T> implements WritableValue<T> {
 
     /** Held value. */
     public T val;
@@ -47,6 +49,33 @@ public class Ref<T> {
     public Ref<T> withVal(final T val) {
         setVal(val);
         return this;
+    }
+
+    /**
+     * Gets val.
+     * @return val
+     */
+    @Override
+    public T getValue() {
+        return getVal();
+    }
+
+    /**
+     * Sets val.
+     * @param val new value
+     */
+    @Override
+    public void setValue(final T value) {
+        setVal(value);
+    }
+
+    /**
+     * Sets val.
+     * @param val new value
+     * @return this
+     */
+    public Ref<T> withValue(final T val) {
+        return withVal(val);
     }
 
     @Override

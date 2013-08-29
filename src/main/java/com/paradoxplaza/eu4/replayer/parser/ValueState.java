@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer.parser;
 
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
+import javafx.beans.value.WritableValue;
 
 /**
  * Parent of states processing xxx=VALUE.
@@ -17,7 +18,7 @@ abstract class ValueState<T> extends State {
     Expecting expecting;
 
     /** Where to set the value. */
-    Ref<T> output;
+     WritableValue<T> output;
 
     /**
      * Only constructor.
@@ -32,7 +33,7 @@ abstract class ValueState<T> extends State {
      * @param output where to store output value
      * @return this
      */
-    public ValueState<T> withOutput(final Ref<T> output) {
+    public ValueState<T> withOutput(final  WritableValue<T> output) {
         this.output = output;
         return this;
     }
@@ -55,7 +56,7 @@ abstract class ValueState<T> extends State {
                     throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, "="));
                 }
             case VALUE:
-                throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_VALUE, token, "date"));
+                throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_VALUE, token, "VALUE"));
             default:
                 assert false : "Expecting unknown token";
                 return this;
@@ -68,7 +69,7 @@ abstract class ValueState<T> extends State {
             case EQUALS:
                 throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, "="));
             case VALUE:
-                output.val = createOutput(word);
+                output.setValue(createOutput(word));
                 reset();
                 return start;
             default:

@@ -1,6 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
-import com.paradoxplaza.eu4.replayer.utils.Ref;
+import javafx.beans.value.WritableValue;
 
 /**
  * Processes string values in format xxx=STRING.
@@ -16,7 +16,7 @@ class StringState extends ValueState<String> {
     }
 
     @Override
-    public StringState withOutput(final Ref<String> output) {
+    public StringState withOutput(final WritableValue<String> output) {
         return (StringState) super.withOutput(output);
     }
 

@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.parser.TextParser;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -42,9 +43,22 @@ public class Replayer extends Application {
 
     @Override
     public void start(final Stage stage) throws Exception {
-        TextParser parser = new TextParser();
+        final TextParser parser = new TextParser();
         try (final InputStream is = new FileInputStream("TestSave.eu4")) {
             parser.parse(is);
+            final SaveGame saveGame = parser.getSaveGame();
+            for(Event event : saveGame.timeline.get(null)) {
+                System.out.println(String.format("[%1$s]: %2$s", null, event));
+            }
+            for(Date date : new DateGenerator(saveGame.startDate, saveGame.date)) {
+                List<Event> list = saveGame.timeline.get(date);
+                if (list == null) {
+                    continue;
+                }
+                for(Event event : saveGame.timeline.get(date)) {
+                    System.out.println(String.format("[%1$s]: %2$s", date, event));
+                }
+            }
         } catch(Exception e) { e.printStackTrace(); }
         //load default properties
         settings = new Properties(loadDefaulJarProperties());
@@ -79,6 +93,7 @@ public class Replayer extends Application {
         final FXMLLoader loader = new FXMLLoader(getClass().getResource("Replayer.fxml"));
         final Parent root = (Parent) loader.load();
         controller = loader.getController();
+        controller.setSettings(settings);
         final Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.titleProperty().setValue("Replayer");
