@@ -6,53 +6,60 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.*?>
+<?import javafx.scene.input.*?>
+<?import java.net.URL ?>
 
 <BorderPane fx:id="root" prefHeight="600" prefWidth="800" xmlns:fx="http://javafx.com/fxml"
-			fx:controller="com.paradoxplaza.eu4.replayer.ReplayerController">
+			fx:controller="com.paradoxplaza.eu4.replayer.ReplayerController" styleClass="root" >
+	<stylesheets >
+		<URL value="@Replayer.css" />
+	</stylesheets>
 	<top>
-		<HBox style="-fx-background-color: rgba(255, 255, 255, 1.0);">
-			<Button text="Click!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-		</HBox>
+		<MenuBar fx:id="menuBar" >
+			<menus>
+				<Menu text="File" >
+					<MenuItem text="Load" onAction="#load">
+						<accelerator>
+							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP"  code="L"/>
+						</accelerator>
+					</MenuItem>
+					<SeparatorMenuItem />
+					<MenuItem text="Close" onAction="#close">
+						<accelerator>
+							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="C"/>
+						</accelerator>
+					</MenuItem>
+				</Menu>
+				<Menu text="Display">
+					<MenuItem text="Zoom In" onAction="#zoomIn">
+						<accelerator>
+							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="PLUS"/>
+						</accelerator>
+					</MenuItem>
+					<MenuItem text="Zoom Out" onAction="#zoomOut">
+						<accelerator>
+							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="MINUS"/>
+						</accelerator>
+					</MenuItem>
+					<MenuItem text="Reset Zoom" onAction="#resetZoom">
+						<accelerator>
+							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="DIGIT0"/>
+						</accelerator>
+					</MenuItem>
+				</Menu>
+				<Menu text="Settings">
+					<MenuItem text="Change EU4 Directory" onAction="#changeEU4Directory" >
+						<accelerator>
+							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="D"/>
+						</accelerator>
+					</MenuItem>
+				</Menu>
+			</menus>
+		</MenuBar>
 	</top>
-	<bottom>
-		<HBox style="-fx-background-color: rgba(0, 0, 0, 1.0);">
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-		</HBox>
-	</bottom>
-	<left>
-		<VBox style="-fx-background-color: rgba(255, 0, 0, 1.0);" >
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-		</VBox>
-	</left>
-	<right>
-		<VBox style="-fx-background-color: rgba(0, 255, 0, 1.0);" >
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-			<Label text="Hi!" />
-		</VBox>
-	</right>
 	<center>
-		<ScrollPane>
-			<ImageView fx:id="image" preserveRatio="true" fitHeight="500" fitWidth="500"/>
+		<ScrollPane fx:id="scrollPane" styleClass="map" pannable="true" >
+			<ImageView fx:id="imageView" preserveRatio="true" />
 		</ScrollPane>
 	</center>
 </BorderPane>

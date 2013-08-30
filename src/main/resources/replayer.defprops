@@ -1,1 +1,6 @@
-#none
+#how many pixels are added to width and height when zooming in/out
+zoom.step=100
+#map display width
+map.fit.width=5632
+#map display height
+map.fit.height=2048

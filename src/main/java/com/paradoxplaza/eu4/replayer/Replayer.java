@@ -1,15 +1,17 @@
 package com.paradoxplaza.eu4.replayer;
 
-import com.paradoxplaza.eu4.replayer.events.Event;
-import com.paradoxplaza.eu4.replayer.parser.TextParser;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Properties;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 /**
@@ -38,28 +40,14 @@ public class Replayer extends Application {
     /** Settings of the Replayer. */
     Properties settings;
 
+    /** File containing properties. Used to save properties. */
+    String propertyFile;
+
     /** Application controller. */
     ReplayerController controller;
 
     @Override
     public void start(final Stage stage) throws Exception {
-        final TextParser parser = new TextParser();
-        try (final InputStream is = new FileInputStream("TestSave.eu4")) {
-            parser.parse(is);
-            final SaveGame saveGame = parser.getSaveGame();
-            for(Event event : saveGame.timeline.get(null)) {
-                System.out.println(String.format("[%1$s]: %2$s", null, event));
-            }
-            for(Date date : new DateGenerator(saveGame.startDate, saveGame.date)) {
-                List<Event> list = saveGame.timeline.get(date);
-                if (list == null) {
-                    continue;
-                }
-                for(Event event : saveGame.timeline.get(date)) {
-                    System.out.println(String.format("[%1$s]: %2$s", date, event));
-                }
-            }
-        } catch(Exception e) { e.printStackTrace(); }
         //load default properties
         settings = new Properties(loadDefaulJarProperties());
 
@@ -73,16 +61,18 @@ public class Replayer extends Application {
         }
         System.out.printf("Starting...\n");
         if (args.size() == 1) {
-            try {
-                settings.load(new FileInputStream(args.get(0)));
+            propertyFile = args.get(0);
+            try (final InputStream is = new FileInputStream(propertyFile)) {
+                settings.load(is);
             } catch(Exception e) {
                 System.err.printf("Error with specified property file\n");
                 e.printStackTrace();
             }
         } else /*if (args.length == 0)*/ { //no property file provided
-            try {
+            propertyFile = DEFAULT_PROPERTIES;
+            try (final InputStream is = new FileInputStream(DEFAULT_PROPERTIES)) {
                 System.out.printf("No property file specified, using default path.\n");
-                settings.load(new FileInputStream(DEFAULT_PROPERTIES));
+                settings.load(is);
             } catch(Exception e) {
                 System.err.printf(String.format("Error with default property file \"%s\"\n", DEFAULT_PROPERTIES));
                 e.printStackTrace();
@@ -96,7 +86,8 @@ public class Replayer extends Application {
         controller.setSettings(settings);
         final Scene scene = new Scene(root);
         stage.setScene(scene);
-        stage.titleProperty().setValue("Replayer");
+        stage.titleProperty().bind(controller.titleProperty());
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("eu4.png")));
         stage.show();
         stage.toFront();
     }
@@ -134,6 +125,12 @@ public class Replayer extends Application {
 
     @Override
     public void stop() {
-        //
+        System.out.println("Closing...\n");
+        try (final OutputStream os = new FileOutputStream(propertyFile)) {
+            settings.store(os, null);
+        } catch(IOException e) {
+            System.err.printf("Error while storing settings to \"%1$s\"", propertyFile);
+            e.printStackTrace();
+        }
     }
 }
