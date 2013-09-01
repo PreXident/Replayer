@@ -1,15 +1,12 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
-import com.paradoxplaza.eu4.replayer.SaveGame;
-
 /**
  * Processes compound values in format xxx = { COMPOUND }.
  */
-abstract class CompoundState extends State {
+public abstract class CompoundState<Context> extends State<Context> {
 
     /** What tokens can be expected. */
-    enum Expecting {
-
+    protected enum Expecting {
         /** First =. */
         EQUALS {
             @Override
@@ -57,14 +54,14 @@ abstract class CompoundState extends State {
     }
 
     /** What token is expected. */
-    Expecting expecting;
+    protected Expecting expecting;
 
     /**
      * Only constructor.
-     * @param start parent state
+     * @param parent parent state
      */
-    public CompoundState(final State start) {
-        super(start);
+    public CompoundState(final State<Context> parent) {
+        super(parent);
     }
 
     /**
@@ -80,12 +77,12 @@ abstract class CompoundState extends State {
      * Informs descendant that element is finished.
      * @param saveGame
      */
-    protected void endCompound(final SaveGame saveGame) {
+    protected void endCompound(final Context context) {
         //nothing
     }
 
     @Override
-    public State processChar(final SaveGame saveGame, final char token) {
+    public State<Context> processChar(final Context context, final char token) {
         if (token != expecting.toChar()) {
             throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, expecting));
         }
@@ -97,9 +94,9 @@ abstract class CompoundState extends State {
                 expecting = Expecting.OPENING;
                 return this;
             case CLOSING:
-                endCompound(saveGame);
+                endCompound(context);
                 reset();
-                return start;
+                return parent;
             default:
                 assert false : "Expecting unknown token";
                 return this;

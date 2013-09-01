@@ -1,11 +1,9 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
-import com.paradoxplaza.eu4.replayer.SaveGame;
-
 /**
  * Represents state of the TextParser.
  */
-abstract class State {
+public class State<Context> {
 
     /** Error message. */
     static protected final String INVALID_TOKEN_EXPECTED_VALUE = "Invalid token \"%1$s\", expected %2$s";
@@ -13,51 +11,52 @@ abstract class State {
     /** Error message. */
     static protected final String INVALID_TOKEN_EXPECTED_KEYWORD = "Invalid token \"%1$s\", expected \"%2$s\"";
 
-    /**
-     * Returns new starting state.
-     * @return new starting state
-     */
-    static public State newStart() {
-        return new Start();
-    }
-
     /** Intented for subclasses. Parent state to which the control should return. */
-    final State start;
+    final protected State<Context> parent;
 
     /**
-     * Only constructor. Sets start field.
-     * @param start
+     * Only constructor. Sets parent state to which the control should return.
+     * @param parent
      */
-    protected State(final State start) {
-        this.start = start;
+    protected State(final State<Context> parent) {
+        this.parent = parent;
         reset();
     }
 
     /**
      * Processes end of file.
-     * @param saveGame SaveGame to apply changes
+     * @param context Context to apply changes
      * @return new state
      * @throws RuntimeException if end of file was unexpected or some info is missing
      */
-    public State end(final SaveGame saveGame) {
+    public State<Context> end(final Context context) {
         throw new RuntimeException("Unexpected end of file!");
     }
 
-    /** Processes charancter and changes savegame.
-     * @param saveGame SaveGame to apply changes
+    /** Processes character and changes context.
+     * @param context Context to apply changes
      * @param char token from input
      * @return new state
      */
-    public State processChar(final SaveGame saveGame, final char token) {
+    public State<Context> processChar(final Context context, final char token) {
         return this;
     }
 
-    /** Processes word and changes savegame.
-     * @param saveGame SaveGame to apply changes
+    /** Processes number and changes context.
+     * @param context Context to apply changes
+     * @param number token from input
+     * @return new state
+     */
+    public State<Context> processNumber(final Context context, final double token) {
+        return this;
+    }
+
+    /** Processes word and changes context.
+     * @param context Context to apply changes
      * @param word token from input
      * @return new state
      */
-    public State processWord(final SaveGame saveGame, final String word) {
+    public State<Context> processWord(final Context context, final String word) {
         return this;
     }
 

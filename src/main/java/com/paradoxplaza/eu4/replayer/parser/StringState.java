@@ -5,19 +5,19 @@ import javafx.beans.value.WritableValue;
 /**
  * Processes string values in format xxx=STRING.
  */
-class StringState extends ValueState<String> {
+public class StringState<Context> extends ValueState<Context, String> {
 
     /**
      * Only constructor.
-     * @param start parent state
+     * @param parent parent state
      */
-    public StringState(final State start) {
-        super(start);
+    public StringState(final State<Context> parent) {
+        super(parent);
     }
 
     @Override
-    public StringState withOutput(final WritableValue<String> output) {
-        return (StringState) super.withOutput(output);
+    public StringState<Context> withOutput(final WritableValue<String> output) {
+        return (StringState<Context>) super.withOutput(output);
     }
 
     @Override

@@ -1,15 +1,19 @@
-package com.paradoxplaza.eu4.replayer.parser;
+package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.Defender;
 import com.paradoxplaza.eu4.replayer.events.EnableReligion;
+import com.paradoxplaza.eu4.replayer.parser.CompoundState;
+import com.paradoxplaza.eu4.replayer.parser.DateState;
+import com.paradoxplaza.eu4.replayer.parser.State;
+import com.paradoxplaza.eu4.replayer.parser.StringState;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
 
 /**
  * Parses religion={...}.
  */
-class Religion extends CompoundState {
+class Religion extends CompoundState<SaveGame> {
 
     /** Identifier of currently processed religion. */
     String name;
@@ -24,16 +28,16 @@ class Religion extends CompoundState {
     final Ref<Date> enable = new Ref<>();
 
     /** State to process defender keyword. */
-    final StringState defenderState = new StringState(this).withOutput(defender);
+    final StringState<SaveGame> defenderState = new StringState<>(this).withOutput(defender);
 
     /** State to process enable and defender_date keywords. */
-    final DateState dateState = new DateState(this);
+    final DateState<SaveGame> dateState = new DateState<>(this);
 
     /**
      * Only constructor.
-     * @param start parent state
+     * @param parent parent state
      */
-    public Religion(final State start) {
+    public Religion(final State<SaveGame> start) {
         super(start);
     }
 
@@ -72,7 +76,7 @@ class Religion extends CompoundState {
     }
 
     @Override
-    public State processWord(final SaveGame saveGame, final String word) {
+    public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         switch (word) {
             case "defender":
                 return defenderState;

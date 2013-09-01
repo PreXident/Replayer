@@ -1,14 +1,13 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
-import com.paradoxplaza.eu4.replayer.SaveGame;
-import com.paradoxplaza.eu4.replayer.utils.Ref;
 import javafx.beans.value.WritableValue;
 
 /**
  * Parent of states processing xxx=VALUE.
+ * @param <Context> context of the parser
  * @param <T> final value type
  */
-abstract class ValueState<T> extends State {
+public abstract class ValueState<Context, T> extends State<Context> {
 
     /** What tokens can be expected. */
     enum Expecting {
@@ -22,9 +21,9 @@ abstract class ValueState<T> extends State {
 
     /**
      * Only constructor.
-     * @param start parent state
+     * @param parent parent state
      */
-    public ValueState(final State start) {
+    public ValueState(final State<Context> start) {
         super(start);
     }
 
@@ -33,7 +32,7 @@ abstract class ValueState<T> extends State {
      * @param output where to store output value
      * @return this
      */
-    public ValueState<T> withOutput(final  WritableValue<T> output) {
+    public ValueState<Context, T> withOutput(final  WritableValue<T> output) {
         this.output = output;
         return this;
     }
@@ -46,7 +45,7 @@ abstract class ValueState<T> extends State {
     protected abstract T createOutput(final String word);
 
     @Override
-    public final State processChar(final SaveGame saveGame, final char token) {
+    public final State<Context> processChar(final Context context, final char token) {
         switch (expecting) {
             case EQUALS:
                 if (token == '=') {
@@ -64,14 +63,14 @@ abstract class ValueState<T> extends State {
     }
 
     @Override
-    public final State processWord(final SaveGame saveGame, final String word) {
+    public final State<Context> processWord(final Context context, final String word) {
         switch (expecting) {
             case EQUALS:
                 throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, "="));
             case VALUE:
                 output.setValue(createOutput(word));
                 reset();
-                return start;
+                return parent;
             default:
                 assert false : "Expecting unknown token";
                 return this;

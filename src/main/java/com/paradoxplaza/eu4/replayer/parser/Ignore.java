@@ -1,11 +1,9 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
-import com.paradoxplaza.eu4.replayer.SaveGame;
-
 /**
  * Ignores value, both ={...} and =VALUE.
  */
-class Ignore extends State {
+public class Ignore<Context> extends State<Context> {
 
     enum Expecting { EQUALS, SWITCH, CLOSING }
 
@@ -16,14 +14,14 @@ class Ignore extends State {
 
     /**
      * Only constructor.
-     * @param start parent state
+     * @param parent parent state
      */
-    public Ignore(final State start) {
+    public Ignore(final State<Context> start) {
         super(start);
     }
 
     @Override
-    public State processChar(final SaveGame saveGame, final char token) {
+    public State<Context> processChar(final Context context, final char token) {
         switch (expecting) {
             case EQUALS:
                 if (token != '=') {
@@ -45,7 +43,7 @@ class Ignore extends State {
                     case '}':
                         if (--rightCount == 0) {
                             reset();
-                            return start;
+                            return parent;
                         } else {
                             return this;
                         }
@@ -59,13 +57,29 @@ class Ignore extends State {
     }
 
     @Override
-    public State processWord(final SaveGame saveGame, final String word) {
+    public State<Context> processNumber(final Context context, final double number) {
+        switch (expecting) {
+            case EQUALS:
+                throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, number, '='));
+            case SWITCH:
+                reset();
+                return parent;
+            case CLOSING:
+                return this;
+            default:
+                assert false : "Expecting unknown token.";
+                return this;
+        }
+    }
+
+    @Override
+    public State<Context> processWord(final Context context, final String word) {
         switch (expecting) {
             case EQUALS:
                 throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, '='));
             case SWITCH:
                 reset();
-                return start;
+                return parent;
             case CLOSING:
                 return this;
             default:

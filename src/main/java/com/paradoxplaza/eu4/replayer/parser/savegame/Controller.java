@@ -1,13 +1,16 @@
-package com.paradoxplaza.eu4.replayer.parser;
+package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
+import com.paradoxplaza.eu4.replayer.parser.CompoundState;
+import com.paradoxplaza.eu4.replayer.parser.State;
+import com.paradoxplaza.eu4.replayer.parser.StringState;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
 
 /**
  * Processes controller={...}.
  */
-class Controller extends CompoundState {
+class Controller extends CompoundState<SaveGame> {
 
     /** Province id. */
     String id;
@@ -25,9 +28,9 @@ class Controller extends CompoundState {
     Ref<String> rebel = new Ref<>();
 
     /** Parses inner simple values. */
-    StringState inner = new StringState(this);
+    StringState<SaveGame> inner = new StringState(this);
 
-    public Controller(final State start) {
+    public Controller(final State<SaveGame> start) {
         super(start);
     }
 
@@ -81,7 +84,7 @@ class Controller extends CompoundState {
     }
 
     @Override
-    public State processWord(final SaveGame saveGame, final String word) {
+    public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         switch (word) {
             case "controller":
                 return inner.withOutput(tag);

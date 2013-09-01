@@ -1,17 +1,25 @@
-package com.paradoxplaza.eu4.replayer.parser;
+package com.paradoxplaza.eu4.replayer.parser.savegame;
 
+import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.Building;
 import com.paradoxplaza.eu4.replayer.events.Core;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
+import com.paradoxplaza.eu4.replayer.parser.CompoundState;
+import com.paradoxplaza.eu4.replayer.parser.State;
+import com.paradoxplaza.eu4.replayer.parser.StringState;
+import java.util.regex.Pattern;
 import javafx.beans.value.WritableValue;
 
 /**
  * Processes province history.
  */
-class ProvinceHistory extends CompoundState {
+class ProvinceHistory extends CompoundState<SaveGame> {
+
+    /** Pattern of dates. */
+    static final Pattern DATE = Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+");
 
     /** Province id. */
     String id;
@@ -56,19 +64,19 @@ class ProvinceHistory extends CompoundState {
     };
 
     /** State processsing simple events. */
-    StringState stringState = new StringState(this);
+    StringState<SaveGame> stringState = new StringState<>(this);
 
     /** State processing controller changes. */
     Controller controller = new Controller(this);
 
     /** State to ignore advisors. */
-    Ignore ignore = new Ignore(this);
+    Ignore<SaveGame> ignore = new Ignore<>(this);
 
     /**
      * Only constructor.
      * @param state parent state
      */
-    public ProvinceHistory(final State start) {
+    public ProvinceHistory(final State<SaveGame> start) {
         super(start);
     }
 
@@ -118,10 +126,10 @@ class ProvinceHistory extends CompoundState {
     }
 
     @Override
-    public State processWord(final SaveGame saveGame, final String word) {
+    public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         this.saveGame = saveGame;
         processing = word;
-        if (word.matches("[0-9]+\\.[0-9]+\\.[0-9]+")) {
+        if (DATE.matcher(word).matches()) {
             return getInnerHistory().withID(id).withName(name).withDate(new Date(word));
         }
         switch (word) {

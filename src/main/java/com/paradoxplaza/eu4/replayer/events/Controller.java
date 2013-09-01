@@ -6,10 +6,10 @@ package com.paradoxplaza.eu4.replayer.events;
 public class Controller extends ProvinceEvent {
 
     /** New controller tag. */
-    final String tag;
+    final public String tag;
 
     /** Kind of rebels. */
-    final String rebel;
+    final public String rebel;
 
     /**
      * Only constructor.

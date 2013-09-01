@@ -1,12 +1,16 @@
-package com.paradoxplaza.eu4.replayer.parser;
+package com.paradoxplaza.eu4.replayer.parser.savegame;
 
+import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.SaveGame;
+import com.paradoxplaza.eu4.replayer.parser.CompoundState;
+import com.paradoxplaza.eu4.replayer.parser.State;
+import com.paradoxplaza.eu4.replayer.parser.StringState;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
 
 /**
  * Processed ID={...}.
  */
-class Province extends CompoundState {
+class Province extends CompoundState<SaveGame> {
 
     /** Province id. */
     String id;
@@ -15,19 +19,19 @@ class Province extends CompoundState {
     Ref<String> name = new Ref<>();
 
     /** State parsing province name. */
-    StringState nameState = new StringState(this).withOutput(name);
+    StringState<SaveGame> nameState = new StringState<>(this).withOutput(name);
 
     /** State processing province history. */
     ProvinceHistory history = new ProvinceHistory(this);
 
     /** State ignoring uninteresting data. */
-    Ignore ignore = new Ignore(this);
+    Ignore<SaveGame> ignore = new Ignore<>(this);
 
     /**
      * Only constructor
      * @param start parent state
      */
-    public Province(final State start) {
+    public Province(final State<SaveGame> start) {
         super(start);
     }
 
@@ -51,7 +55,7 @@ class Province extends CompoundState {
     }
 
     @Override
-    public State processWord(final SaveGame saveGame, final String word) {
+    public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         switch (word) {
             case "name":
                 return nameState;

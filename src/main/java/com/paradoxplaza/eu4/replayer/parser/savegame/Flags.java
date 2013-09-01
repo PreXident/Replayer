@@ -1,14 +1,17 @@
-package com.paradoxplaza.eu4.replayer.parser;
+package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.Flag;
+import com.paradoxplaza.eu4.replayer.parser.CompoundState;
+import com.paradoxplaza.eu4.replayer.parser.DateState;
+import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
 
 /**
  * Processes global flags.
  */
-class Flags extends CompoundState {
+class Flags extends CompoundState<SaveGame> {
 
     /** Identifier of currently processed flag. */
     String flag;
@@ -17,13 +20,13 @@ class Flags extends CompoundState {
     final Ref<Date> date = new Ref<>();
 
     /** State to process individual flags. */
-    final DateState inFlags = new DateState(this).withOutput(date);
+    final DateState<SaveGame> inFlags = new DateState<>(this).withOutput(date);
 
     /**
      * Only constructor.
      * @param start parent state
      */
-    public Flags(final State start) {
+    public Flags(final State<SaveGame> start) {
         super(start);
     }
 
@@ -48,7 +51,7 @@ class Flags extends CompoundState {
     }
 
     @Override
-    public State processWord(final SaveGame saveGame, final String word) {
+    public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         endCompound(saveGame);
         flag = word;
         return inFlags;

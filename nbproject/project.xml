@@ -9,9 +9,9 @@
             <!-- Do not use Project Properties customizer when editing this file manually. -->
             <name>Replayer</name>
             <properties>
-        <!-- contains property jar.javafx with path to javafx jar, eg: -->
-        <!-- jar.javafx=D:/Programy/Java/jdk1.7.0_25/jre/lib/jfxrt.jar -->
-        <property-file>nbproject/build.properties</property-file>
+                <!-- contains property jar.javafx with path to javafx jar, eg: -->
+                <!-- jar.javafx=D:/Programy/Java/jdk1.7.0_25/jre/lib/jfxrt.jar -->
+                <property-file>nbproject/build.properties</property-file>
             </properties>
             <folders>
                 <source-folder>

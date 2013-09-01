@@ -4,3 +4,11 @@ zoom.step=100
 map.fit.width=5632
 #map display height
 map.fit.height=2048
+#sea color
+sea.color.red=0
+sea.color.green=0
+sea.color.blue=255
+#land color
+land.color.red=150
+land.color.green=150
+land.color.blue=150

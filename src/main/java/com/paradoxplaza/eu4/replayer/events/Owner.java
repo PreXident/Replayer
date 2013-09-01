@@ -6,7 +6,7 @@ package com.paradoxplaza.eu4.replayer.events;
 public class Owner extends ProvinceEvent {
 
     /** New owner of the province. */
-    final String tag;
+    final public String tag;
 
     /**
      * Only constructor

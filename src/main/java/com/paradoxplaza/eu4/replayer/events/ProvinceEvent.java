@@ -6,10 +6,10 @@ package com.paradoxplaza.eu4.replayer.events;
 public abstract class ProvinceEvent extends Event {
 
     /** Province id. */
-    final String id;
+    final public String id;
 
     /** Province name. */
-    final String name;
+    final public String name;
 
     /**
      * Only constructor.

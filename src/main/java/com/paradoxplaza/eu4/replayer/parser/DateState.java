@@ -6,19 +6,19 @@ import javafx.beans.value.WritableValue;
 /**
  * Processes dates in format xxx=Y.M.D.
  */
-class DateState extends ValueState<Date> {
+public class DateState<Context> extends ValueState<Context, Date> {
 
     /**
      * Only constructor.
-     * @param start parent state
+     * @param parent parent state
      */
-    public DateState(final State start) {
-        super(start);
+    public DateState(final State<Context> parent) {
+        super(parent);
     }
 
     @Override
-    public DateState withOutput(final WritableValue<Date> output) {
-        return (DateState) super.withOutput(output);
+    public DateState<Context> withOutput(final WritableValue<Date> output) {
+        return (DateState<Context>) super.withOutput(output);
     }
 
     @Override

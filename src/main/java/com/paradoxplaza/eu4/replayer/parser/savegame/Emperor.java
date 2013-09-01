@@ -1,14 +1,18 @@
-package com.paradoxplaza.eu4.replayer.parser;
+package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.NewEmperor;
+import com.paradoxplaza.eu4.replayer.parser.CompoundState;
+import com.paradoxplaza.eu4.replayer.parser.DateState;
+import com.paradoxplaza.eu4.replayer.parser.State;
+import com.paradoxplaza.eu4.replayer.parser.StringState;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
 
 /**
  * Processes old_emperor = {...}.
  */
-class Emperor extends CompoundState {
+class Emperor extends CompoundState<SaveGame> {
 
     /** Monarch's id. */
     final Ref<String> id = new Ref<>();
@@ -20,16 +24,16 @@ class Emperor extends CompoundState {
     final Ref<Date> date = new Ref<>();
 
     /** State processing date. */
-    final DateState dateState = new DateState(this).withOutput(date);
+    final DateState<SaveGame> dateState = new DateState<>(this).withOutput(date);
 
     /** State processing both id and tag. */
-    final StringState stringState = new StringState(this);
+    final StringState<SaveGame> stringState = new StringState<>(this);
 
     /**
      * Only constructor.
-     * @param start parent state
+     * @param parent parent state
      */
-    public Emperor(final State start) {
+    public Emperor(final State<SaveGame> start) {
         super(start);
     }
 
@@ -61,7 +65,7 @@ class Emperor extends CompoundState {
     }
 
     @Override
-    public State processWord(final SaveGame saveGame, final String word) {
+    public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         if (expecting != Expecting.CLOSING) {
             throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, expecting));
         }
