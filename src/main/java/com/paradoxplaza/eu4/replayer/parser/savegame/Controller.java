@@ -28,7 +28,7 @@ class Controller extends CompoundState<SaveGame> {
     Ref<String> rebel = new Ref<>();
 
     /** Parses inner simple values. */
-    StringState<SaveGame> inner = new StringState(this);
+    StringState<SaveGame> inner = new StringState<>(this);
 
     public Controller(final State<SaveGame> start) {
         super(start);
