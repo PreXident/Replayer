@@ -1,4 +1,4 @@
-package com.paradoxplaza.eu4.replayer.defaultMap;
+package com.paradoxplaza.eu4.replayer.defaultmap;
 
 import com.paradoxplaza.eu4.replayer.parser.TextParser;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
