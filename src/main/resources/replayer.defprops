@@ -5,8 +5,8 @@ map.fit.width=5632
 #map display height
 map.fit.height=2048
 #sea color
-sea.color.red=0
-sea.color.green=0
+sea.color.red=255
+sea.color.green=255
 sea.color.blue=255
 #land color
 land.color.red=150

@@ -1,5 +1,8 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import java.util.Formatter;
+import static java.util.FormattableFlags.*;
+
 /**
  * New controller of a province.
  */
@@ -21,6 +24,15 @@ public class Controller extends ProvinceEvent {
         super(id, name);
         this.tag = tag;
         this.rebel = rebel;
+    }
+
+    @Override
+    public void formatTo(final Formatter formatter, final int flags, final int width, final int precision) {
+        if ((flags & ALTERNATE) != ALTERNATE) {
+            formatter.format(toString());
+        } else {
+            formatter.format("Controller of province <a href=\"#\" onclick=\"return java.prov(this.textContent)\">%1$s</a> (%2$s) changed to %3$s", id, name, tag);
+        }
     }
 
     @Override

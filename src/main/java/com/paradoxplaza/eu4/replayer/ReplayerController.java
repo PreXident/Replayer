@@ -4,9 +4,9 @@ import com.paradoxplaza.eu4.replayer.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
-import com.paradoxplaza.eu4.replayer.parser.TextParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
+import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,32 +14,49 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StreamTokenizer;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javafx.animation.Animation.Status;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Worker.State;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import javafx.util.Duration;
+import netscape.javascript.JSObject;
 
 /**
  * Controller for the Replayer application.
@@ -64,6 +81,12 @@ public class ReplayerController implements Initializable {
     @FXML
     ScrollPane scrollPane;
 
+    @FXML
+    WebView log;
+
+    @FXML
+    HBox logContainer;
+
     /** Replayer settings. */
     Properties settings;
 
@@ -75,6 +98,9 @@ public class ReplayerController implements Initializable {
 
     /** Image displayed in {@link #imageView}. */
     WritableImage output;
+
+    /** Writer for {@link #output}. */
+    PixelWriter writer;
 
     /** How many pixels are added to width and height when zooming in/out */
     int zoomStep;
@@ -92,13 +118,30 @@ public class ReplayerController implements Initializable {
     Map<String, Color> countries = new HashMap<>();
 
     /** ID -> color mapping. */
-    Map<String, Color> provinces = new HashMap<>();
+    Map<String, ProvinceInfo> provinces = new HashMap<>();
+
+    /** Color -> ID mapping. */
+    Map<Color, String> colors = new HashMap<>();
 
     /** Set of colors assigned to sea provinces. */
     Set<Color> seas = new HashSet<>();
 
     /** Loaded save game to be replayed. */
     SaveGame saveGame;
+
+    /** Color used to display sea and lakes. */
+    Color seaColor;
+
+    /** Color to display no man's land. */
+    Color landColor;
+
+    /** Timer for replaying. */
+    Timeline timeline;
+
+    /** Generates dates for replaying dates. */
+    DateGenerator dateGenerator;
+
+    StringBuilder logContent = new StringBuilder();
 
     @FXML
     private void changeEU4Directory() {
@@ -137,50 +180,63 @@ public class ReplayerController implements Initializable {
         }
 
         initMap();
-        if (true) return;
         saveDirectory = file.getParentFile();
         settings.setProperty("save.dir", saveDirectory.getPath());
         titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
 
-        final PixelWriter writer = output.getPixelWriter();
+        writer = output.getPixelWriter();
         saveGame = new SaveGame();
         final SaveGameParser parser = new SaveGameParser(saveGame);
         try (final InputStream is = new FileInputStream(file)) {
             parser.parse(is);
             for(Event event : saveGame.timeline.get(null)) {
-                System.out.println(String.format("[%1$s]: %2$s", null, event));
-                final int width = (int) map.getWidth();
-                final int height = (int) map.getHeight();
-
-                for (int y = 0; y < height; y++){
-                    for (int x = 0; x < width; x++){
-                        final Color color = reader.getColor(x, y);
-                        if (event instanceof Controller) {
-                            final com.paradoxplaza.eu4.replayer.events.Controller controller = (com.paradoxplaza.eu4.replayer.events.Controller) event;
-                            final Color provColor = provinces.get(controller.id);
-                            if (color.equals(provColor) && y % 2 == 0) {
-                                writer.setColor(x, y, countries.get(controller.tag));
-                            }
-                        } else if (event instanceof Owner) {
-                            final com.paradoxplaza.eu4.replayer.events.Owner owner = (com.paradoxplaza.eu4.replayer.events.Owner) event;
-                            final Color provColor = provinces.get(owner.id);
-                            if (color.equals(provColor) && y % 2 == 1) {
-                                writer.setColor(x, y, countries.get(owner.tag));
-                            }
-                        }
-                    }
-                }
+                processEvent(null, event);
             }
-//            for(Date date : new DateGenerator(saveGame.startDate, saveGame.date)) {
-//                List<Event> list = saveGame.timeline.get(date);
-//                if (list == null) {
-//                    continue;
-//                }
-//                for(Event event : saveGame.timeline.get(date)) {
-//                    System.out.println(String.format("[%1$s]: %2$s", date, event));
-//                }
-//            }
         } catch(Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML
+    private void pause() {
+        if (timeline != null) {
+            timeline.pause();
+        }
+    }
+
+    @FXML
+    private void play() {
+        if (saveGame == null) {
+            return;
+        }
+        if (timeline != null && timeline.getStatus() != Status.RUNNING) {
+            timeline.play();
+            return;
+        }
+        dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
+        timeline = new Timeline();
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.getKeyFrames().add(
+                new KeyFrame(Duration.seconds(0.01),
+                  new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(ActionEvent e) {
+                        if (dateGenerator.hasNext()) {
+                            final Date date = dateGenerator.next();
+                            List<Event> list = saveGame.timeline.get(date);
+                            if (list == null) {
+                                System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
+                                return;
+                            }
+                            for(Event event : list) {
+                                processEvent(date, event);
+                            }
+                            timeline.pause();
+                        } else {
+                            timeline.stop();
+                            timeline = null;
+                        }
+                      }
+                }));
+        timeline.playFromStart();
     }
 
     @FXML
@@ -209,11 +265,26 @@ public class ReplayerController implements Initializable {
 
     @Override
     public void initialize(final URL url, final ResourceBundle rb) {
-        //
+        log.prefWidthProperty().bind(logContainer.widthProperty());
+
+        final WebEngine webEngine = log.getEngine();
+        webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+            @Override
+            public void changed(ObservableValue<? extends State> ov, State oldState, State newState) {
+                if (newState == State.SUCCEEDED) {
+                        JSObject win = (JSObject) webEngine.executeScript("window");
+                        win.setMember("java", new JavascriptBridge());
+                }
+            }
+        });
+        webEngine.setJavaScriptEnabled(true);
+        //logContent.append("<a href=\"#\" onclick=\"return java.prov(this.textContent)\">1</a>");
+        logContent.append("<body onload=\"window.scrollTo(0,document.body.scrollHeight)\">");
+        webEngine.loadContent(logContent.toString());
     }
 
     /**
-     * Sets Replayer settins. Adjusts saveDirectory etc. and loads map.
+     * Sets Replayer settings. Adjusts saveDirectory etc. and loads map.
      * @param settings new settings
      */
     public void setSettings(final Properties settings) {
@@ -241,11 +312,11 @@ public class ReplayerController implements Initializable {
     private void initMap() {
         final int width = (int) map.getWidth();
         final int height = (int) map.getHeight();
-        final Color seaColor = new Color(
+        seaColor = new Color(
                 Double.parseDouble(settings.getProperty("sea.color.red", "0"))/255,
                 Double.parseDouble(settings.getProperty("sea.color.green", "0"))/255,
                 Double.parseDouble(settings.getProperty("sea.color.blue", "255"))/255, 1D);
-        final Color landColor = new Color(
+        landColor = new Color(
                 Double.parseDouble(settings.getProperty("land.color.red", "150"))/255,
                 Double.parseDouble(settings.getProperty("land.color.green", "150"))/255,
                 Double.parseDouble(settings.getProperty("land.color.blue", "150"))/255, 1D);
@@ -331,8 +402,13 @@ public class ReplayerController implements Initializable {
         for (int y = 0; y < height; ++y){
             for (int x = 0; x < width; ++x){
                 final Color color = reader.getColor(x, y);
+                provinces.get(colors.get(color)).points.add(new Point(x, y));
                 writer.setColor(x, y, color);
             }
+        }
+
+        for(ProvinceInfo info : provinces.values()) {
+            info.calculateCenter();
         }
 
         imageView.setImage(output);
@@ -354,10 +430,15 @@ public class ReplayerController implements Initializable {
             line = reader.readLine();
             while (line != null) {
                 final String[] parts = line.split(";");
-                provinces.put(parts[0], new Color(
+                final Color color = new Color(
                         Double.parseDouble(parts[1])/255,
                         Double.parseDouble(parts[2])/255,
-                        Double.parseDouble(parts[3])/255, 1D));
+                        Double.parseDouble(parts[3])/255, 1D);
+                provinces.put(parts[0], new ProvinceInfo(color));
+                final String original = colors.put(color, parts[0]);
+                if (original != null) {
+                    throw new RuntimeException(String.format("Provinces %1$s and %2$s share a color!", parts[0], original));
+                }
                 line = reader.readLine();
             }
         } catch (FileNotFoundException e) {
@@ -380,5 +461,53 @@ public class ReplayerController implements Initializable {
         try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/default.map")) {
             parser.parse(is);
         } catch(Exception e) { e.printStackTrace(); }
+    }
+
+    private void processEvent(final Date date, final Event event) {
+        System.out.println(String.format("[%1$s]: %2$s", date, event));
+        log.getEngine().loadContent(logContent.append(String.format("[%1$s]: %2$#s<br>", date, event)).toString());
+
+        if (event instanceof Controller) {
+            final com.paradoxplaza.eu4.replayer.events.Controller controller = (com.paradoxplaza.eu4.replayer.events.Controller) event;
+            for(Point p : provinces.get(controller.id).points) {
+                if ( p.y % 2 == 0) {
+                    Color color = countries.get(controller.tag);
+                    writer.setColor(p.x, p.y, color == null ? landColor : color);
+                }
+            }
+        } else if (event instanceof Owner) {
+            final com.paradoxplaza.eu4.replayer.events.Owner owner = (com.paradoxplaza.eu4.replayer.events.Owner) event;
+            for(Point p : provinces.get(owner.id).points) {
+                //if ( p.y % 2 == 1) {
+                    Color color = countries.get(owner.tag);
+                    writer.setColor(p.x, p.y, color == null ? landColor : color);
+                //}
+            }
+        }
+    }
+
+    public class JavascriptBridge {
+
+        private double mapCoordToScrollProcent(final int mapCoord, final double mapSize, final double scrollSize, final double imageViewSize) {
+            final double zero = scrollSize / 2; //coord of center when (H/V)Value == 0
+            final double unit = imageViewSize - 2 * zero; //size of scrollable area
+            final double scroll = mapCoord / mapSize * imageViewSize; //map coords to scroll coords
+            final double procent = (scroll - zero) / unit; //scroll coords to procent
+            if (procent < 0) {
+                return 0;
+            } else if (procent > 1) {
+                return 1;
+            }
+            return procent;
+        }
+
+        public boolean prov(final String prov) {
+            final Point center = provinces.get(prov).center;
+            scrollPane.setHvalue(mapCoordToScrollProcent(
+                    center.x, map.getWidth(), scrollPane.getWidth(), imageView.getFitWidth()));
+            scrollPane.setVvalue(mapCoordToScrollProcent(
+                    center.y, map.getHeight(), scrollPane.getHeight(), imageView.getFitHeight()));
+            return false;
+        }
     }
 }

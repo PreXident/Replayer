@@ -1,5 +1,8 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static java.util.FormattableFlags.ALTERNATE;
+import java.util.Formatter;
+
 /**
  * Building added/removed from province.
  */
@@ -36,6 +39,15 @@ public class Building extends ProvinceEvent {
         super(id, name);
         this.building = building;
         this.type = Type.fromString(type);
+    }
+
+    @Override
+    public void formatTo(final Formatter formatter, final int flags, final int width, final int precision) {
+        if ((flags & ALTERNATE) != ALTERNATE) {
+            formatter.format(toString());
+        } else {
+            formatter.format("Building %1$s %2$s in province <a href=\"#\" onclick=\"return java.prov(this.textContent)\">%3$s</a> (%4$s)", building, type, id, name);
+        }
     }
 
     @Override
