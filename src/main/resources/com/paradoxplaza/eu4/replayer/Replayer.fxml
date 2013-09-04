@@ -70,6 +70,7 @@
 				<Button text="+" onAction="#zoomIn"/>
 				<Button text="|" onAction="#pause"/>
 				<Button text=">" onAction="#play"/>
+				<Label fx:id="dateLabel" />
 			</HBox>
 			<HBox fx:id="logContainer" maxHeight="100">
 				<WebView fx:id="log"/>

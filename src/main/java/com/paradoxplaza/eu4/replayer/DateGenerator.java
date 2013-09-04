@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer;
 
 import java.util.Iterator;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 /**
@@ -20,7 +21,7 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
         this.max = max;
     }
 
-    public ObjectProperty<Date> dateProperty() {
+    public ReadOnlyObjectProperty<Date> dateProperty() {
         return date;
     }
 

@@ -28,6 +28,7 @@ import javafx.animation.Animation.Status;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -39,6 +40,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -86,6 +88,9 @@ public class ReplayerController implements Initializable {
 
     @FXML
     HBox logContainer;
+
+    @FXML
+    Label dateLabel;
 
     /** Replayer settings. */
     Properties settings;
@@ -141,6 +146,10 @@ public class ReplayerController implements Initializable {
     /** Generates dates for replaying dates. */
     DateGenerator dateGenerator;
 
+    /** Listens to date changes and initiates event processing. */
+    final DateListener dateListener = new DateListener();
+
+    /** Content of log area with html code. */
     StringBuilder logContent = new StringBuilder();
 
     @FXML
@@ -192,6 +201,17 @@ public class ReplayerController implements Initializable {
             for(Event event : saveGame.timeline.get(null)) {
                 processEvent(null, event);
             }
+            dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
+            dateGenerator.dateProperty().addListener(dateListener);
+            dateLabel.textProperty().bind(new StringBinding() {
+                {
+                    bind(dateGenerator.date);
+                }
+                @Override
+                protected String computeValue() {
+                    return dateGenerator.date.get().toString();
+                }
+            });
         } catch(Exception e) { e.printStackTrace(); }
     }
 
@@ -211,25 +231,15 @@ public class ReplayerController implements Initializable {
             timeline.play();
             return;
         }
-        dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
         timeline = new Timeline();
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.getKeyFrames().add(
-                new KeyFrame(Duration.seconds(0.01),
+                new KeyFrame(Duration.seconds(0.1),
                   new EventHandler<ActionEvent>() {
                     @Override
-                    public void handle(ActionEvent e) {
+                    public void handle(final ActionEvent e) {
                         if (dateGenerator.hasNext()) {
-                            final Date date = dateGenerator.next();
-                            List<Event> list = saveGame.timeline.get(date);
-                            if (list == null) {
-                                System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
-                                return;
-                            }
-                            for(Event event : list) {
-                                processEvent(date, event);
-                            }
-                            timeline.pause();
+                            dateGenerator.next();
                         } else {
                             timeline.stop();
                             timeline = null;
@@ -486,8 +496,40 @@ public class ReplayerController implements Initializable {
         }
     }
 
+    /**
+     * Listens to changes of {@link #dateGenerator} and initiates event processing.
+     */
+    class DateListener implements ChangeListener<Date> {
+
+        @Override
+        public void changed(final ObservableValue<? extends Date> ov, final Date oldVal, final Date newVal) {
+            //dateLabel.setText(newVal.toString());
+            final List<Event> list = saveGame.timeline.get(newVal);
+            if (list == null) {
+                System.out.println(String.format("[%1$s]: %2$s", newVal, "nothing happened"));
+                return;
+            }
+            for(Event event : list) {
+                processEvent(newVal, event);
+            }
+            //timeline.pause();
+        }
+    }
+
+    /**
+     * Bridge between Javascript and JavaFX.
+     * Its public methods are accessible from javascript in {@link #logContent}.
+     */
     public class JavascriptBridge {
 
+        /**
+         * Translates {@link #map} coordinate to {@link #scrollPane} procentual HValue/VValue.
+         * @param mapCoord map coordinate
+         * @param mapSize size of map
+         * @param scrollSize size of scrollPane
+         * @param imageViewSize size of imageView
+         * @return scrollPane procentual scroll position
+         */
         private double mapCoordToScrollProcent(final int mapCoord, final double mapSize, final double scrollSize, final double imageViewSize) {
             final double zero = scrollSize / 2; //coord of center when (H/V)Value == 0
             final double unit = imageViewSize - 2 * zero; //size of scrollable area
@@ -501,6 +543,11 @@ public class ReplayerController implements Initializable {
             return procent;
         }
 
+        /**
+         * Centers {@link #scrollPane} to province, if possible.
+         * @param prov id of the province
+         * @return false to prevent link following and thus refreshing
+         */
         public boolean prov(final String prov) {
             final Point center = provinces.get(prov).center;
             scrollPane.setHvalue(mapCoordToScrollProcent(
