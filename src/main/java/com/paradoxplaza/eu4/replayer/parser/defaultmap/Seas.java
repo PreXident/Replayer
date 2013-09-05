@@ -1,4 +1,4 @@
-package com.paradoxplaza.eu4.replayer.defaultmap;
+package com.paradoxplaza.eu4.replayer.parser.defaultmap;
 
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;

@@ -1,6 +1,6 @@
 package com.paradoxplaza.eu4.replayer;
 
-import com.paradoxplaza.eu4.replayer.defaultmap.DefaultMapParser;
+import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
