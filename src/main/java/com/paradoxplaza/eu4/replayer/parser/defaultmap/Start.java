@@ -10,15 +10,14 @@ import java.io.InputStreamReader;
 import java.io.StreamTokenizer;
 import java.util.Map;
 import java.util.Set;
-import javafx.scene.paint.Color;
 
 /**
  * Start state of default.map parser.
  */
-public class Start extends com.paradoxplaza.eu4.replayer.parser.Start<Pair<Set<Color>, Map<String, ProvinceInfo>>> {
+public class Start extends com.paradoxplaza.eu4.replayer.parser.Start<Pair<Set<Integer>, Map<String, ProvinceInfo>>> {
 
     /** State ignoring everything till matching }. */
-    final Ignore<Pair<Set<Color>, Map<String, ProvinceInfo>>> ignore = new Ignore<>(this);
+    final Ignore<Pair<Set<Integer>, Map<String, ProvinceInfo>>> ignore = new Ignore<>(this);
 
     /** Processes seas_start. */
     final Seas seas = new Seas(this);
@@ -31,7 +30,7 @@ public class Start extends com.paradoxplaza.eu4.replayer.parser.Start<Pair<Set<C
     }
 
     @Override
-    public Start end(final Pair<Set<Color>, Map<String, ProvinceInfo>> context) {
+    public Start end(final Pair<Set<Integer>, Map<String, ProvinceInfo>> context) {
         return this;
     }
 
@@ -57,12 +56,12 @@ public class Start extends com.paradoxplaza.eu4.replayer.parser.Start<Pair<Set<C
     }
 
     @Override
-    public State<Pair<Set<Color>, Map<String, ProvinceInfo>>> processChar(final Pair<Set<Color>, Map<String, ProvinceInfo>> context, final char token) {
+    public State<Pair<Set<Integer>, Map<String, ProvinceInfo>>> processChar(final Pair<Set<Integer>, Map<String, ProvinceInfo>> context, final char token) {
         throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, "sea_starts"));
     }
 
     @Override
-    public State<Pair<Set<Color>, Map<String, ProvinceInfo>>> processWord(final Pair<Set<Color>, Map<String, ProvinceInfo>> context, final String word) {
+    public State<Pair<Set<Integer>, Map<String, ProvinceInfo>>> processWord(final Pair<Set<Integer>, Map<String, ProvinceInfo>> context, final String word) {
         switch (word) {
             case "sea_starts":
                 return seas;

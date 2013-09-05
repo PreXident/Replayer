@@ -7,18 +7,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
-import javafx.scene.paint.Color;
 
 /**
  * Parses map/default.map.
  */
-public class DefaultMapParser extends TextParser<Pair<Set<Color>, Map<String, ProvinceInfo>>> {
+public class DefaultMapParser extends TextParser<Pair<Set<Integer>, Map<String, ProvinceInfo>>> {
 
     /**
      * Only constructor.
      * @param context seas to fill
      */
-    public DefaultMapParser(final Pair<Set<Color>, Map<String, ProvinceInfo>> context) {
+    public DefaultMapParser(final Pair<Set<Integer>, Map<String, ProvinceInfo>> context) {
         super(context);
     }
 

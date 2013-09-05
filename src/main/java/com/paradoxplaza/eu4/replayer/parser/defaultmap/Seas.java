@@ -7,12 +7,11 @@ import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-import javafx.scene.paint.Color;
 
 /**
  * Processes seas_start={...}.
  */
-class Seas extends CompoundState<Pair<Set<Color>, Map<String, ProvinceInfo>>> {
+class Seas extends CompoundState<Pair<Set<Integer>, Map<String, ProvinceInfo>>> {
 
     static final Pattern NUMBER = Pattern.compile("\\d+");
 
@@ -20,12 +19,12 @@ class Seas extends CompoundState<Pair<Set<Color>, Map<String, ProvinceInfo>>> {
      * Only constructor.
      * @param parent parent state
      */
-    public Seas(final State<Pair<Set<Color>, Map<String, ProvinceInfo>>> parent) {
+    public Seas(final State<Pair<Set<Integer>, Map<String, ProvinceInfo>>> parent) {
         super(parent);
     }
 
     @Override
-    public State<Pair<Set<Color>, Map<String, ProvinceInfo>>> processWord(final Pair<Set<Color>, Map<String, ProvinceInfo>> context, final String word) {
+    public State<Pair<Set<Integer>, Map<String, ProvinceInfo>>> processWord(final Pair<Set<Integer>, Map<String, ProvinceInfo>> context, final String word) {
         if (!NUMBER.matcher(word).matches()) {
             throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_VALUE, word, "NUMBER"));
         }

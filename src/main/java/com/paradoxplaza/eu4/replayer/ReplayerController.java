@@ -38,12 +38,8 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Orientation;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
@@ -51,7 +47,6 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
@@ -73,6 +68,10 @@ public class ReplayerController implements Initializable {
 
     /** Pattern for mathing country colors. */
     static final Pattern TAG_COLOR_PATTERN = Pattern.compile("^\\s*color\\s*=\\s*\\{\\s*(\\d+)\\s*(\\d+)\\s*(\\d+)\\s*\\}\\s*$");
+
+    static int toColor(final int red, final int green, final int blue) {
+        return 255 << 24 | red << 16 | green << 8 | blue;
+    }
 
     @FXML
     BorderPane root;
@@ -105,7 +104,7 @@ public class ReplayerController implements Initializable {
     WritableImage output;
 
     /** Writer for {@link #output}. */
-    PixelWriter writer;
+//    PixelWriter writer;
 
     /** How many pixels are added to width and height when zooming in/out */
     int zoomStep;
@@ -120,25 +119,25 @@ public class ReplayerController implements Initializable {
     StringProperty titleProperty = new SimpleStringProperty(TITLE);
 
     /** Tag -> color mapping. */
-    Map<String, Color> countries = new HashMap<>();
+    Map<String, Integer> countries = new HashMap<>();
 
     /** ID -> color mapping. */
     Map<String, ProvinceInfo> provinces = new HashMap<>();
 
     /** Color -> ID mapping. */
-    Map<Color, String> colors = new HashMap<>();
+    Map<Integer, String> colors = new HashMap<>();
 
     /** Set of colors assigned to sea provinces. */
-    Set<Color> seas = new HashSet<>();
+    Set<Integer> seas = new HashSet<>();
 
     /** Loaded save game to be replayed. */
     SaveGame saveGame;
 
     /** Color used to display sea and lakes. */
-    Color seaColor;
+    int seaColor;
 
     /** Color to display no man's land. */
-    Color landColor;
+    int landColor;
 
     /** Timer for replaying. */
     Timeline timeline;
@@ -193,14 +192,11 @@ public class ReplayerController implements Initializable {
         settings.setProperty("save.dir", saveDirectory.getPath());
         titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
 
-        writer = output.getPixelWriter();
         saveGame = new SaveGame();
         final SaveGameParser parser = new SaveGameParser(saveGame);
         try (final InputStream is = new FileInputStream(file)) {
             parser.parse(is);
-            for(Event event : saveGame.timeline.get(null)) {
-                processEvent(null, event);
-            }
+            processEvents(null, saveGame.timeline.get(null));
             dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
             dateGenerator.dateProperty().addListener(dateListener);
             dateLabel.textProperty().bind(new StringBinding() {
@@ -322,20 +318,20 @@ public class ReplayerController implements Initializable {
     private void initMap() {
         final int width = (int) map.getWidth();
         final int height = (int) map.getHeight();
-        seaColor = new Color(
-                Double.parseDouble(settings.getProperty("sea.color.red", "0"))/255,
-                Double.parseDouble(settings.getProperty("sea.color.green", "0"))/255,
-                Double.parseDouble(settings.getProperty("sea.color.blue", "255"))/255, 1D);
-        landColor = new Color(
-                Double.parseDouble(settings.getProperty("land.color.red", "150"))/255,
-                Double.parseDouble(settings.getProperty("land.color.green", "150"))/255,
-                Double.parseDouble(settings.getProperty("land.color.blue", "150"))/255, 1D);
+        seaColor = toColor(
+                Integer.parseInt(settings.getProperty("sea.color.red", "0")),
+                Integer.parseInt(settings.getProperty("sea.color.green", "0")),
+                Integer.parseInt(settings.getProperty("sea.color.blue", "255")));
+        landColor = toColor(
+                Integer.parseInt(settings.getProperty("land.color.red", "150")),
+                Integer.parseInt(settings.getProperty("land.color.green", "150")),
+                Integer.parseInt(settings.getProperty("land.color.blue", "150")));
         final PixelWriter writer = output.getPixelWriter();
 
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
-                final Color color = reader.getColor(x, y);
-                writer.setColor(x, y, seas.contains(color) ? seaColor : landColor);
+                final int color = reader.getArgb(x, y);
+                writer.setArgb(x, y, seas.contains(color) ? seaColor : landColor);
             }
         }
     }
@@ -361,10 +357,10 @@ public class ReplayerController implements Initializable {
                             final Matcher m = TAG_COLOR_PATTERN.matcher(line);
                             if (m.matches()) {
                                 countries.put((String)key,
-                                        new Color(
-                                            Double.parseDouble(m.group(1))/255,
-                                            Double.parseDouble(m.group(2))/255,
-                                            Double.parseDouble(m.group(3))/255, 1D));
+                                        toColor(
+                                            Integer.parseInt(m.group(1)),
+                                            Integer.parseInt(m.group(2)),
+                                            Integer.parseInt(m.group(3))));
                                 break;
                             }
                             line = countryReader.readLine();
@@ -411,14 +407,14 @@ public class ReplayerController implements Initializable {
 
         for (int y = 0; y < height; ++y){
             for (int x = 0; x < width; ++x){
-                final Color color = reader.getColor(x, y);
-                provinces.get(colors.get(color)).points.add(new Point(x, y));
-                writer.setColor(x, y, color);
+                final int color = reader.getArgb(x, y);
+                provinces.get(colors.get(color)).points.add(y * width + x);
+                writer.setArgb(x, y, color);
             }
         }
 
         for(ProvinceInfo info : provinces.values()) {
-            info.calculateCenter();
+            info.calculateCenter(width);
         }
 
         imageView.setImage(output);
@@ -440,10 +436,10 @@ public class ReplayerController implements Initializable {
             line = reader.readLine();
             while (line != null) {
                 final String[] parts = line.split(";");
-                final Color color = new Color(
-                        Double.parseDouble(parts[1])/255,
-                        Double.parseDouble(parts[2])/255,
-                        Double.parseDouble(parts[3])/255, 1D);
+                final int color = toColor(
+                        Integer.parseInt(parts[1]),
+                        Integer.parseInt(parts[2]),
+                        Integer.parseInt(parts[3]));
                 provinces.put(parts[0], new ProvinceInfo(color));
                 final String original = colors.put(color, parts[0]);
                 if (original != null) {
@@ -473,27 +469,37 @@ public class ReplayerController implements Initializable {
         } catch(Exception e) { e.printStackTrace(); }
     }
 
-    private void processEvent(final Date date, final Event event) {
-        System.out.println(String.format("[%1$s]: %2$s", date, event));
-        log.getEngine().loadContent(logContent.append(String.format("[%1$s]: %2$#s<br>", date, event)).toString());
+    private void processEvents(final Date date, final List<Event> events) {
+        if (events == null) {
+            System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
+            return;
+        }
+        long time = System.currentTimeMillis();
+        final PixelWriter writer = output.getPixelWriter();
+        final int width = (int) map.getWidth();
+        for(Event event : events) {
+            System.out.println(String.format("[%1$s]: %2$s", date, event));
+            log.getEngine().loadContent(logContent.append(String.format("[%1$s]: %2$#s<br>", date, event)).toString());
 
-        if (event instanceof Controller) {
-            final com.paradoxplaza.eu4.replayer.events.Controller controller = (com.paradoxplaza.eu4.replayer.events.Controller) event;
-            for(Point p : provinces.get(controller.id).points) {
-                if ( p.y % 2 == 0) {
-                    Color color = countries.get(controller.tag);
-                    writer.setColor(p.x, p.y, color == null ? landColor : color);
+            if (event instanceof Controller) {
+                final com.paradoxplaza.eu4.replayer.events.Controller controller = (com.paradoxplaza.eu4.replayer.events.Controller) event;
+                for(Integer p : provinces.get(controller.id).points) {
+                    if ( p / width % 2 == 0) {
+                        Integer color = countries.get(controller.tag);
+                        writer.setArgb(p % width, p / width, color == null ? landColor : color);
+                    }
+                }
+            } else if (event instanceof Owner) {
+                final com.paradoxplaza.eu4.replayer.events.Owner owner = (com.paradoxplaza.eu4.replayer.events.Owner) event;
+                for(Integer p : provinces.get(owner.id).points) {
+                    //if ( p % bufferWidth2 == 1) {
+                        Integer color = countries.get(owner.tag);
+                        writer.setArgb(p % width, p / width, color == null ? landColor : color);
+                    //}
                 }
             }
-        } else if (event instanceof Owner) {
-            final com.paradoxplaza.eu4.replayer.events.Owner owner = (com.paradoxplaza.eu4.replayer.events.Owner) event;
-            for(Point p : provinces.get(owner.id).points) {
-                //if ( p.y % 2 == 1) {
-                    Color color = countries.get(owner.tag);
-                    writer.setColor(p.x, p.y, color == null ? landColor : color);
-                //}
-            }
         }
+        System.out.println(System.currentTimeMillis() - time);
     }
 
     /**
@@ -504,14 +510,8 @@ public class ReplayerController implements Initializable {
         @Override
         public void changed(final ObservableValue<? extends Date> ov, final Date oldVal, final Date newVal) {
             //dateLabel.setText(newVal.toString());
-            final List<Event> list = saveGame.timeline.get(newVal);
-            if (list == null) {
-                System.out.println(String.format("[%1$s]: %2$s", newVal, "nothing happened"));
-                return;
-            }
-            for(Event event : list) {
-                processEvent(newVal, event);
-            }
+            final List<Event> events = saveGame.timeline.get(newVal);
+            processEvents(newVal, events);
             //timeline.pause();
         }
     }
