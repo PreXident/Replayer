@@ -5,3 +5,7 @@ root {
 .map {
 	-fx-background-color: rgba(0, 0, 255, 1.0);
 }
+
+.scroll-pane:focused {
+    -fx-background-insets: 0;
+}
