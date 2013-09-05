@@ -284,7 +284,6 @@ public class ReplayerController implements Initializable {
             }
         });
         webEngine.setJavaScriptEnabled(true);
-        //logContent.append("<a href=\"#\" onclick=\"return java.prov(this.textContent)\">1</a>");
         logContent.append("<body onload=\"window.scrollTo(0,document.body.scrollHeight)\">");
         webEngine.loadContent(logContent.toString());
     }
@@ -474,16 +473,14 @@ public class ReplayerController implements Initializable {
             System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
             return;
         }
-        long time = System.currentTimeMillis();
         final PixelWriter writer = output.getPixelWriter();
         final int width = (int) map.getWidth();
         for(Event event : events) {
             System.out.println(String.format("[%1$s]: %2$s", date, event));
-            log.getEngine().loadContent(logContent.append(String.format("[%1$s]: %2$#s<br>", date, event)).toString());
-
+            logContent.append(String.format("[%1$s]: %2$#s<br>", date, event));
             if (event instanceof Controller) {
                 final com.paradoxplaza.eu4.replayer.events.Controller controller = (com.paradoxplaza.eu4.replayer.events.Controller) event;
-                for(Integer p : provinces.get(controller.id).points) {
+                for(int p : provinces.get(controller.id).points) {
                     if ( p / width % 2 == 0) {
                         Integer color = countries.get(controller.tag);
                         writer.setArgb(p % width, p / width, color == null ? landColor : color);
@@ -491,7 +488,7 @@ public class ReplayerController implements Initializable {
                 }
             } else if (event instanceof Owner) {
                 final com.paradoxplaza.eu4.replayer.events.Owner owner = (com.paradoxplaza.eu4.replayer.events.Owner) event;
-                for(Integer p : provinces.get(owner.id).points) {
+                for(int p : provinces.get(owner.id).points) {
                     //if ( p % bufferWidth2 == 1) {
                         Integer color = countries.get(owner.tag);
                         writer.setArgb(p % width, p / width, color == null ? landColor : color);
@@ -499,7 +496,7 @@ public class ReplayerController implements Initializable {
                 }
             }
         }
-        System.out.println(System.currentTimeMillis() - time);
+        log.getEngine().loadContent(logContent.toString());
     }
 
     /**
@@ -509,7 +506,6 @@ public class ReplayerController implements Initializable {
 
         @Override
         public void changed(final ObservableValue<? extends Date> ov, final Date oldVal, final Date newVal) {
-            //dateLabel.setText(newVal.toString());
             final List<Event> events = saveGame.timeline.get(newVal);
             processEvents(newVal, events);
             //timeline.pause();

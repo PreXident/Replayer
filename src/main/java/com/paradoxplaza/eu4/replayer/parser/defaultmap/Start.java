@@ -35,7 +35,7 @@ public class Start extends com.paradoxplaza.eu4.replayer.parser.Start<Pair<Set<I
     }
 
     @Override
-    protected StreamTokenizer _createTokenizer(InputStream input) {
+    protected StreamTokenizer _createTokenizer(final InputStream input) {
         final StreamTokenizer t = new StreamTokenizer(new BufferedReader(new InputStreamReader(input)));
         t.resetSyntax();
         t.commentChar('#');
