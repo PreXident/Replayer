@@ -201,21 +201,41 @@ public class ReplayerController implements Initializable {
         titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
 
         saveGame = new SaveGame();
-        final SaveGameParser parser = new SaveGameParser(saveGame);
-        try (final InputStream is = new FileInputStream(file)) {
-            parser.parse(is);
-            processEvents(null, saveGame.timeline.get(null));
-            dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
-            dateGenerator.dateProperty().addListener(dateListener);
-            dateLabel.textProperty().bind(new StringBinding() {
-                {
-                    bind(dateGenerator.date);
-                }
+        try {
+            final InputStream is = new FileInputStream(file);
+            final SaveGameParser parser = new SaveGameParser(saveGame, file.length(), is);
+            progressBar.progressProperty().bind(parser.progressProperty());
+            final Thread t = new Thread(parser);
+            parser.stateProperty().addListener(new ChangeListener<State>() {
                 @Override
-                protected String computeValue() {
-                    return dateGenerator.date.get().toString();
+                public void changed(ObservableValue<? extends State> ov, State t, State t1) {
+                    if (t1 == State.SUCCEEDED) {
+                        try {
+                            is.close();
+                            progressBar.progressProperty().unbind();
+                            progressBar.progressProperty().set(0);
+                            processEvents(null, saveGame.timeline.get(null));
+                            dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
+                            dateGenerator.dateProperty().addListener(dateListener);
+                            dateLabel.textProperty().bind(new StringBinding() {
+                                {
+                                    bind(dateGenerator.date);
+                                }
+                                @Override
+                                protected String computeValue() {
+                                    return dateGenerator.date.get().toString();
+                                }
+                            });
+                        } catch (IOException e) { }
+
+                    } else if (t1 == State.FAILED) {
+                        try {
+                            is.close();
+                        } catch (IOException e) { }
+                    }
                 }
             });
+            t.start();
         } catch(Exception e) { e.printStackTrace(); }
     }
 
@@ -471,9 +491,9 @@ public class ReplayerController implements Initializable {
 
     private void loadSeas() {
         seas.clear();
-        final DefaultMapParser parser = new DefaultMapParser(new Pair<>(seas, provinces));
         try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/default.map")) {
-            parser.parse(is);
+            final DefaultMapParser parser = new DefaultMapParser(new Pair<>(seas, provinces), Long.MAX_VALUE, is);
+            parser.run();
         } catch(Exception e) { e.printStackTrace(); }
     }
 
