@@ -44,6 +44,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelFormat;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
@@ -72,6 +73,13 @@ public class ReplayerController implements Initializable {
     /** Pattern for mathing country colors. */
     static final Pattern TAG_COLOR_PATTERN = Pattern.compile("^\\s*color\\s*=\\s*\\{\\s*(\\d+)\\s*(\\d+)\\s*(\\d+)\\s*\\}\\s*$");
 
+    /**
+     * R, G, B to argb.
+     * @param red
+     * @param green
+     * @param blue
+     * @return argb
+     */
     static int toColor(final int red, final int green, final int blue) {
         return 255 << 24 | red << 16 | green << 8 | blue;
     }
@@ -115,7 +123,16 @@ public class ReplayerController implements Initializable {
     /** Writer for {@link #output}. */
 //    PixelWriter writer;
 
-    /** How many pixels are added to width and height when zooming in/out */
+    /** Buffer for emergency refresh. */
+    int[] buffer;
+
+    /** Buffer width. */
+    int bufferWidth;
+
+    /** Buffer height. */
+    int bufferHeight;
+
+    /** How many pixels are added to width and height when zooming in/out. */
     int zoomStep;
 
     /** Directory containing save games. */
@@ -204,6 +221,9 @@ public class ReplayerController implements Initializable {
         try {
             final InputStream is = new FileInputStream(file);
             final SaveGameParser parser = new SaveGameParser(saveGame, file.length(), is);
+            final int width = (int) map.getWidth();
+            final int height = (int) map.getHeight();
+            buffer = new int[width * height];
             imageView.setImage(null);
             final Task<Void> mapInitializer = new Task<Void>() {
                 @Override
@@ -225,7 +245,8 @@ public class ReplayerController implements Initializable {
                     for (int y = 0; y < height; ++y) {
                         for (int x = 0; x < width; ++x) {
                             final int color = reader.getArgb(x, y);
-                            writer.setArgb(x, y, seas.contains(color) ? seaColor : landColor);
+                            buffer[y * width + x] = seas.contains(color) ? seaColor : landColor;
+                            //writer.setArgb(x, y, seas.contains(color) ? seaColor : landColor);
                             updateProgress(y*width+x, size);
                         }
                     }
@@ -235,7 +256,7 @@ public class ReplayerController implements Initializable {
             mapInitializer.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
                 @Override
                 public void handle(WorkerStateEvent t) {
-                    imageView.setImage(output);
+                    output.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), buffer, 0, width);
                     dateLabel.textProperty().bind(parser.titleProperty());
                     progressBar.progressProperty().bind(parser.progressProperty());
                     new Thread(parser).start();
@@ -246,7 +267,7 @@ public class ReplayerController implements Initializable {
                 @Override
                 protected Void call() throws Exception {
                     dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
-                    updateTitle("Initializint starting date...");
+                    updateTitle("Initializing starting date...");
                     processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)), false);
 
                     return null;
@@ -268,7 +289,8 @@ public class ReplayerController implements Initializable {
                             return dateGenerator.date.get().toString();
                         }
                     });
-                    new JavascriptBridge().prov("1");
+                    imageView.setImage(output);
+                    new JavascriptBridge().prov(settings.getProperty("center", "1"));
                 }
             });
 
@@ -319,6 +341,19 @@ public class ReplayerController implements Initializable {
                       }
                 }));
         timeline.playFromStart();
+    }
+
+    @FXML
+    private void refresh() {
+        scrollPane.setContent(null);
+        imageView.setImage(null);
+        int width = (int) output.getWidth();
+        int height = (int) output.getHeight();
+        WritableImage i = new WritableImage(width, height);
+        i.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), buffer, 0, width);
+        output = i;
+        imageView.setImage(i);
+        scrollPane.setContent(imageView);
     }
 
     @FXML
@@ -463,12 +498,16 @@ public class ReplayerController implements Initializable {
 
                 //Copy from source to destination pixel by pixel
                 output = new WritableImage(width, height);
+                buffer = new int[width*height];
+                bufferWidth = width;
+                bufferHeight = height;
                 final PixelWriter writer = output.getPixelWriter();
 
                 for (int y = 0; y < height; ++y){
                     for (int x = 0; x < width; ++x){
                         final int color = reader.getArgb(x, y);
                         provinces.get(colors.get(color)).points.add(y * width + x);
+                        buffer[y * width + x] = color;
                         writer.setArgb(x, y, color);
                         updateProgress(y*width+x, height*width);
                     }
@@ -558,6 +597,7 @@ public class ReplayerController implements Initializable {
                 for(int p : provinces.get(controller.id).points) {
                     if ( p / width % 2 == 0) {
                         Integer color = countries.get(controller.tag);
+                        buffer[p] = color == null ? landColor : color;
                         writer.setArgb(p % width, p / width, color == null ? landColor : color);
                     }
                 }
@@ -566,6 +606,7 @@ public class ReplayerController implements Initializable {
                 for(int p : provinces.get(owner.id).points) {
                     //if ( p % bufferWidth2 == 1) {
                         Integer color = countries.get(owner.tag);
+                        buffer[p] = color == null ? landColor : color;
                         writer.setArgb(p % width, p / width, color == null ? landColor : color);
                     //}
                 }

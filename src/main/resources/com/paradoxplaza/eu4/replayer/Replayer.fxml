@@ -54,6 +54,11 @@
 							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="D"/>
 						</accelerator>
 					</MenuItem>
+					<MenuItem text="Emergency refresh" onAction="#refresh">
+						<accelerator>
+							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="R"/>
+						</accelerator>
+					</MenuItem>
 				</Menu>
 			</menus>
 		</MenuBar>
