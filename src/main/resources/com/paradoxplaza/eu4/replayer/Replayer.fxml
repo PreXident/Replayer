@@ -77,7 +77,7 @@
 				<Button text=">" onAction="#play"/>
 				<Label fx:id="dateLabel"/>
 			</HBox>
-                        <ProgressBar fx:id="progressBar" progress="0"/>
+				<ProgressBar fx:id="progressBar" progress="0"/>
 			<HBox fx:id="logContainer" maxHeight="100">
 				<WebView fx:id="log"/>
 			</HBox>

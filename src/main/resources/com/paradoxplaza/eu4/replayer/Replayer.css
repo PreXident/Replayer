@@ -9,3 +9,7 @@ root {
 .scroll-pane:focused {
     -fx-background-insets: 0;
 }
+
+.scroll-pane {
+	-fx-background-color: rgba(255, 255, 255, 1.0);
+}
