@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.animation.Animation.Status;
@@ -108,6 +109,9 @@ public class ReplayerController implements Initializable {
     @FXML
     ProgressBar progressBar;
 
+    /** Lock to prevent user input while background processing. */
+    final Semaphore lock = new Semaphore(1);
+
     /** Replayer settings. */
     Properties settings;
 
@@ -178,7 +182,11 @@ public class ReplayerController implements Initializable {
     StringBuilder logContent = new StringBuilder();
 
     @FXML
-    private void changeEU4Directory() {
+    private void changeEU4Directory() throws InterruptedException{
+        if (!lock.tryAcquire()) {
+           return;
+        }
+        pause();
         final DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Select EU4 directory");
         if (eu4Directory != null && eu4Directory.exists() && eu4Directory.isDirectory()) {
@@ -190,6 +198,7 @@ public class ReplayerController implements Initializable {
             settings.setProperty("eu4.dir", eu4Directory.getPath());
             loadData();
         }
+        lock.release();
     }
 
     @FXML
@@ -198,7 +207,11 @@ public class ReplayerController implements Initializable {
     }
 
     @FXML
-    private void load() {
+    private void load() throws InterruptedException {
+        if (!lock.tryAcquire()) {
+           return;
+        }
+        pause();
         final FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(saveDirectory);
         fileChooser.setTitle("Select EU4 save to replay");
@@ -259,7 +272,7 @@ public class ReplayerController implements Initializable {
                     output.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), buffer, 0, width);
                     dateLabel.textProperty().bind(parser.titleProperty());
                     progressBar.progressProperty().bind(parser.progressProperty());
-                    new Thread(parser).start();
+                    new Thread(parser, "parser").start();
                 }
             });
 
@@ -290,7 +303,8 @@ public class ReplayerController implements Initializable {
                         }
                     });
                     imageView.setImage(output);
-                    new JavascriptBridge().prov(settings.getProperty("center", "1"));
+                    new JavascriptBridge().prov(settings.getProperty("center.id", "1"));
+                    lock.release();
                 }
             });
 
@@ -299,7 +313,7 @@ public class ReplayerController implements Initializable {
                 public void handle(WorkerStateEvent t) {
                     dateLabel.textProperty().bind(starter.titleProperty());
                     progressBar.progressProperty().bind(starter.progressProperty());
-                    new Thread(starter).start();
+                    new Thread(starter, "starter").start();
                 }
             });
 
@@ -317,7 +331,10 @@ public class ReplayerController implements Initializable {
     }
 
     @FXML
-    private void play() {
+    private void play() throws InterruptedException {
+        if (!lock.tryAcquire()) {
+           return;
+        }
         if (saveGame == null) {
             return;
         }
@@ -341,10 +358,15 @@ public class ReplayerController implements Initializable {
                       }
                 }));
         timeline.playFromStart();
+        lock.release();
     }
 
     @FXML
-    private void refresh() {
+    private void refresh() throws InterruptedException {
+        if (!lock.tryAcquire()) {
+           return;
+        }
+        pause();
         scrollPane.setContent(null);
         imageView.setImage(null);
         int width = (int) output.getWidth();
@@ -354,6 +376,7 @@ public class ReplayerController implements Initializable {
         output = i;
         imageView.setImage(i);
         scrollPane.setContent(imageView);
+        lock.release();
     }
 
     @FXML
@@ -415,7 +438,10 @@ public class ReplayerController implements Initializable {
         }
 
         eu4Directory = new File(settings.getProperty("eu4.dir"));
-        loadData();
+        try {
+            lock.acquire();
+            loadData();
+        } catch (InterruptedException e) { }
     }
 
     public StringProperty titleProperty() {
@@ -517,6 +543,7 @@ public class ReplayerController implements Initializable {
                     info.calculateCenter(width);
                 }
 
+                lock.release();
                 return null;
             }
         };
@@ -532,8 +559,6 @@ public class ReplayerController implements Initializable {
                 int fitHeight = Integer.parseInt(settings.getProperty("map.fit.height", "0"));
                 imageView.setFitHeight(fitHeight);
                 imageView.setFitWidth(fitWidth);
-                scrollPane.setContent(null);
-                scrollPane.setContent(imageView);
             }
         });
         new Thread(mapLoader).start();

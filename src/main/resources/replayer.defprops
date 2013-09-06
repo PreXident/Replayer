@@ -13,4 +13,4 @@ land.color.red=150
 land.color.green=150
 land.color.blue=150
 #province to center after load
-center=1
+center.id=1
