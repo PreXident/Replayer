@@ -6,7 +6,10 @@ package com.paradoxplaza.eu4.replayer;
 public class Date implements Comparable<Date> {
 
     /** Number of days in each month ignoring leap years. */
-    static byte[] monthsDays = new byte[] { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    static byte[] monthsDays = new byte[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+    /** Number of days in a year. */
+    static short yearDays = 365;
 
     /**
      * Throws InvalidArgumentException if given date is invalid.

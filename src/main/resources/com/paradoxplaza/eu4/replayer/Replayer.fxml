@@ -65,12 +65,12 @@
 	</center>
 	<bottom>
 		<VBox fx:id="bottom" >
-			<HBox>
+			<HBox alignment="CENTER_LEFT">
 				<Button text="-" onAction="#zoomOut"/>
 				<Button text="+" onAction="#zoomIn"/>
 				<Button text="|" onAction="#pause"/>
 				<Button text=">" onAction="#play"/>
-				<Label fx:id="dateLabel" />
+				<Label fx:id="dateLabel"/>
 			</HBox>
                         <ProgressBar fx:id="progressBar" progress="0"/>
 			<HBox fx:id="logContainer" maxHeight="100">

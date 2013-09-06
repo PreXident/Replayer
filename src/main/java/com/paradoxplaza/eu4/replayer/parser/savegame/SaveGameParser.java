@@ -17,5 +17,6 @@ public class SaveGameParser extends TextParser<SaveGame> {
      */
     public SaveGameParser(final SaveGame saveGame, final long size, final InputStream input) {
         super(saveGame, new Start(), size, input);
+        updateTitle("Parsing save game...");
     }
 }

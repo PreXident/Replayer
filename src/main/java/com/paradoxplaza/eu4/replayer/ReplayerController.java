@@ -34,6 +34,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker.State;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -195,48 +196,95 @@ public class ReplayerController implements Initializable {
             return;
         }
 
-        initMap();
         saveDirectory = file.getParentFile();
         settings.setProperty("save.dir", saveDirectory.getPath());
         titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
-
         saveGame = new SaveGame();
+
         try {
             final InputStream is = new FileInputStream(file);
             final SaveGameParser parser = new SaveGameParser(saveGame, file.length(), is);
-            progressBar.progressProperty().bind(parser.progressProperty());
-            final Thread t = new Thread(parser);
-            parser.stateProperty().addListener(new ChangeListener<State>() {
+            imageView.setImage(null);
+            final Task<Void> mapInitializer = new Task<Void>() {
                 @Override
-                public void changed(ObservableValue<? extends State> ov, State t, State t1) {
-                    if (t1 == State.SUCCEEDED) {
-                        try {
-                            is.close();
-                            progressBar.progressProperty().unbind();
-                            progressBar.progressProperty().set(0);
-                            processEvents(null, saveGame.timeline.get(null));
-                            dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
-                            dateGenerator.dateProperty().addListener(dateListener);
-                            dateLabel.textProperty().bind(new StringBinding() {
-                                {
-                                    bind(dateGenerator.date);
-                                }
-                                @Override
-                                protected String computeValue() {
-                                    return dateGenerator.date.get().toString();
-                                }
-                            });
-                        } catch (IOException e) { }
+                protected Void call() throws Exception {
+                    updateTitle("Initializing map...");
+                    final int width = (int) map.getWidth();
+                    final int height = (int) map.getHeight();
+                    seaColor = toColor(
+                            Integer.parseInt(settings.getProperty("sea.color.red", "0")),
+                            Integer.parseInt(settings.getProperty("sea.color.green", "0")),
+                            Integer.parseInt(settings.getProperty("sea.color.blue", "255")));
+                    landColor = toColor(
+                            Integer.parseInt(settings.getProperty("land.color.red", "150")),
+                            Integer.parseInt(settings.getProperty("land.color.green", "150")),
+                            Integer.parseInt(settings.getProperty("land.color.blue", "150")));
+                    final PixelWriter writer = output.getPixelWriter();
 
-                    } else if (t1 == State.FAILED) {
-                        try {
-                            is.close();
-                        } catch (IOException e) { }
+                    final long size = height * width;
+                    for (int y = 0; y < height; ++y) {
+                        for (int x = 0; x < width; ++x) {
+                            final int color = reader.getArgb(x, y);
+                            writer.setArgb(x, y, seas.contains(color) ? seaColor : landColor);
+                            updateProgress(y*width+x, size);
+                        }
                     }
+                    return null;
+                }
+            };
+            mapInitializer.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(WorkerStateEvent t) {
+                    imageView.setImage(output);
+                    dateLabel.textProperty().bind(parser.titleProperty());
+                    progressBar.progressProperty().bind(parser.progressProperty());
+                    new Thread(parser).start();
                 }
             });
-            t.start();
-        } catch(Exception e) { e.printStackTrace(); }
+
+            final Task<Void> starter = new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+                    dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
+                    updateTitle("Initializint starting date...");
+                    processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)), false);
+
+                    return null;
+                }
+            };
+
+            starter.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(WorkerStateEvent t) {
+                    log.getEngine().loadContent(logContent.toString());
+                    progressBar.progressProperty().bind(dateGenerator.progress);
+                    dateGenerator.dateProperty().addListener(dateListener);
+                    dateLabel.textProperty().bind(new StringBinding() {
+                        {
+                            bind(dateGenerator.date);
+                        }
+                        @Override
+                        protected String computeValue() {
+                            return dateGenerator.date.get().toString();
+                        }
+                    });
+                    new JavascriptBridge().prov("1");
+                }
+            });
+
+            parser.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(WorkerStateEvent t) {
+                    dateLabel.textProperty().bind(starter.titleProperty());
+                    progressBar.progressProperty().bind(starter.progressProperty());
+                    new Thread(starter).start();
+                }
+            });
+
+            dateLabel.textProperty().bind(mapInitializer.titleProperty());
+            progressBar.progressProperty().bind(mapInitializer.progressProperty());
+            new Thread(mapInitializer).start();
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
@@ -343,27 +391,6 @@ public class ReplayerController implements Initializable {
         return root.getScene().getWindow();
     }
 
-    private void initMap() {
-        final int width = (int) map.getWidth();
-        final int height = (int) map.getHeight();
-        seaColor = toColor(
-                Integer.parseInt(settings.getProperty("sea.color.red", "0")),
-                Integer.parseInt(settings.getProperty("sea.color.green", "0")),
-                Integer.parseInt(settings.getProperty("sea.color.blue", "255")));
-        landColor = toColor(
-                Integer.parseInt(settings.getProperty("land.color.red", "150")),
-                Integer.parseInt(settings.getProperty("land.color.green", "150")),
-                Integer.parseInt(settings.getProperty("land.color.blue", "150")));
-        final PixelWriter writer = output.getPixelWriter();
-
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                final int color = reader.getArgb(x, y);
-                writer.setArgb(x, y, seas.contains(color) ? seaColor : landColor);
-            }
-        }
-    }
-
     private void loadCountries() {
         countries.clear();
         final File countryTagDir = new File(eu4Directory + "/common/country_tags");
@@ -404,54 +431,73 @@ public class ReplayerController implements Initializable {
     private void loadData() {
         titleProperty.set(TITLE);
         loadProvinces();
-        loadSeas();
         loadMap();
+        loadSeas();
         loadCountries();
     }
 
     private void loadMap() {
-        InputStream is = null;
-        try {
-            is = new FileInputStream(eu4Directory.getPath() + "/map/provinces.bmp");
-            map = new Image(is);
-        } catch (FileNotFoundException e) {
-            System.err.println("File map/provinces.bmp not found!");
-            map = new WritableImage(1,1);
-        } finally {
-            if (is != null) {
+        dateLabel.textProperty().unbind();
+        dateLabel.setText("Loading map...");
+        final Task<Void> mapLoader = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                InputStream is = null;
                 try {
-                    is.close();
-                } catch (IOException e) { }
+                    is = new FileInputStream(eu4Directory.getPath() + "/map/provinces.bmp");
+                    map = new Image(is);
+                } catch (FileNotFoundException e) {
+                    System.err.println("File map/provinces.bmp not found!");
+                    map = new WritableImage(1,1);
+                } finally {
+                    if (is != null) {
+                        try {
+                            is.close();
+                        } catch (IOException e) { }
+                    }
+                }
+                reader = map.getPixelReader();
+
+                final int width = (int) map.getWidth();
+                final int height = (int) map.getHeight();
+
+                //Copy from source to destination pixel by pixel
+                output = new WritableImage(width, height);
+                final PixelWriter writer = output.getPixelWriter();
+
+                for (int y = 0; y < height; ++y){
+                    for (int x = 0; x < width; ++x){
+                        final int color = reader.getArgb(x, y);
+                        provinces.get(colors.get(color)).points.add(y * width + x);
+                        writer.setArgb(x, y, color);
+                        updateProgress(y*width+x, height*width);
+                    }
+                }
+
+                for(ProvinceInfo info : provinces.values()) {
+                    info.calculateCenter(width);
+                }
+
+                return null;
             }
-        }
-        reader = map.getPixelReader();
-
-        final int width = (int) map.getWidth();
-        final int height = (int) map.getHeight();
-
-        //Copy from source to destination pixel by pixel
-        output = new WritableImage(width, height);
-        final PixelWriter writer = output.getPixelWriter();
-
-        for (int y = 0; y < height; ++y){
-            for (int x = 0; x < width; ++x){
-                final int color = reader.getArgb(x, y);
-                provinces.get(colors.get(color)).points.add(y * width + x);
-                writer.setArgb(x, y, color);
+        };
+        progressBar.progressProperty().bind(mapLoader.progressProperty());
+        mapLoader.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent t) {
+                progressBar.progressProperty().unbind();
+                progressBar.setProgress(0);
+                dateLabel.setText("");
+                imageView.setImage(output);
+                int fitWidth = Integer.parseInt(settings.getProperty("map.fit.width", "0"));
+                int fitHeight = Integer.parseInt(settings.getProperty("map.fit.height", "0"));
+                imageView.setFitHeight(fitHeight);
+                imageView.setFitWidth(fitWidth);
+                scrollPane.setContent(null);
+                scrollPane.setContent(imageView);
             }
-        }
-
-        for(ProvinceInfo info : provinces.values()) {
-            info.calculateCenter(width);
-        }
-
-        imageView.setImage(output);
-        int fitWidth = Integer.parseInt(settings.getProperty("map.fit.width", String.valueOf(width)));
-        int fitHeight = Integer.parseInt(settings.getProperty("map.fit.height", String.valueOf(height)));
-        imageView.setFitHeight(fitHeight);
-        imageView.setFitWidth(fitWidth);
-        scrollPane.setContent(null);
-        scrollPane.setContent(imageView);
+        });
+        new Thread(mapLoader).start();
     }
 
     private void loadProvinces() {
@@ -497,7 +543,7 @@ public class ReplayerController implements Initializable {
         } catch(Exception e) { e.printStackTrace(); }
     }
 
-    private void processEvents(final Date date, final List<Event> events) {
+    private void processEvents(final Date date, final Iterable<Event> events, final boolean appendToLog) {
         if (events == null) {
             System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
             return;
@@ -525,7 +571,9 @@ public class ReplayerController implements Initializable {
                 }
             }
         }
-        log.getEngine().loadContent(logContent.toString());
+        if (appendToLog) {
+            log.getEngine().loadContent(logContent.toString());
+        }
     }
 
     /**
@@ -536,7 +584,7 @@ public class ReplayerController implements Initializable {
         @Override
         public void changed(final ObservableValue<? extends Date> ov, final Date oldVal, final Date newVal) {
             final List<Event> events = saveGame.timeline.get(newVal);
-            processEvents(newVal, events);
+            processEvents(newVal, events, true);
             //timeline.pause();
         }
     }
@@ -575,6 +623,9 @@ public class ReplayerController implements Initializable {
          */
         public boolean prov(final String prov) {
             final Point center = provinces.get(prov).center;
+            if (center == null) {
+                return false;
+            }
             scrollPane.setHvalue(mapCoordToScrollProcent(
                     center.x, map.getWidth(), scrollPane.getWidth(), imageView.getFitWidth()));
             scrollPane.setVvalue(mapCoordToScrollProcent(
