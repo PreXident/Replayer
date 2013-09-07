@@ -5,12 +5,12 @@ import static java.util.FormattableFlags.ALTERNATE;
 import java.util.Formatter;
 
 /**
- * Core added to a province.
+ * Building added/removed from province.
  */
-public class Core extends ProvinceEvent {
+public class Hre extends ProvinceEvent {
 
-    /** Possible types of core event. */
-    public enum Type implements Formattable {
+    /** Possible types of hre event. */
+    enum Type implements Formattable {
         ADDED {
             @Override
             public void formatTo(final Formatter formatter, final int flags, final int width, final int precision) {
@@ -30,31 +30,31 @@ public class Core extends ProvinceEvent {
                 }
             }
         };
+
+        static Type fromString(final String string) {
+            switch (string) {
+                case "yes":
+                    return ADDED;
+                case "no":
+                    return REMOVED;
+                default:
+                    throw new IllegalArgumentException(String.format("Unknown hre type %1$s", string));
+            }
+        }
     }
 
-    /** Makes access to ADDED type easier. */
-    static public Type ADDED = Type.ADDED;
-
-    /** Makes access to REMOVED type easier. */
-    static public Type REMOVED = Type.REMOVED;
-
-    /** New core owner. */
-    final String tag;
-
-    /** Type of core event. */
+    /** Hre type. */
     final Type type;
 
     /**
      * Only constructor
      * @param id province id
      * @param name province name
-     * @param tag country tag
-     * @param type core event type
+     * @param type hre event type
      */
-    public Core(final String id, final String name, final String tag, final Type type) {
+    public Hre(final String id, final String name, final String type) {
         super(id, name);
-        this.tag = tag;
-        this.type = type;
+        this.type = Type.fromString(type);
     }
 
     @Override
@@ -62,12 +62,12 @@ public class Core extends ProvinceEvent {
         if ((flags & ALTERNATE) != ALTERNATE) {
             formatter.format(toString());
         } else {
-            formatter.format("Core to province <a href=\"#\" onclick=\"return java.prov(this.textContent)\">%2$s</a> (%3$s) %4$#s country %1$s", tag, id, name, type);
+            formatter.format("Province <a href=\"#\" onclick=\"return java.prov(this.textContent)\">%1$s</a> (%2$s) %3$#s HRE", id, name, type);
         }
     }
 
     @Override
     public String toString() {
-        return String.format("Core to province %2$s (%3$s) %4$#s country %1$s", tag, id, name, type);
+        return String.format("Province %1$s (%2$s) %3$#s HRE", id, name, type);
     }
 }

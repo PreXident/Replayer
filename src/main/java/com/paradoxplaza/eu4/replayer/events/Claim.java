@@ -7,7 +7,7 @@ import java.util.Formatter;
 /**
  * Core added to a province.
  */
-public class Core extends ProvinceEvent {
+public class Claim extends ProvinceEvent {
 
     /** Possible types of core event. */
     public enum Type implements Formattable {
@@ -51,7 +51,7 @@ public class Core extends ProvinceEvent {
      * @param tag country tag
      * @param type core event type
      */
-    public Core(final String id, final String name, final String tag, final Type type) {
+    public Claim(final String id, final String name, final String tag, final Type type) {
         super(id, name);
         this.tag = tag;
         this.type = type;
@@ -62,12 +62,12 @@ public class Core extends ProvinceEvent {
         if ((flags & ALTERNATE) != ALTERNATE) {
             formatter.format(toString());
         } else {
-            formatter.format("Core to province <a href=\"#\" onclick=\"return java.prov(this.textContent)\">%2$s</a> (%3$s) %4$#s country %1$s", tag, id, name, type);
+            formatter.format("Claim to province <a href=\"#\" onclick=\"return java.prov(this.textContent)\">%2$s</a> (%3$s) %4$#s country %1$s", tag, id, name, type);
         }
     }
 
     @Override
     public String toString() {
-        return String.format("Core to province %2$s (%3$s) %4$#s country %1$s", tag, id, name, type);
+        return String.format("Claim to province %2$s (%3$s) %4$#s country %1$s", tag, id, name, type);
     }
 }

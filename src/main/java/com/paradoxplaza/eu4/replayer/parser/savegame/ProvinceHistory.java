@@ -4,9 +4,24 @@ import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.Building;
+import com.paradoxplaza.eu4.replayer.events.Capital;
+import com.paradoxplaza.eu4.replayer.events.City;
+import com.paradoxplaza.eu4.replayer.events.Claim;
+import com.paradoxplaza.eu4.replayer.events.ColonySize;
 import com.paradoxplaza.eu4.replayer.events.Core;
+import com.paradoxplaza.eu4.replayer.events.Culture;
 import com.paradoxplaza.eu4.replayer.events.Event;
+import com.paradoxplaza.eu4.replayer.events.Garrison;
+import com.paradoxplaza.eu4.replayer.events.Goods;
+import com.paradoxplaza.eu4.replayer.events.Hre;
+import com.paradoxplaza.eu4.replayer.events.Manpower;
+import com.paradoxplaza.eu4.replayer.events.Name;
+import com.paradoxplaza.eu4.replayer.events.NativeFerocity;
+import com.paradoxplaza.eu4.replayer.events.NativeHostileness;
+import com.paradoxplaza.eu4.replayer.events.NativeSize;
 import com.paradoxplaza.eu4.replayer.events.Owner;
+import com.paradoxplaza.eu4.replayer.events.RevoltRisk;
+import com.paradoxplaza.eu4.replayer.events.Tax;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
@@ -39,27 +54,171 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     /** What part of history is currently being processed. */
     String processing;
 
-    /** Adds add_core to savegame. */
-    SimpleWriteListener add_core = new SimpleWriteListener() {
+    /** Adds addCore to savegame. */
+    final SimpleWriteListener addCore = new SimpleWriteListener() {
         @Override
-        protected Event createEvent(String word) {
+        protected Event createEvent(final String word) {
             return new Core(id, name, word, Core.ADDED);
         }
     };
 
     /** Adds new owner to savegame. */
-    SimpleWriteListener owner = new SimpleWriteListener() {
+    final SimpleWriteListener owner = new SimpleWriteListener() {
         @Override
-        protected Event createEvent(String word) {
+        protected Event createEvent(final String word) {
             return new Owner(id, name, word);
         }
     };
 
     /** Adds buildings to savegame. */
-    SimpleWriteListener building = new SimpleWriteListener() {
+    final SimpleWriteListener building = new SimpleWriteListener() {
         @Override
-        protected Event createEvent(String word) {
+        protected Event createEvent(final String word) {
             return new Building(id, name, processing, word);
+        }
+    };
+
+    /** Adds change of culture to savegame. */
+    final SimpleWriteListener culture = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Culture(id, name, word);
+        }
+    };
+
+    /** Adds change of religion to savegame. */
+    final SimpleWriteListener religion = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new com.paradoxplaza.eu4.replayer.events.Religion(id, name, word);
+        }
+    };
+
+    /** Adds change of hre to savegame. */
+    final SimpleWriteListener hre = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Hre(id, name, word);
+        }
+    };
+
+    /** Adds change of tax to savegame. */
+    final SimpleWriteListener tax = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Tax(id, name, word);
+        }
+    };
+
+    /** Adds change of goods to savegame. */
+    final SimpleWriteListener goods = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Goods(id, name, word);
+        }
+    };
+
+    /** Adds change of goods to savegame. */
+    final SimpleWriteListener manpower = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Manpower(id, name, word);
+        }
+    };
+
+    /** Adds change of goods to savegame. */
+    final SimpleWriteListener capital = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Capital(id, name, word);
+        }
+    };
+
+    /** Adds colony to city change to savegame. */
+    final SimpleWriteListener city = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new City(id, name, word);
+        }
+    };
+
+    /** Adds garrison change to savegame. */
+    final SimpleWriteListener garrison = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Garrison(id, name, word);
+        }
+    };
+
+    /** Adds native size change to savegame. */
+    final SimpleWriteListener nativeSize = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new NativeSize(id, name, word);
+        }
+    };
+
+    /** Adds native ferocity change to savegame. */
+    final SimpleWriteListener nativeFerocity = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new NativeFerocity(id, name, word);
+        }
+    };
+
+    /** Adds native hostileness change to savegame. */
+    final SimpleWriteListener nativeHostileness = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new NativeHostileness(id, name, word);
+        }
+    };
+
+    /** Adds native hostileness change to savegame. */
+    final SimpleWriteListener colonySize = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new ColonySize(id, name, word);
+        }
+    };
+
+    /** Adds revolt risk change to savegame. */
+    final SimpleWriteListener revoltRisk = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new RevoltRisk(id, name, word);
+        }
+    };
+
+    /** Adds core change to savegame. */
+    final SimpleWriteListener removeCore = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Core(id, name, word, Core.REMOVED);
+        }
+    };
+
+    /** Adds claim change to savegame. */
+    final SimpleWriteListener addClaim = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Claim(id, name, word, Claim.ADDED);
+        }
+    };
+
+    /** Adds revolt risk change to savegame. */
+    final SimpleWriteListener removeClaim = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Claim(id, name, word, Claim.REMOVED);
+        }
+    };
+
+    /** Adds name change to savegame. */
+    final SimpleWriteListener provName = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Name(id, name, word);
         }
     };
 
@@ -134,17 +293,54 @@ class ProvinceHistory extends CompoundState<SaveGame> {
         }
         switch (word) {
             case "add_core":
-                return stringState.withOutput(add_core);
+                return stringState.withOutput(addCore);
             case "owner":
                 return stringState.withOutput(owner);
             case "controller":
                 return controller.withID(id).withName(name).withDate(date);
+            case "culture":
+                return stringState.withOutput(culture);
+            case "religion":
+                return stringState.withOutput(religion);
+            case "hre":
+                return stringState.withOutput(hre);
+            case "base_tax":
+                return stringState.withOutput(tax);
+            case "trade_goods":
+                return stringState.withOutput(goods);
+            case "manpower":
+                return stringState.withOutput(manpower);
+            case "capital":
+                return stringState.withOutput(capital);
+            case "is_city":
+                return stringState.withOutput(city);
+            case "garrison":
+                return stringState.withOutput(garrison);
+            case "native_size":
+                return stringState.withOutput(nativeSize);
+            case "native_ferocity":
+                return stringState.withOutput(nativeFerocity);
+            case "native_hostileness":
+                return stringState.withOutput(nativeHostileness);
+            case "colonysize":
+                return stringState.withOutput(colonySize);
+            case "revolt_risk":
+                return stringState.withOutput(revoltRisk);
+            case "remove_core":
+                return stringState.withOutput(removeCore);
+            case "add_claim":
+                return stringState.withOutput(addClaim);
+            case "remove_claim":
+                return stringState.withOutput(removeClaim);
+            case "name":
+                return stringState.withOutput(provName);
             case "advisor":
             case "revolt":
-            default:
+            case "discovered_by":
+            case "citysize":
                 return ignore;
-//            default:
-//                return stringState.withOutput(building);
+            default:
+                return stringState.withOutput(building);
         }
     }
 
