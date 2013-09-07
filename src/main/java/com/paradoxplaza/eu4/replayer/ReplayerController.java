@@ -40,7 +40,10 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
@@ -108,6 +111,9 @@ public class ReplayerController implements Initializable {
 
     @FXML
     ProgressBar progressBar;
+
+    @FXML
+    Menu eventMenu;
 
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
@@ -179,7 +185,13 @@ public class ReplayerController implements Initializable {
     final DateListener dateListener = new DateListener();
 
     /** Content of log area with html code. */
-    StringBuilder logContent = new StringBuilder();
+    final StringBuilder logContent = new StringBuilder();
+
+    /** Set of currently notable events. */
+    final Set<Class> notableEvents = new HashSet<>();
+
+    /** Set of all events. */
+    final Set<Class> allEvents = new HashSet<>();
 
     @FXML
     private void changeEU4Directory() throws InterruptedException{
@@ -253,7 +265,7 @@ public class ReplayerController implements Initializable {
                             Integer.parseInt(settings.getProperty("land.color.red", "150")),
                             Integer.parseInt(settings.getProperty("land.color.green", "150")),
                             Integer.parseInt(settings.getProperty("land.color.blue", "150")));
-                    final PixelWriter writer = output.getPixelWriter();
+                    //final PixelWriter writer = output.getPixelWriter();
 
                     final long size = height * width;
                     for (int y = 0; y < height; ++y) {
@@ -309,12 +321,32 @@ public class ReplayerController implements Initializable {
                 }
             });
 
+            starter.setOnFailed(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(final WorkerStateEvent t) {
+                    final Throwable e = starter.getException();
+                    if (e != null) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
             parser.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
                 @Override
                 public void handle(WorkerStateEvent t) {
                     dateLabel.textProperty().bind(starter.titleProperty());
                     progressBar.progressProperty().bind(starter.progressProperty());
                     new Thread(starter, "starter").start();
+                }
+            });
+
+            parser.setOnFailed(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(final WorkerStateEvent t) {
+                    final Throwable e = starter.getException();
+                    if (e != null) {
+                        e.printStackTrace();
+                    }
                 }
             });
 
@@ -430,6 +462,43 @@ public class ReplayerController implements Initializable {
      */
     public void setSettings(final Properties settings) {
         this.settings = settings;
+
+        final ClassLoader loader = getClass().getClassLoader();
+        notableEvents.clear();
+        final Map<String, CheckMenuItem> events = new HashMap<>();
+        for(final MenuItem item : eventMenu.getItems()) {
+            if (item instanceof CheckMenuItem) {
+                final String id = item.getId();
+                try {
+                    final Class clazz = loader.loadClass("com.paradoxplaza.eu4.replayer.events." + id);
+                    allEvents.add(clazz);
+                    events.put(id, (CheckMenuItem)item);
+                    ((CheckMenuItem)item).selectedProperty().addListener(new ChangeListener<Boolean>() {
+                        @Override
+                        public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
+                            if (newVal) {
+                                notableEvents.add(clazz);
+                            } else {
+                                notableEvents.remove(clazz);
+                            }
+                        }
+                    });
+                } catch(ClassNotFoundException e) {
+                    System.out.println(String.format("Event class %s not found", id));
+                }
+            }
+        }
+        for(String s : settings.getProperty("events", "").split(";")) {
+            try {
+                notableEvents.add(loader.loadClass("com.paradoxplaza.eu4.replayer.events." + s));
+                final CheckMenuItem item = events.get(s);
+                if (item != null) {
+                    item.setSelected(true);
+                }
+            } catch(ClassNotFoundException e) {
+                System.out.println(String.format("Event class %s not found", s));
+            }
+        }
 
         zoomStep = Integer.parseInt(settings.getProperty("zoom.step", "100"));
 
@@ -608,14 +677,19 @@ public class ReplayerController implements Initializable {
         } catch(Exception e) { e.printStackTrace(); }
     }
 
-    private void processEvents(final Date date, final Iterable<Event> events, final boolean appendToLog) {
+    private void processEvents(final Date date, final Iterable<Event> events, final boolean refreshLog) {
         if (events == null) {
             System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
             return;
         }
         final PixelWriter writer = output.getPixelWriter();
         final int width = (int) map.getWidth();
+        boolean logChange = false;
         for(Event event : events) {
+            if (!notableEvents.contains(event.getClass())) {
+                continue;
+            }
+            logChange = true;
             System.out.println(String.format("[%1$s]: %2$s", date, event));
             logContent.append(String.format("[%1$s]: %2$#s<br>", date, event));
             if (event instanceof Controller) {
@@ -631,14 +705,14 @@ public class ReplayerController implements Initializable {
                 final com.paradoxplaza.eu4.replayer.events.Owner owner = (com.paradoxplaza.eu4.replayer.events.Owner) event;
                 for(int p : provinces.get(owner.id).points) {
                     //if ( p % bufferWidth2 == 1) {
-                        Integer color = countries.get(owner.tag);
+                        Integer color = countries.get(owner.value);
                         buffer[p] = color == null ? landColor : color;
                         writer.setArgb(p % width, p / width, color == null ? landColor : color);
                     //}
                 }
             }
         }
-        if (appendToLog) {
+        if (refreshLog && logChange) {
             log.getEngine().loadContent(logContent.toString());
         }
     }

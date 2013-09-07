@@ -59,6 +59,33 @@
 							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="R"/>
 						</accelerator>
 					</MenuItem>
+					<SeparatorMenuItem/>
+					<Menu fx:id="eventMenu" text="Events">
+						<CheckMenuItem text="Building" fx:id="Building"/>
+						<CheckMenuItem text="Capital" fx:id="Capital"/>
+						<CheckMenuItem text="City" fx:id="City"/>
+						<CheckMenuItem text="Claim" fx:id="Claim"/>
+						<CheckMenuItem text="Colony size" fx:id="ColonySize"/>
+						<CheckMenuItem text="Controller" fx:id="Controller"/>
+						<CheckMenuItem text="Core" fx:id="Core"/>
+						<CheckMenuItem text="Culture" fx:id="Culture"/>
+						<CheckMenuItem text="Defender" fx:id="Defender"/>
+						<CheckMenuItem text="Enable religion" fx:id="EnableReligion"/>
+						<CheckMenuItem text="Flag" fx:id="Flag"/>
+						<CheckMenuItem text="Garrison" fx:id="Garrison"/>
+						<CheckMenuItem text="Trade goods" fx:id="Goods"/>
+						<CheckMenuItem text="HRE" fx:id="Hre"/>
+						<CheckMenuItem text="Manpower" fx:id="Manpower"/>
+						<CheckMenuItem text="Province name" fx:id="Name"/>
+						<CheckMenuItem text="Native ferocity" fx:id="NativeFerocity"/>
+						<CheckMenuItem text="Native hostileness" fx:id="NativeHostileness"/>
+						<CheckMenuItem text="Native size" fx:id="NativeSize"/>
+						<CheckMenuItem text="New emperor" fx:id="NewEmperor"/>
+						<CheckMenuItem text="Owner" fx:id="Owner"/>
+						<CheckMenuItem text="Religion" fx:id="Religion"/>
+						<CheckMenuItem text="Revolt risk" fx:id="RevoltRisk"/>
+						<CheckMenuItem text="Base tax" fx:id="Tax"/>
+					</Menu>
 				</Menu>
 			</menus>
 		</MenuBar>
