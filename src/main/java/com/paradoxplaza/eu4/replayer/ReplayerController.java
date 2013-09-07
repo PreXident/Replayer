@@ -223,6 +223,7 @@ public class ReplayerController implements Initializable {
         //Show open file dialog
         final File file = fileChooser.showOpenDialog(getWindow());
         if (file == null) {
+            lock.release();
             return;
         }
 
