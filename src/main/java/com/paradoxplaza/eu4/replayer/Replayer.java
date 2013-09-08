@@ -127,9 +127,9 @@ public class Replayer extends Application {
     public void stop() {
         System.out.println("Closing...\n");
         final StringBuilder s = new StringBuilder();
-        for(Class c : controller.notableEvents) {
+        for(String event : controller.notableEvents) {
             s.append(";");
-            s.append(c.getSimpleName());
+            s.append(event);
         }
         settings.setProperty("events", s.substring(1));
         try (final OutputStream os = new FileOutputStream(propertyFile)) {

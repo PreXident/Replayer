@@ -15,6 +15,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -40,7 +41,8 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -52,6 +54,7 @@ import javafx.scene.image.PixelFormat;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -188,10 +191,7 @@ public class ReplayerController implements Initializable {
     final StringBuilder logContent = new StringBuilder();
 
     /** Set of currently notable events. */
-    final Set<Class> notableEvents = new HashSet<>();
-
-    /** Set of all events. */
-    final Set<Class> allEvents = new HashSet<>();
+    final Set<String> notableEvents = new HashSet<>();
 
     @FXML
     private void changeEU4Directory() throws InterruptedException{
@@ -441,6 +441,35 @@ public class ReplayerController implements Initializable {
         log.prefWidthProperty().bind(logContainer.widthProperty());
         progressBar.prefWidthProperty().bind(bottom.widthProperty());
 
+        //to prevent menu from closing
+        final EventHandler<MouseEvent> filter = new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent t) {
+                t.consume();
+            }
+        };
+        //add change handler and event filter to event menu
+        for(final MenuItem item : eventMenu.getItems()) {
+            if (item instanceof CustomMenuItem) {
+                final String event = item.getText();
+                final CustomMenuItem customItem = ((CustomMenuItem) item);
+                if (customItem.getContent() instanceof CheckBox) {
+                    final CheckBox checkBox = (CheckBox) customItem.getContent();
+                    checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                        @Override
+                        public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
+                            if (newVal) {
+                                notableEvents.add(event);
+                            } else {
+                                notableEvents.remove(event);
+                            }
+                        }
+                    });
+                    checkBox.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+                }
+            }
+        }
+
         final WebEngine webEngine = log.getEngine();
         webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
             @Override
@@ -465,38 +494,15 @@ public class ReplayerController implements Initializable {
 
         final ClassLoader loader = getClass().getClassLoader();
         notableEvents.clear();
-        final Map<String, CheckMenuItem> events = new HashMap<>();
+        notableEvents.addAll(Arrays.asList(settings.getProperty("events", "").split(";")));
         for(final MenuItem item : eventMenu.getItems()) {
-            if (item instanceof CheckMenuItem) {
-                final String id = item.getId();
-                try {
-                    final Class clazz = loader.loadClass("com.paradoxplaza.eu4.replayer.events." + id);
-                    allEvents.add(clazz);
-                    events.put(id, (CheckMenuItem)item);
-                    ((CheckMenuItem)item).selectedProperty().addListener(new ChangeListener<Boolean>() {
-                        @Override
-                        public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
-                            if (newVal) {
-                                notableEvents.add(clazz);
-                            } else {
-                                notableEvents.remove(clazz);
-                            }
-                        }
-                    });
-                } catch(ClassNotFoundException e) {
-                    System.out.println(String.format("Event class %s not found", id));
+            if (item instanceof CustomMenuItem) {
+                final String event = item.getText();
+                final CustomMenuItem customItem = ((CustomMenuItem) item);
+                if (customItem.getContent() instanceof CheckBox) {
+                    final CheckBox checkBox = (CheckBox) customItem.getContent();
+                    checkBox.setSelected(notableEvents.contains(event));
                 }
-            }
-        }
-        for(String s : settings.getProperty("events", "").split(";")) {
-            try {
-                notableEvents.add(loader.loadClass("com.paradoxplaza.eu4.replayer.events." + s));
-                final CheckMenuItem item = events.get(s);
-                if (item != null) {
-                    item.setSelected(true);
-                }
-            } catch(ClassNotFoundException e) {
-                System.out.println(String.format("Event class %s not found", s));
             }
         }
 
@@ -686,7 +692,7 @@ public class ReplayerController implements Initializable {
         final int width = (int) map.getWidth();
         boolean logChange = false;
         for(Event event : events) {
-            if (!notableEvents.contains(event.getClass())) {
+            if (!notableEvents.contains(event.getClass().getSimpleName())) {
                 continue;
             }
             logChange = true;
