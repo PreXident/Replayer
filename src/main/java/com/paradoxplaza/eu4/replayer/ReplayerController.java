@@ -352,7 +352,7 @@ public class ReplayerController implements Initializable {
 
             dateLabel.textProperty().bind(mapInitializer.titleProperty());
             progressBar.progressProperty().bind(mapInitializer.progressProperty());
-            new Thread(mapInitializer).start();
+            new Thread(mapInitializer, "mapInitializer").start();
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -637,7 +637,7 @@ public class ReplayerController implements Initializable {
                 imageView.setFitWidth(fitWidth);
             }
         });
-        new Thread(mapLoader).start();
+        new Thread(mapLoader, "mapLoader").start();
     }
 
     private void loadProvinces() {
