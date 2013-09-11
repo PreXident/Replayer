@@ -369,10 +369,12 @@ public class ReplayerController implements Initializable {
            return;
         }
         if (saveGame == null) {
+            lock.release();
             return;
         }
-        if (timeline != null && timeline.getStatus() != Status.RUNNING) {
+        if (timeline != null) {
             timeline.play();
+            lock.release();
             return;
         }
         timeline = new Timeline();
