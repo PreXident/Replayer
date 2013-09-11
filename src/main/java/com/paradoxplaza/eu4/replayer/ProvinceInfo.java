@@ -9,6 +9,9 @@ import java.util.List;
  */
 public class ProvinceInfo {
 
+    /** Province id. */
+    public final String id;
+
     /** Pixel color of this province. */
     public final int color;
 
@@ -18,11 +21,18 @@ public class ProvinceInfo {
     /** Center of the province. */
     public final Point center = new Point(-1, -1);
 
+    /** Controller of this province. */
+    public String controller = null;
+
+    /** Owner of this province. */
+    public String owner = null;
+
     /**
      * Only constructor.
      * @param color color of pixels associated to this province
      */
-    public ProvinceInfo(final int color) {
+    public ProvinceInfo(final String id, final int color) {
+        this.id = id;
         this.color = color;
     }
 

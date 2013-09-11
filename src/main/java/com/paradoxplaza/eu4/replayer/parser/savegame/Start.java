@@ -34,6 +34,9 @@ class Start extends com.paradoxplaza.eu4.replayer.parser.Start<SaveGame> {
     /** State processing provinces. */
     final Provinces provinces = new Provinces(this);
 
+    /** State processing countries. */
+    final Countries countries = new Countries(this);
+
     /** Current date in save game. */
     final Ref<Date> currentDate = new Ref<>();
 
@@ -103,6 +106,8 @@ class Start extends com.paradoxplaza.eu4.replayer.parser.Start<SaveGame> {
                 return religions;
             case "provinces":
                 return provinces;
+            case "countries":
+                return countries;
             default:
                 return ignore;
         }

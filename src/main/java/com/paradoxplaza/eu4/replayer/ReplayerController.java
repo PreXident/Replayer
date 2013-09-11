@@ -4,6 +4,7 @@ import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
+import com.paradoxplaza.eu4.replayer.events.TagChange;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.awt.Point;
@@ -157,10 +158,10 @@ public class ReplayerController implements Initializable {
     /** Property binded to stage titleProperty. */
     StringProperty titleProperty = new SimpleStringProperty(TITLE);
 
-    /** Tag -> color mapping. */
-    Map<String, Integer> countries = new HashMap<>();
+    /** Tag -> country mapping. */
+    Map<String, CountryInfo> countries = new HashMap<>();
 
-    /** ID -> color mapping. */
+    /** ID -> province mapping. */
     Map<String, ProvinceInfo> provinces = new HashMap<>();
 
     /** Color -> ID mapping. */
@@ -243,6 +244,11 @@ public class ReplayerController implements Initializable {
         settings.setProperty("save.dir", saveDirectory.getPath());
         titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
         saveGame = new SaveGame();
+        for (CountryInfo ci : countries.values()) {
+            ci.controls.clear();
+            ci.owns.clear();
+            ci.expectingTagChange = false;
+        }
 
         try {
             final InputStream is = new FileInputStream(file);
@@ -336,6 +342,9 @@ public class ReplayerController implements Initializable {
                 public void handle(WorkerStateEvent t) {
                     dateLabel.textProperty().bind(starter.titleProperty());
                     progressBar.progressProperty().bind(starter.progressProperty());
+                    for (String tag : saveGame.tagChanges) {
+                        countries.get(tag).expectingTagChange = true;
+                    }
                     new Thread(starter, "starter").start();
                 }
             });
@@ -551,10 +560,11 @@ public class ReplayerController implements Initializable {
                             final Matcher m = TAG_COLOR_PATTERN.matcher(line);
                             if (m.matches()) {
                                 countries.put((String)key,
-                                        toColor(
-                                            Integer.parseInt(m.group(1)),
-                                            Integer.parseInt(m.group(2)),
-                                            Integer.parseInt(m.group(3))));
+                                        new CountryInfo((String) key,
+                                            toColor(
+                                                Integer.parseInt(m.group(1)),
+                                                Integer.parseInt(m.group(2)),
+                                                Integer.parseInt(m.group(3)))));
                                 break;
                             }
                             line = countryReader.readLine();
@@ -656,7 +666,7 @@ public class ReplayerController implements Initializable {
                         Integer.parseInt(parts[1]),
                         Integer.parseInt(parts[2]),
                         Integer.parseInt(parts[3]));
-                provinces.put(parts[0], new ProvinceInfo(color));
+                provinces.put(parts[0], new ProvinceInfo(parts[0], color));
                 final String original = colors.put(color, parts[0]);
                 if (original != null) {
                     throw new RuntimeException(String.format("Provinces %1$s and %2$s share a color!", parts[0], original));
@@ -694,7 +704,7 @@ public class ReplayerController implements Initializable {
         final int width = (int) map.getWidth();
         boolean logChange = false;
         for(Event event : events) {
-            if (!notableEvents.contains(event.getClass().getSimpleName())) {
+            if (!notableEvents.contains(event.getClass().getSimpleName()) && !event.getClass().getSimpleName().equals("TagChange")) {
                 continue;
             }
             logChange = true;
@@ -702,21 +712,74 @@ public class ReplayerController implements Initializable {
             logContent.append(String.format("[%1$s]: %2$#s<br>", date, event));
             if (event instanceof Controller) {
                 final com.paradoxplaza.eu4.replayer.events.Controller controller = (com.paradoxplaza.eu4.replayer.events.Controller) event;
-                for(int p : provinces.get(controller.id).points) {
+                if (countries.get(controller.tag).expectingTagChange) {
+                    continue;
+                }
+                final ProvinceInfo province = provinces.get(controller.id);
+                final CountryInfo previousController = countries.get(province.controller);
+                if (previousController != null) {
+                    previousController.controls.remove(province.id);
+                }
+                province.controller = controller.tag;
+                int color = landColor;
+                final CountryInfo newController = countries.get(province.controller);
+                if (newController != null) {
+                    newController.controls.add(province.id);
+                    color = newController.color;
+                }
+                for(int p : province.points) {
                     if ( p / width % 2 == 0) {
-                        Integer color = countries.get(controller.tag);
-                        buffer[p] = color == null ? landColor : color;
-                        writer.setArgb(p % width, p / width, color == null ? landColor : color);
+                        buffer[p] = color;
+                        writer.setArgb(p % width, p / width, color);
                     }
                 }
             } else if (event instanceof Owner) {
                 final com.paradoxplaza.eu4.replayer.events.Owner owner = (com.paradoxplaza.eu4.replayer.events.Owner) event;
-                for(int p : provinces.get(owner.id).points) {
-                    //if ( p % bufferWidth2 == 1) {
-                        Integer color = countries.get(owner.value);
-                        buffer[p] = color == null ? landColor : color;
-                        writer.setArgb(p % width, p / width, color == null ? landColor : color);
+                final ProvinceInfo province = provinces.get(owner.id);
+                final CountryInfo previousOwner = countries.get(province.controller);
+                if (previousOwner != null) {
+                    previousOwner.owns.remove(province.id);
+                    previousOwner.controls.remove(province.id);
+                }
+                province.owner = owner.value;
+                province.controller = owner.value;
+                final CountryInfo newOwner = countries.get(province.controller);
+                int color = landColor;
+                if (newOwner != null) {
+                    newOwner.owns.add(province.id);
+                    newOwner.controls.add(province.id);
+                    color = newOwner.color;
+                }
+                for(int p : province.points) {
+                    //if ( p / width % 2 == 1) {
+                        buffer[p] = color;
+                        writer.setArgb(p % width, p / width, color);
                     //}
+                }
+            } else if (event instanceof TagChange) {
+                final TagChange tagChange = (TagChange) event;
+                final CountryInfo from = countries.get(tagChange.fromTag);
+                final CountryInfo to = countries.get(tagChange.toTag);
+                to.controls.addAll(from.controls);
+                to.owns.addAll(from.owns);
+                to.expectingTagChange = false;
+                for (String id : to.controls) {
+                    final ProvinceInfo province = provinces.get(id);
+                    for(int p : province.points) {
+                        if ( p / width % 2 == 0) {
+                            buffer[p] = to.color;
+                            writer.setArgb(p % width, p / width, to.color);
+                        }
+                    }
+                }
+                for (String id : to.owns) {
+                    final ProvinceInfo province = provinces.get(id);
+                    for(int p : province.points) {
+                        if ( p / width % 2 == 1) {
+                            buffer[p] = to.color;
+                            writer.setArgb(p % width, p / width, to.color);
+                        }
+                    }
                 }
             }
         }
