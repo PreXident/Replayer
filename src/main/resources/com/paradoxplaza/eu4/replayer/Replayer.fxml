@@ -198,6 +198,7 @@
 				<Button text="+" onAction="#zoomIn"/>
 				<Button text="|" onAction="#pause"/>
 				<Button text=">" onAction="#play"/>
+				<Button text=">|" onAction="#finish"/>
 				<Label fx:id="dateLabel"/>
 			</HBox>
 				<ProgressBar fx:id="progressBar" progress="0"/>

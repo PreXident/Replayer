@@ -20,8 +20,8 @@ public class CountryInfo {
     /** Set of provinces owned by this country. */
     final Set<String> owns = new HashSet<>();
 
-    /** Flag indicating whether the country will be created by tag change. */
-    boolean expectingTagChange = false;
+    /** Date the country will be created by tag change. */
+    Date expectingTagChange = null;
 
     /**
      * Only contructor.

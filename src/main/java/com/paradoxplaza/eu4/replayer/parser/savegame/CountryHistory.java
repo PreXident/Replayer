@@ -108,7 +108,7 @@ class CountryHistory extends CompoundState<SaveGame> {
         @Override
         public final void setValue(final String word) {
             saveGame.addEvent(date, new TagChange(tag, word));
-            saveGame.tagChanges.add(tag);
+            saveGame.tagChanges.put(tag, date);
         }
     }
 }

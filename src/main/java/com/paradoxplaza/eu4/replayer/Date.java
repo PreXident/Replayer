@@ -24,6 +24,25 @@ public class Date implements Comparable<Date> {
         }
     }
 
+    /**
+     * Returns number of days between lower and upper date.
+     * @param low lower date
+     * @param up upper date
+     * @return number of days between lower and upper date
+     */
+    static int calculateDistance(final Date low, final Date up) {
+        final int years = up.year - low.year;
+        int lowDays = low.day;
+        for (int i = 0; i < low.month - 1; ++i) {
+            lowDays += Date.monthsDays[i];
+        }
+        int upDays = up.day;
+        for (int i = 0; i < up.month - 1; ++i) {
+            upDays += Date.monthsDays[i];
+        }
+        return years * Date.yearDays + upDays - lowDays;
+    }
+
     /** Year of this date. */
     final short year;
 
@@ -78,7 +97,10 @@ public class Date implements Comparable<Date> {
     }
 
     @Override
-    public int compareTo(Date o) {
+    public int compareTo(final Date o) {
+        if (o == null) {
+            return 1;
+        }
         if (year != o.year) {
             return year < o.year ? -1 : 1;
         }
@@ -133,7 +155,7 @@ public class Date implements Comparable<Date> {
         if (d > monthsDays[m-1]) {
             d = 1;
             ++m;
-            if (m / 12 > 0) {
+            if (m > 12) {
                 m = 1;
                 ++y;
             }

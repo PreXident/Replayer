@@ -13,25 +13,6 @@ import javafx.beans.property.SimpleObjectProperty;
  */
 public class DateGenerator implements Iterable<Date>, Iterator<Date> {
 
-    /**
-     * Returns number of days between lower and upper date.
-     * @param low lower date
-     * @param up upper date
-     * @return number of days between lower and upper date
-     */
-    static double calculateDistance(final Date low, final Date up) {
-        final int years = up.year - low.year;
-        int lowDays = low.day;
-        for (int i = 0; i < low.month - 1; ++i) {
-            lowDays += Date.monthsDays[i];
-        }
-        int upDays = up.day;
-        for (int i = 0; i < up.month - 1; ++i) {
-            upDays += Date.monthsDays[i];
-        }
-        return years * Date.yearDays + upDays - lowDays;
-    }
-
     /** Minimal date of the generator. */
     final Date min;
 
@@ -62,7 +43,7 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
         this.min = min;
         date = new SimpleObjectProperty<>(min);
         this.max = max;
-        distance = calculateDistance(min, max);
+        distance = Date.calculateDistance(min, max);
     }
 
     /**

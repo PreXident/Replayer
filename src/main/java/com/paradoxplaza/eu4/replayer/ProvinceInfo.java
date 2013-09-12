@@ -12,6 +12,9 @@ public class ProvinceInfo {
     /** Province id. */
     public final String id;
 
+    /** Province id. */
+    public final String name;
+
     /** Pixel color of this province. */
     public final int color;
 
@@ -31,8 +34,9 @@ public class ProvinceInfo {
      * Only constructor.
      * @param color color of pixels associated to this province
      */
-    public ProvinceInfo(final String id, final int color) {
+    public ProvinceInfo(final String id, final String name, final int color) {
         this.id = id;
+        this.name = name;
         this.color = color;
     }
 
