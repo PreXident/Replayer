@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project basedir=".." name="jCHR-IDE">
+<project basedir=".." name="Replayer-IDE">
     <import file="../build.xml"/>
     <!-- TODO: edit the following target according to your needs -->
     <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html#debugj2se) -->
     <target depends="dist" name="debug-nb">
-        <nbjpdastart addressproperty="jpda.address" name="jCHR" transport="dt_socket">
+        <nbjpdastart addressproperty="jpda.address" name="Replayer" transport="dt_socket">
             <classpath path="${dir.lib}"/>
         </nbjpdastart>
         <java fork="true" jar="${dir.dist}/${file.dist}" dir="${dir.dist}">
