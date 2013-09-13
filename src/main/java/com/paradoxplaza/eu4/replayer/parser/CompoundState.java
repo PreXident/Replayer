@@ -75,7 +75,7 @@ public abstract class CompoundState<Context> extends State<Context> {
 
     /**
      * Informs descendant that element is finished.
-     * @param saveGame
+     * @param context parse context
      */
     protected void endCompound(final Context context) {
         //nothing

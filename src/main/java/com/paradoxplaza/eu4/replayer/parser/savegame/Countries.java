@@ -16,8 +16,8 @@ class Countries extends CompoundState<SaveGame> {
      * Only constructor
      * @param parent parent state
      */
-    public Countries(final State<SaveGame> start) {
-        super(start);
+    public Countries(final State<SaveGame> parent) {
+        super(parent);
     }
 
     @Override

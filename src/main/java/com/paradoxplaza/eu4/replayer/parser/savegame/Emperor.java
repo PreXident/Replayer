@@ -33,8 +33,8 @@ class Emperor extends CompoundState<SaveGame> {
      * Only constructor.
      * @param parent parent state
      */
-    public Emperor(final State<SaveGame> start) {
-        super(start);
+    public Emperor(final State<SaveGame> parent) {
+        super(parent);
     }
 
     @Override

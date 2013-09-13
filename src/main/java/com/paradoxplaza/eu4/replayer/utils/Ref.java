@@ -62,7 +62,7 @@ public class Ref<T> implements WritableValue<T> {
 
     /**
      * Sets val.
-     * @param val new value
+     * @param value new value
      */
     @Override
     public void setValue(final T value) {

@@ -16,8 +16,8 @@ public class Ignore<Context> extends State<Context> {
      * Only constructor.
      * @param parent parent state
      */
-    public Ignore(final State<Context> start) {
-        super(start);
+    public Ignore(final State<Context> parent) {
+        super(parent);
     }
 
     @Override

@@ -41,10 +41,10 @@ class CountryHistory extends CompoundState<SaveGame> {
 
     /**
      * Only constructor.
-     * @param state parent state
+     * @param parent parent state
      */
-    public CountryHistory(final State<SaveGame> start) {
-        super(start);
+    public CountryHistory(final State<SaveGame> parent) {
+        super(parent);
     }
 
     /**
@@ -69,7 +69,7 @@ class CountryHistory extends CompoundState<SaveGame> {
 
     /**
      * Returns lazy initialized innerHistory.
-     * @return
+     * @return lazy initialized innerHistory
      */
     protected CountryHistory getInnerHistory() {
         return innerHistory == null ? new CountryHistory(this) : innerHistory;

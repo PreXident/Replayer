@@ -13,7 +13,8 @@ public class TagChange extends Event {
 
     /**
      * Only construtor.
-     * @param name name of the religion.
+     * @param toTag target tag
+     * @param fromTag what tag changes
      */
     public TagChange(final String toTag, final String fromTag) {
         this.toTag = toTag;

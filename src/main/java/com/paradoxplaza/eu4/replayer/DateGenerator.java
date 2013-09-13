@@ -63,7 +63,7 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
     }
 
     /**
-     * Returns whether {@link prev} can be called.
+     * Returns whether {@link #prev()} can be called.
      * @return true if prev() can be called, false otherwise
      */
     public boolean hasPrev() {

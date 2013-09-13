@@ -37,8 +37,8 @@ class Religion extends CompoundState<SaveGame> {
      * Only constructor.
      * @param parent parent state
      */
-    public Religion(final State<SaveGame> start) {
-        super(start);
+    public Religion(final State<SaveGame> parent) {
+        super(parent);
     }
 
     /**

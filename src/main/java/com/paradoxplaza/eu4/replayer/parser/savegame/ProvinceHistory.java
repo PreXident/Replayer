@@ -233,10 +233,10 @@ class ProvinceHistory extends CompoundState<SaveGame> {
 
     /**
      * Only constructor.
-     * @param state parent state
+     * @param parent parent state
      */
-    public ProvinceHistory(final State<SaveGame> start) {
-        super(start);
+    public ProvinceHistory(final State<SaveGame> parent) {
+        super(parent);
     }
 
     /**
@@ -251,7 +251,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
 
     /**
      * Returns lazy initialized innerHistory.
-     * @return
+     * @return lazy initialized innerHistory
      */
     protected ProvinceHistory getInnerHistory() {
         return innerHistory == null ? new ProvinceHistory(this) : innerHistory;

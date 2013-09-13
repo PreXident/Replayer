@@ -23,8 +23,8 @@ public abstract class ValueState<Context, T> extends State<Context> {
      * Only constructor.
      * @param parent parent state
      */
-    public ValueState(final State<Context> start) {
-        super(start);
+    public ValueState(final State<Context> parent) {
+        super(parent);
     }
 
     /**

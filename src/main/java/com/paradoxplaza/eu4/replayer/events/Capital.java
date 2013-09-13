@@ -9,7 +9,7 @@ public class Capital extends SimpleProvinceEvent {
      * Only constructor
      * @param id province id
      * @param name province name
-     * @param tag new capital
+     * @param capital new capital
      */
     public Capital(final String id, final String name, final String capital) {
         super(id, name, "Capital", capital);

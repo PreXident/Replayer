@@ -9,7 +9,7 @@ public class Religion extends SimpleProvinceEvent {
      * Only constructor
      * @param id province id
      * @param name province name
-     * @param culture new culture
+     * @param religion new religion
      */
     public Religion(final String id, final String name, final String religion) {
         super(id, name, "Religion", religion);

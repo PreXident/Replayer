@@ -35,7 +35,7 @@ public class State<Context> {
 
     /** Processes character and changes context.
      * @param context Context to apply changes
-     * @param char token from input
+     * @param token character from input
      * @return new state
      */
     public State<Context> processChar(final Context context, final char token) {
@@ -44,7 +44,7 @@ public class State<Context> {
 
     /** Processes number and changes context.
      * @param context Context to apply changes
-     * @param number token from input
+     * @param token number from input
      * @return new state
      */
     public State<Context> processNumber(final Context context, final double token) {

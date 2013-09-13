@@ -20,8 +20,8 @@ class Provinces extends CompoundState<SaveGame> {
      * Only constructor
      * @param parent parent state
      */
-    public Provinces(final State<SaveGame> start) {
-        super(start);
+    public Provinces(final State<SaveGame> parent) {
+        super(parent);
     }
 
     @Override
