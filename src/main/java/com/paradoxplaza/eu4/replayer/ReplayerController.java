@@ -1,10 +1,7 @@
 package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
-import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
-import com.paradoxplaza.eu4.replayer.events.Owner;
-import com.paradoxplaza.eu4.replayer.events.TagChange;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.awt.Point;
@@ -27,7 +24,6 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javafx.animation.Animation.Status;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -194,6 +190,22 @@ public class ReplayerController implements Initializable {
     /** Set of currently notable events. */
     final Set<String> notableEvents = new HashSet<>();
 
+    final EventProcessor eventProcessor = new EventProcessor(this);
+
+    final EventProcessor notLogUpdatingProcessor = new EventProcessor(this) {
+        @Override
+        protected void updateLog() { }
+    };
+
+    final EventProcessor bufferChangeOnlyProcessor = new EventProcessor(this) {
+        @Override
+        protected void setColor(final int pos, final int color) {
+            buffer[pos] = color;
+        }
+        @Override
+        protected void updateLog() { }
+    };
+
     @FXML
     private void changeEU4Directory() throws InterruptedException{
         if (!lock.tryAcquire()) {
@@ -240,7 +252,7 @@ public class ReplayerController implements Initializable {
                     final int distance = Date.calculateDistance(saveGame.startDate, saveGame.date);
                     while (date.compareTo(maxDate) < 0) {
                         final List<Event> events = saveGame.timeline.get(date);
-                        processEvents(date, events, false, true);
+                        bufferChangeOnlyProcessor.processEvents(date, events);
                         updateProgress(++day, distance);
                         date = date.next();
                     }
@@ -344,7 +356,7 @@ public class ReplayerController implements Initializable {
                 protected Void call() throws Exception {
                     dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
                     updateTitle("Initializing starting date...");
-                    processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)), false, false);
+                    notLogUpdatingProcessor.processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)));
 
                     return null;
                 }
@@ -739,112 +751,6 @@ public class ReplayerController implements Initializable {
         } catch(Exception e) { e.printStackTrace(); }
     }
 
-    private void processEvents(final Date date, final Iterable<Event> events, final boolean refreshLog, final boolean bufferOnly) {
-        if (events == null) {
-            System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
-            return;
-        }
-        final PixelWriter writer = bufferOnly ? null : output.getPixelWriter();
-        final int width = (int) map.getWidth();
-        boolean logChange = false;
-        for(Event event : events) {
-            if (!notableEvents.contains(event.getClass().getSimpleName()) && !event.getClass().getSimpleName().equals("TagChange")) {
-                continue;
-            }
-            logChange = true;
-            System.out.println(String.format("[%1$s]: %2$s", date, event));
-            logContent.append(String.format("[%1$s]: %2$#s<br>", date, event));
-            if (event instanceof Controller) {
-                final com.paradoxplaza.eu4.replayer.events.Controller controller = (com.paradoxplaza.eu4.replayer.events.Controller) event;
-                final ProvinceInfo province = provinces.get(controller.id);
-                final CountryInfo newController = countries.get(controller.tag);
-                if (newController != null && newController.expectingTagChange != null && newController.expectingTagChange.compareTo(date) > 0) {
-                    continue;
-                }
-                final CountryInfo previousController = countries.get(province.controller);
-                if (previousController != null) {
-                    previousController.controls.remove(province.id);
-                }
-                province.controller = controller.tag;
-                int color = landColor;
-                if (newController != null) {
-                    newController.controls.add(province.id);
-                    color = newController.color;
-                }
-                for(int p : province.points) {
-                    if ( p / width % 2 == 0) {
-                        buffer[p] = color;
-                        if (writer != null) {
-                            writer.setArgb(p % width, p / width, color);
-                        }
-                    }
-                }
-            } else if (event instanceof Owner) {
-                final com.paradoxplaza.eu4.replayer.events.Owner owner = (com.paradoxplaza.eu4.replayer.events.Owner) event;
-                final ProvinceInfo province = provinces.get(owner.id);
-                final CountryInfo previousOwner = countries.get(province.owner);
-                final CountryInfo newOwner = countries.get(owner.value);
-                if (newOwner != null && newOwner.expectingTagChange != null && newOwner.expectingTagChange.compareTo(date) > 0) {
-                    continue;
-                }
-                if (previousOwner != null) {
-                    previousOwner.owns.remove(province.id);
-                    previousOwner.controls.remove(province.id);
-                }
-                province.owner = owner.value;
-                province.controller = owner.value;
-                int color = landColor;
-                if (newOwner != null) {
-                    newOwner.owns.add(province.id);
-                    newOwner.controls.add(province.id);
-                    color = newOwner.color;
-                }
-                for(int p : province.points) {
-                    if ( p / width % 2 == 1 || previousOwner == null) {
-                        buffer[p] = color;
-                        if (writer != null) {
-                            writer.setArgb(p % width, p / width, color);
-                        }
-                    }
-                }
-            } else if (event instanceof TagChange) {
-                final TagChange tagChange = (TagChange) event;
-                final CountryInfo from = countries.get(tagChange.fromTag);
-                final CountryInfo to = countries.get(tagChange.toTag);
-                to.controls.addAll(from.controls);
-                to.owns.addAll(from.owns);
-                to.expectingTagChange = null;
-                for (String id : to.controls) {
-                    final ProvinceInfo province = provinces.get(id);
-                    province.controller = to.tag;
-                    for(int p : province.points) {
-                        if ( p / width % 2 == 0) {
-                            buffer[p] = to.color;
-                            if (writer != null) {
-                                writer.setArgb(p % width, p / width, to.color);
-                            }
-                        }
-                    }
-                }
-                for (String id : to.owns) {
-                    final ProvinceInfo province = provinces.get(id);
-                    province.owner = to.tag;
-                    for(int p : province.points) {
-                        if ( p / width % 2 == 1) {
-                            buffer[p] = to.color;
-                            if (writer != null) {
-                                writer.setArgb(p % width, p / width, to.color);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (refreshLog && logChange) {
-            log.getEngine().loadContent(logContent.toString());
-        }
-    }
-
     /**
      * Listens to changes of {@link #dateGenerator} and initiates event processing.
      */
@@ -853,7 +759,7 @@ public class ReplayerController implements Initializable {
         @Override
         public void changed(final ObservableValue<? extends Date> ov, final Date oldVal, final Date newVal) {
             final List<Event> events = saveGame.timeline.get(newVal);
-            processEvents(newVal, events, true, false);
+            eventProcessor.processEvents(newVal, events);
             //timeline.pause();
         }
     }
