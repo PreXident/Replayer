@@ -190,13 +190,16 @@ public class ReplayerController implements Initializable {
     /** Set of currently notable events. */
     final Set<String> notableEvents = new HashSet<>();
 
+    /** Standard event processor. */
     final EventProcessor eventProcessor = new EventProcessor(this);
 
+    /** Event processor that does not update log. */
     final EventProcessor notLogUpdatingProcessor = new EventProcessor(this) {
         @Override
         protected void updateLog() { }
     };
 
+    /** Event processor that does not update log nor {@link #output}. */
     final EventProcessor bufferChangeOnlyProcessor = new EventProcessor(this) {
         @Override
         protected void setColor(final int pos, final int color) {
@@ -587,14 +590,26 @@ public class ReplayerController implements Initializable {
         } catch (InterruptedException e) { }
     }
 
+    /**
+     * Returns title property.
+     * @return title property
+     */
     public StringProperty titleProperty() {
         return titleProperty;
     }
 
+    /**
+     * Returns window of the root.
+     * @return window of the root
+     */
     private Window getWindow() {
         return root.getScene().getWindow();
     }
 
+    /**
+     * Loads countries from files inside /common/country_tags directory
+     * and files mentioned in them.
+     */
     private void loadCountries() {
         countries.clear();
         final File countryTagDir = new File(eu4Directory + "/common/country_tags");
@@ -633,6 +648,9 @@ public class ReplayerController implements Initializable {
         }
     }
 
+    /**
+     * Loads data in proper order.
+     */
     private void loadData() {
         titleProperty.set(TITLE);
         loadProvinces();
@@ -641,6 +659,9 @@ public class ReplayerController implements Initializable {
         loadCountries();
     }
 
+    /**
+     * Starts loading the map from map/provinces.bmp.
+     */
     private void loadMap() {
         dateLabel.textProperty().unbind();
         dateLabel.setText("Loading map...");
@@ -708,6 +729,9 @@ public class ReplayerController implements Initializable {
         new Thread(mapLoader, "mapLoader").start();
     }
 
+    /**
+     * Loads provinces from map/definition.csv.
+     */
     private void loadProvinces() {
         provinces.clear();
         BufferedReader reader = null;
@@ -743,6 +767,9 @@ public class ReplayerController implements Initializable {
         }
     }
 
+    /**
+     * Loads sea provinces from map/default.map.
+     */
     private void loadSeas() {
         seas.clear();
         try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/default.map")) {

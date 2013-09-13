@@ -11,12 +11,23 @@ import com.paradoxplaza.eu4.replayer.events.TagChange;
  */
 public class EventProcessor {
 
+    /** Controller whose controls will be updated. */
     final ReplayerController replayerController;
 
+    /**
+     * Only constructor.
+     * @param controller ReplayerController whose controls will be updated
+     */
     public EventProcessor(final ReplayerController controller) {
         this.replayerController = controller;
     }
 
+    /**
+     * Processes Controller event.
+     * @param date date of the event
+     * @param controller controller change
+     * @return true if event should be logged, false otherwise
+     */
     private boolean processController(final Date date, final Controller controller) {
         final CountryInfo newController = replayerController.countries.get(controller.tag);
         if (newController != null && newController.expectingTagChange != null && newController.expectingTagChange.compareTo(date) > 0) {
@@ -75,6 +86,12 @@ public class EventProcessor {
         }
     }
 
+    /**
+     * Processes Owner event.
+     * @param date date of the event
+     * @param owner owner change event
+     * @return true if event should be logged, false otherwise
+     */
     private boolean processOwner(final Date date, final Owner owner) {
         final ProvinceInfo province = replayerController.provinces.get(owner.id);
         final CountryInfo previousOwner = replayerController.countries.get(province.owner);
@@ -104,6 +121,12 @@ public class EventProcessor {
         return true;
     }
 
+    /**
+     * Processes tag change event.
+     * @param date date of the event
+     * @param tagChange tag change event
+     * @return true if event should be logged, false otherwise
+     */
     private boolean processTagChange(final Date date, final TagChange tagChange) {
         final CountryInfo from = replayerController.countries.get(tagChange.fromTag);
         final CountryInfo to = replayerController.countries.get(tagChange.toTag);
@@ -132,6 +155,13 @@ public class EventProcessor {
         return true;
     }
 
+    /**
+     * Sets color of the map.
+     * Intented to be overridden by descendants if only
+     * buffer/output image/nothing should be updated.
+     * @param pos
+     * @param color
+     */
     protected void setColor(final int pos, final int color) {
         replayerController.buffer[pos] = color;
         replayerController.output.getPixelWriter().setArgb(
@@ -140,6 +170,10 @@ public class EventProcessor {
                 color);
     }
 
+    /**
+     * Updates the controller log.
+     * Intended to be overridden by descendants if update is not desirable.
+     */
     protected void updateLog() {
         replayerController.log.getEngine().loadContent(replayerController.logContent.toString());
     }
