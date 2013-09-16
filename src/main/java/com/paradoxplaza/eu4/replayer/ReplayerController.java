@@ -189,6 +189,9 @@ public class ReplayerController implements Initializable {
     /** Color to display no man's land. */
     int landColor;
 
+    /** Number of days processed in one tick. */
+    int daysPerTick;
+
     /** Timer for replaying. */
     Timeline timeline;
 
@@ -467,11 +470,14 @@ public class ReplayerController implements Initializable {
                   new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(final ActionEvent e) {
-                        if (dateGenerator.hasNext()) {
-                            dateGenerator.next();
-                        } else {
-                            timeline.stop();
-                            timeline = null;
+                        for (int i = 0; i < daysPerTick; ++i) {
+                            if (dateGenerator.hasNext()) {
+                                dateGenerator.next();
+                            } else {
+                                timeline.stop();
+                                timeline = null;
+                                break;
+                            }
                         }
                       }
                 }));
@@ -592,6 +598,8 @@ public class ReplayerController implements Initializable {
         }
 
         zoomStep = Integer.parseInt(settings.getProperty("zoom.step", "100"));
+
+        daysPerTick = Integer.parseInt(settings.getProperty("days.per.tick", "1"));
 
         saveDirectory = new File(settings.getProperty("save.dir", "/"));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
