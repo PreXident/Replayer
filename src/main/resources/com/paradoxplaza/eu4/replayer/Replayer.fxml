@@ -34,17 +34,17 @@
 				<Menu text="Display">
 					<MenuItem text="Zoom In" onAction="#zoomIn">
 						<accelerator>
-							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="PLUS"/>
+							<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="ADD"/>
 						</accelerator>
 					</MenuItem>
 					<MenuItem text="Zoom Out" onAction="#zoomOut">
 						<accelerator>
-							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="MINUS"/>
+							<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="SUBTRACT"/>
 						</accelerator>
 					</MenuItem>
 					<MenuItem text="Reset Zoom" onAction="#resetZoom">
 						<accelerator>
-							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="DIGIT0"/>
+							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="NUMPAD0"/>
 						</accelerator>
 					</MenuItem>
 				</Menu>
