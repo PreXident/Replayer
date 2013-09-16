@@ -62,6 +62,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Duration;
 import netscape.javascript.JSObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 /**
  * Controller for the Replayer application.
@@ -76,6 +78,18 @@ public class ReplayerController implements Initializable {
 
     /** Pattern for mathing country colors. */
     static final Pattern TAG_COLOR_PATTERN = Pattern.compile("^\\s*color\\s*=\\s*\\{\\s*(\\d+)\\s*(\\d+)\\s*(\\d+)\\s*\\}\\s*$");
+
+    /** ID used to append new messages to log. */
+    static final String LOG_ID = "content";
+
+    /** Log content should always start with this. */
+    static final String LOG_HEADER = String.format("<span id='%s'>", LOG_ID);
+
+    /** This is appended to log content before updating the log. */
+    static final String LOG_FOOTER = "</span>";
+
+    /** Initial content of log. */
+    static final String LOG_INIT = String.format("<body><div id='%s'/></body>", LOG_ID);
 
     /**
      * R, G, B to argb.
@@ -268,7 +282,7 @@ public class ReplayerController implements Initializable {
                 @Override
                 public void handle(WorkerStateEvent t) {
                     output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
-                    log.getEngine().loadContent(logContent.toString());
+                    updateLog();
                     dateGenerator = new DateGenerator(saveGame.date, saveGame.date);
                     lock.release();
                 }
@@ -368,7 +382,7 @@ public class ReplayerController implements Initializable {
             starter.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
                 @Override
                 public void handle(WorkerStateEvent t) {
-                    log.getEngine().loadContent(logContent.toString());
+                    updateLog();
                     progressBar.progressProperty().bind(dateGenerator.progress);
                     dateGenerator.dateProperty().addListener(dateListener);
                     dateLabel.textProperty().bind(new StringBinding() {
@@ -445,6 +459,7 @@ public class ReplayerController implements Initializable {
             lock.release();
             return;
         }
+
         timeline = new Timeline();
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.getKeyFrames().add(
@@ -551,8 +566,8 @@ public class ReplayerController implements Initializable {
             }
         });
         webEngine.setJavaScriptEnabled(true);
-        logContent.append("<body onload=\"window.scrollTo(0,document.body.scrollHeight)\">");
-        webEngine.loadContent(logContent.toString());
+        webEngine.loadContent(LOG_INIT);
+        logContent.append(LOG_HEADER);
     }
 
     /**
@@ -776,6 +791,28 @@ public class ReplayerController implements Initializable {
             final DefaultMapParser parser = new DefaultMapParser(new Pair<>(seas, provinces), Long.MAX_VALUE, is);
             parser.run();
         } catch(Exception e) { e.printStackTrace(); }
+    }
+
+    /**
+     * Appends {@link #logContent} to {@link #log} asynchronously.
+     */
+    public void updateLog() {
+        final Document doc = log.getEngine().getDocument();
+        logContent.append(LOG_FOOTER);
+        final WebEngine e = new WebEngine();
+        e.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+            @Override
+            public void changed(ObservableValue ov, State oldState, State newState) {
+                if (newState == State.SUCCEEDED) {
+                    Node fragmentNode = e.getDocument().getElementById(LOG_ID);
+                    fragmentNode = doc.importNode(fragmentNode, true);
+                    doc.getElementById(LOG_ID).appendChild(fragmentNode);
+                    log.getEngine().executeScript("window.scrollTo(0,document.body.scrollHeight)");
+                    logContent.setLength(LOG_HEADER.length());
+                }
+            }
+        });
+        e.loadContent(logContent.toString());
     }
 
     /**

@@ -175,6 +175,6 @@ public class EventProcessor {
      * Intended to be overridden by descendants if update is not desirable.
      */
     protected void updateLog() {
-        replayerController.log.getEngine().loadContent(replayerController.logContent.toString());
+        replayerController.updateLog();
     }
 }
