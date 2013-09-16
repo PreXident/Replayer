@@ -1,7 +1,7 @@
 package com.paradoxplaza.eu4.replayer;
 
-import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.events.Event;
+import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.awt.Point;
@@ -90,6 +90,9 @@ public class ReplayerController implements Initializable {
 
     /** Initial content of log. */
     static final String LOG_INIT = String.format("<body><div id='%s'/></body>", LOG_ID);
+
+    /** JavaScript call to scroll to the bottom of the page. */
+    static final String SCROLL_DOWN = "window.scrollTo(0,document.body.scrollHeight)";
 
     /**
      * R, G, B to argb.
@@ -285,9 +288,20 @@ public class ReplayerController implements Initializable {
                 @Override
                 public void handle(WorkerStateEvent t) {
                     output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
-                    updateLog();
-                    dateGenerator = new DateGenerator(saveGame.date, saveGame.date);
-                    lock.release();
+                    System.out.println(log.getEngine().getDocument().toString());
+                    final WebEngine e = log.getEngine();
+                    e.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+                        @Override
+                        public void changed(ObservableValue ov, State oldState, State newState) {
+                            if (newState == State.SUCCEEDED) {
+                                log.getEngine().executeScript(SCROLL_DOWN);
+                                dateGenerator = new DateGenerator(saveGame.date, saveGame.date);
+                                logContent.setLength(0);
+                                lock.release();
+                            }
+                        }
+                    });
+                    e.loadContent(logContent.toString());
                 }
             });
          dateLabel.textProperty().bind(finalizer.titleProperty());
@@ -815,7 +829,7 @@ public class ReplayerController implements Initializable {
                     Node fragmentNode = e.getDocument().getElementById(LOG_ID);
                     fragmentNode = doc.importNode(fragmentNode, true);
                     doc.getElementById(LOG_ID).appendChild(fragmentNode);
-                    log.getEngine().executeScript("window.scrollTo(0,document.body.scrollHeight)");
+                    log.getEngine().executeScript(SCROLL_DOWN);
                     logContent.setLength(LOG_HEADER.length());
                 }
             }
