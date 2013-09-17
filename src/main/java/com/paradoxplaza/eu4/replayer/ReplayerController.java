@@ -3,8 +3,15 @@ package com.paradoxplaza.eu4.replayer;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
+import com.paradoxplaza.eu4.replayer.utils.GifSequenceWriter;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
+import java.awt.image.ImageObserver;
+import java.awt.image.ImageProducer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,10 +41,12 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker.State;
 import javafx.concurrent.WorkerStateEvent;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.CustomMenuItem;
@@ -62,6 +71,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.imageio.stream.ImageOutputStream;
 import netscape.javascript.JSObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -214,6 +225,14 @@ public class ReplayerController implements Initializable {
     /** Set of currently notable events. */
     final Set<String> notableEvents = new HashSet<>();
 
+    GifSequenceWriter gifWriter = null;
+
+    ImageOutputStream gifOutput = null;
+
+    BufferedImage gifBufferedImage = null;
+
+    int gifStep;
+
     /** Standard event processor. */
     final EventProcessor eventProcessor = new EventProcessor(this);
 
@@ -277,13 +296,17 @@ public class ReplayerController implements Initializable {
                     Date date = dateGenerator.dateProperty().get();
                     int day = Date.calculateDistance(saveGame.startDate, date);
                     final int distance = Date.calculateDistance(saveGame.startDate, saveGame.date);
+                    int counter = 0;
                     while (date.compareTo(maxDate) < 0) {
                         final List<Event> events = saveGame.timeline.get(date);
                         bufferChangeOnlyProcessor.processEvents(date, events);
                         updateProgress(++day, distance);
                         date = date.next();
+                        if (++counter >= daysPerTick) {
+                            updateGif(date);
+                            counter = 0;
+                        }
                     }
-
                     updateTitle(date.toString());
                     return null;
                 }
@@ -292,7 +315,6 @@ public class ReplayerController implements Initializable {
                 @Override
                 public void handle(WorkerStateEvent t) {
                     output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
-                    System.out.println(log.getEngine().getDocument().toString());
                     final WebEngine e = log.getEngine();
                     e.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
                         @Override
@@ -301,6 +323,7 @@ public class ReplayerController implements Initializable {
                                 log.getEngine().executeScript(SCROLL_DOWN);
                                 dateGenerator = new DateGenerator(saveGame.date, saveGame.date);
                                 logContent.setLength(0);
+                                endGif();
                                 lock.release();
                             }
                         }
@@ -395,7 +418,6 @@ public class ReplayerController implements Initializable {
                     dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
                     updateTitle("Initializing starting date...");
                     notLogUpdatingProcessor.processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)));
-
                     return null;
                 }
             };
@@ -403,6 +425,16 @@ public class ReplayerController implements Initializable {
             starter.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
                 @Override
                 public void handle(WorkerStateEvent t) {
+                    if ("true".equals(settings.getProperty("gif"))) {
+                        try {
+                            gifOutput = new FileImageOutputStream(new File(file.getAbsolutePath() + ".gif"));
+                            gifWriter = new GifSequenceWriter(gifOutput, BufferedImage.TYPE_INT_ARGB, gifStep, true);
+                            gifBufferedImage = new BufferedImage(bufferWidth, bufferHeight, BufferedImage.TYPE_INT_ARGB);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        updateGif(saveGame.startDate);
+                    }
                     updateLog();
                     progressBar.progressProperty().bind(dateGenerator.progress);
                     dateGenerator.dateProperty().addListener(dateListener);
@@ -494,9 +526,11 @@ public class ReplayerController implements Initializable {
                             } else {
                                 timeline.stop();
                                 timeline = null;
+                                //endGif();
                                 break;
                             }
                         }
+                        //updateGif();
                       }
                 }));
         timeline.playFromStart();
@@ -633,6 +667,8 @@ public class ReplayerController implements Initializable {
         daysCombo.getItems().addAll(settings.getProperty("list.days.per.tick", "1;30;365").split(";"));
         daysCombo.getSelectionModel().select(settings.getProperty("days.per.tick", "1"));
 
+        gifStep = Integer.parseInt(settings.getProperty("gif.step", "100"));
+
         saveDirectory = new File(settings.getProperty("save.dir", "/"));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
             saveDirectory = null;
@@ -659,6 +695,19 @@ public class ReplayerController implements Initializable {
      */
     private Window getWindow() {
         return root.getScene().getWindow();
+    }
+
+    void endGif() {
+        if (gifWriter != null) {
+            try {
+                gifWriter.close();
+                gifOutput.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            gifWriter = null;
+            gifOutput = null;
+        }
     }
 
     /**
@@ -744,6 +793,12 @@ public class ReplayerController implements Initializable {
 
                 //Copy from source to destination pixel by pixel
                 output = new WritableImage(width, height);
+//                if ("true".equals(settings.getProperty("gif"))) {
+//                    gifBufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+//                    buffer = ((DataBufferInt)gifBufferedImage.getRaster().getDataBuffer()).getData();
+//                } else {
+//                    buffer = new int[width*height];
+//                }
                 buffer = new int[width*height];
                 bufferWidth = width;
                 bufferHeight = height;
@@ -831,6 +886,33 @@ public class ReplayerController implements Initializable {
             final DefaultMapParser parser = new DefaultMapParser(new Pair<>(seas, provinces), Long.MAX_VALUE, is);
             parser.run();
         } catch(Exception e) { e.printStackTrace(); }
+    }
+
+    /**
+     * Called when application is stopped to store settings and end gif if needed.
+     */
+    public void stop() {
+        endGif();
+        final StringBuilder s = new StringBuilder();
+        for(String event : notableEvents) {
+            s.append(";");
+            s.append(event);
+        }
+        settings.setProperty("events", s.substring(1));
+    }
+
+    void updateGif(final Date date) {
+        final int[] a = ( (DataBufferInt) gifBufferedImage.getRaster().getDataBuffer() ).getData();
+        System.arraycopy(buffer, 0, a, 0, buffer.length);
+        final Graphics g = gifBufferedImage.getGraphics();
+        g.setColor(Color.BLACK);
+        g.drawString(date.toString(), 60, 60);
+        g.dispose();
+        try {
+            gifWriter.writeToSequence(gifBufferedImage);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

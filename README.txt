@@ -44,6 +44,7 @@ From realistic ones to dreams:
 
 0.2
 Setting the speed of replay in more user-friendly way
+Experimental gif export - set gif=true in properties and use fastforwarding, gif will be created in dir with savegame
 
 0.1
 Initial release
@@ -53,3 +54,9 @@ Initial release
 #########
 
 If anyone is interested or paranoid enough, sources are freely available, just PM me. However they are no masterpiece I am afraid ;-) It's a netbeans free form project, so you just need to adjust properties in build.xml if JAVA_HOME is not set and then use ant.
+
+################
+#Used Libraries#
+################
+Elliot Kroo's GifSequenceWriter under Creative Commons Attribution 3.0 Unported
+ License.
