@@ -54,6 +54,14 @@
 							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="D"/>
 						</accelerator>
 					</MenuItem>
+					<CustomMenuItem hideOnClick="false" text="Days Per Tick">
+						<content>
+							<HBox alignment="CENTER_LEFT" >
+								<Label text="Days Per Tick"/>
+								<ComboBox fx:id="daysCombo" editable="true"/>
+							</HBox>
+						</content>
+					</CustomMenuItem>
 					<MenuItem text="Emergency refresh" onAction="#refresh">
 						<accelerator>
 							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="R"/>

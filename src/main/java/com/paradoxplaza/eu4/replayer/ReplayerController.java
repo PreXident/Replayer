@@ -39,6 +39,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -131,6 +132,9 @@ public class ReplayerController implements Initializable {
 
     @FXML
     Menu eventMenu;
+
+    @FXML
+    ComboBox<String> daysCombo;
 
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
@@ -575,6 +579,19 @@ public class ReplayerController implements Initializable {
             }
         }
 
+        daysCombo.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        daysCombo.valueProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                try {
+                    daysPerTick = Integer.parseInt(newVal);
+                    settings.setProperty("days.per.tick", newVal);
+                } catch (NumberFormatException e) {
+                    daysCombo.setValue(oldVal);
+                }
+            }
+        });
+
         final WebEngine webEngine = log.getEngine();
         webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
             @Override
@@ -613,7 +630,8 @@ public class ReplayerController implements Initializable {
 
         zoomStep = Integer.parseInt(settings.getProperty("zoom.step", "100"));
 
-        daysPerTick = Integer.parseInt(settings.getProperty("days.per.tick", "1"));
+        daysCombo.getItems().addAll(settings.getProperty("list.days.per.tick", "1;30;365").split(";"));
+        daysCombo.getSelectionModel().select(settings.getProperty("days.per.tick", "1"));
 
         saveDirectory = new File(settings.getProperty("save.dir", "/"));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {

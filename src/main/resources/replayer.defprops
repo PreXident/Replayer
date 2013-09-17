@@ -14,3 +14,5 @@ land.color.green=150
 land.color.blue=150
 #province to center after load
 center.id=1
+#content of days-per-tick combo
+list.days.per.tick=1;30;365
