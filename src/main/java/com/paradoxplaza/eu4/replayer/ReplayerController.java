@@ -10,8 +10,6 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,12 +39,10 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker.State;
 import javafx.concurrent.WorkerStateEvent;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.CustomMenuItem;
@@ -225,12 +221,19 @@ public class ReplayerController implements Initializable {
     /** Set of currently notable events. */
     final Set<String> notableEvents = new HashSet<>();
 
+    /** Writer of gif output. */
     GifSequenceWriter gifWriter = null;
 
+    /** Outputstream of gif picture. */
     ImageOutputStream gifOutput = null;
 
+    /** Buffered image representation of {@link #buffer}. */
     BufferedImage gifBufferedImage = null;
 
+    /** Sized representation of {@link #gifBufferedImage}. */
+    BufferedImage gifSizedImage = null;
+
+    /** Period in ms between two frames in gif. */
     int gifStep;
 
     /** Standard event processor. */
@@ -427,9 +430,10 @@ public class ReplayerController implements Initializable {
                 public void handle(WorkerStateEvent t) {
                     if ("true".equals(settings.getProperty("gif"))) {
                         try {
-                            gifOutput = new FileImageOutputStream(new File(file.getAbsolutePath() + ".gif"));
+                            final File gifOutputFile = new File(file.getAbsolutePath() + ".gif");
+                            gifOutputFile.delete();
+                            gifOutput = new FileImageOutputStream(gifOutputFile);
                             gifWriter = new GifSequenceWriter(gifOutput, BufferedImage.TYPE_INT_ARGB, gifStep, true);
-                            gifBufferedImage = new BufferedImage(bufferWidth, bufferHeight, BufferedImage.TYPE_INT_ARGB);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -793,12 +797,19 @@ public class ReplayerController implements Initializable {
 
                 //Copy from source to destination pixel by pixel
                 output = new WritableImage(width, height);
-//                if ("true".equals(settings.getProperty("gif"))) {
-//                    gifBufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                if ("true".equals(settings.getProperty("gif"))) {
+                    gifBufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                    int gifWidth = width;
+                    int gifHeight = height;
+                    try {
+                        gifWidth = Integer.parseInt(settings.getProperty("gif.width"));
+                        gifHeight = Integer.parseInt(settings.getProperty("gif.height"));
+                    } catch (Exception e) { }
+                    gifSizedImage = new BufferedImage(gifWidth, gifHeight, BufferedImage.TYPE_INT_ARGB);
 //                    buffer = ((DataBufferInt)gifBufferedImage.getRaster().getDataBuffer()).getData();
-//                } else {
-//                    buffer = new int[width*height];
-//                }
+                } else {
+                    buffer = new int[width*height];
+                }
                 buffer = new int[width*height];
                 bufferWidth = width;
                 bufferHeight = height;
@@ -904,12 +915,13 @@ public class ReplayerController implements Initializable {
     void updateGif(final Date date) {
         final int[] a = ( (DataBufferInt) gifBufferedImage.getRaster().getDataBuffer() ).getData();
         System.arraycopy(buffer, 0, a, 0, buffer.length);
-        final Graphics g = gifBufferedImage.getGraphics();
+        final Graphics g = gifSizedImage.getGraphics();
+        g.drawImage(gifBufferedImage, 0, 0, gifSizedImage.getWidth(), gifSizedImage.getHeight(), null);
         g.setColor(Color.BLACK);
         g.drawString(date.toString(), 60, 60);
         g.dispose();
         try {
-            gifWriter.writeToSequence(gifBufferedImage);
+            gifWriter.writeToSequence(gifSizedImage);
         } catch (IOException e) {
             e.printStackTrace();
         }

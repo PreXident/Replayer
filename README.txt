@@ -34,7 +34,6 @@ In province history there's sometimes missing record of regaining province contr
 From realistic ones to dreams:
 - fast forward replay to any given date, not only end date
 - display info when hovering over provinces
-- gif export?
 - monarchs, wars, ...
 - binary savegame (ironman)
 
@@ -44,7 +43,7 @@ From realistic ones to dreams:
 
 0.2
 Setting the speed of replay in more user-friendly way
-Experimental gif export - set gif=true in properties and use fastforwarding, gif will be created in dir with savegame
+Experimental gif export - set gif=true in properties and use fastforwarding, gif will be created in dir with savegame, its size can be influenced by properties gif.width and gif.height
 
 0.1
 Initial release
