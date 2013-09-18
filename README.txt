@@ -57,5 +57,4 @@ If anyone is interested or paranoid enough, sources are freely available, just P
 ################
 #Used Libraries#
 ################
-Elliot Kroo's GifSequenceWriter under Creative Commons Attribution 3.0 Unported
- License.
+Elliot Kroo's GifSequenceWriter under Creative Commons Attribution 3.0 Unported License.
