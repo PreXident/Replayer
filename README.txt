@@ -33,7 +33,6 @@ In province history there's sometimes missing record of regaining province contr
 #Planned features#
 ##################
 
-From realistic ones to dreams:
 - fast forward replay to any given date, not only end date
 - monarchs, wars, ...
 
