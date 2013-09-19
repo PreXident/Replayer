@@ -35,12 +35,14 @@ In province history there's sometimes missing record of regaining province contr
 
 From realistic ones to dreams:
 - fast forward replay to any given date, not only end date
-- display info when hovering over provinces
 - monarchs, wars, ...
 
 ############
 #Change log#
 ############
+
+0.3
+Displaying info when hovering over provinces
 
 0.2
 Setting the speed of replay in more user-friendly way

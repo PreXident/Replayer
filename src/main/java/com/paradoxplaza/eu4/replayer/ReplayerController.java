@@ -52,6 +52,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelFormat;
@@ -627,6 +628,19 @@ public class ReplayerController implements Initializable {
                     settings.setProperty("days.per.tick", newVal);
                 } catch (NumberFormatException e) {
                     daysCombo.setValue(oldVal);
+                }
+            }
+        });
+
+        imageView.setOnMouseMoved(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent t) {
+                final Bounds imageBounds = imageView.getBoundsInParent();
+                int x = (int) (t.getX() * bufferWidth / imageBounds.getWidth());
+                int y = (int) (t.getY() * bufferHeight / imageBounds.getHeight());
+                final String provinceHint = provinces.get(colors.get(reader.getArgb(x, y))).toString();
+                if (!scrollPane.getTooltip().getText().equals(provinceHint)) {
+                    scrollPane.setTooltip(new Tooltip(provinceHint));
                 }
             }
         });

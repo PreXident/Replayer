@@ -55,4 +55,9 @@ public class ProvinceInfo {
         }
         center.move(x / points.size(), y / points.size());
     }
+
+    @Override
+    public String toString() {
+        return String.format("id=%1$s\nname=%2$s\ncontroller=%3$s\nowner=%3$s", id, name, controller, owner);
+    }
 }

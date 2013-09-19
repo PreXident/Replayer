@@ -196,7 +196,12 @@
 	</top>
 	<center>
 		<ScrollPane fx:id="scrollPane" styleClass="map" pannable="true" >
-			<ImageView fx:id="imageView" preserveRatio="true" />
+			<content>
+				<ImageView fx:id="imageView" preserveRatio="true" />
+			</content>
+			<tooltip>
+				<Tooltip text="nothing" />
+			</tooltip>
 		</ScrollPane>
 	</center>
 	<bottom>
