@@ -43,6 +43,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Bounds;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.CustomMenuItem;
@@ -999,10 +1000,11 @@ public class ReplayerController implements Initializable {
             if (center == null) {
                 return false;
             }
+            final Bounds imageBounds = imageView.getBoundsInParent();
             scrollPane.setHvalue(mapCoordToScrollProcent(
-                    center.x, map.getWidth(), scrollPane.getWidth(), imageView.getFitWidth()));
+                    center.x, map.getWidth(), scrollPane.getWidth(), imageBounds.getWidth()));
             scrollPane.setVvalue(mapCoordToScrollProcent(
-                    center.y, map.getHeight(), scrollPane.getHeight(), imageView.getFitHeight()));
+                    center.y, map.getHeight(), scrollPane.getHeight(), imageBounds.getHeight()));
             return false;
         }
     }
