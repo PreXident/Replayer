@@ -11,6 +11,7 @@ Naturally the more event types you want to track, the slower the replaying is.
 
 Tested on only one machine and one complete vanilla save started in 1444.11.11, so it may not work properly with yours.
 Submit any bugs, problems and feature requests on Paradox forums or PM me (nick PreXident), maybe we can figure it out.
+http://forum.paradoxplaza.com/forum/showthread.php?722493-UTILITY-Java-Save-Game-Replayer
 
 If you want to replay ironman save, try this approach: backup, load, load other, load, save locally, restore your backup
 
