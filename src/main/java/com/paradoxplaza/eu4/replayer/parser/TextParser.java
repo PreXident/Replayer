@@ -85,11 +85,15 @@ public class TextParser<Context> extends Task<Context> {
             } while (!eof && !isCancelled());
             state.end(context);
         } catch (IOException e) {
-            throw new IOException(
+            final IOException newEx = new IOException(
                     String.format("Encountered IOException on line %1$d when processing token number %2$d:\n", tokenizer.lineno(), counter), e);
+            newEx.printStackTrace();
+            throw newEx;
         } catch (Exception e) {
-            throw new RuntimeException(
+            final RuntimeException newEx = new RuntimeException(
                     String.format("Encountered exception on line %1$d when processing token number %2$d:\n", tokenizer.lineno(), counter), e);
+            newEx.printStackTrace();
+            throw newEx;
         }
         return context;
     }
