@@ -23,6 +23,7 @@ import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.RevoltRisk;
 import com.paradoxplaza.eu4.replayer.events.Tax;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
+import com.paradoxplaza.eu4.replayer.parser.Empty;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
 import java.util.regex.Pattern;
@@ -231,6 +232,9 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     /** State to ignore advisors. */
     Ignore<SaveGame> ignore = new Ignore<>(this);
 
+    /** State to ignore empty { }. */
+    Empty<SaveGame> empty = new Empty<>(this);
+
     /**
      * Only constructor.
      * @param parent parent state
@@ -282,6 +286,14 @@ class ProvinceHistory extends CompoundState<SaveGame> {
         id = null;
         name = null;
         date = null;
+    }
+
+    @Override
+    public State<SaveGame> processChar(final SaveGame context, final char token) {
+        if (token != expecting.toChar() && expecting == Expecting.CLOSING && token == '{') {
+            return empty;
+        }
+        return super.processChar(saveGame, token);
     }
 
     @Override
