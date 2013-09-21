@@ -587,6 +587,7 @@ public class ReplayerController implements Initializable {
 
     @Override
     public void initialize(final URL url, final ResourceBundle rb) {
+        System.out.printf("Initializing...\n");
         log.prefWidthProperty().bind(logContainer.widthProperty());
         progressBar.prefWidthProperty().bind(bottom.widthProperty());
 
@@ -734,6 +735,7 @@ public class ReplayerController implements Initializable {
      * and files mentioned in them.
      */
     private void loadCountries() {
+        System.out.printf("Loading countries...\n");
         countries.clear();
         final File countryTagDir = new File(eu4Directory + "/common/country_tags");
         for(final File tagFile : countryTagDir.listFiles()) {
@@ -775,6 +777,7 @@ public class ReplayerController implements Initializable {
      * Loads data in proper order.
      */
     private void loadData() {
+        System.out.printf("Loading data:\n");
         titleProperty.set(TITLE);
         loadProvinces();
         loadMap();
@@ -791,70 +794,77 @@ public class ReplayerController implements Initializable {
         final Task<Void> mapLoader = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                InputStream is = null;
                 try {
-                    is = new FileInputStream(eu4Directory.getPath() + "/map/provinces.bmp");
-                    map = new Image(is);
-                } catch (FileNotFoundException e) {
-                    System.err.println("File map/provinces.bmp not found!");
-                    map = new WritableImage(1,1);
-                } finally {
-                    if (is != null) {
-                        try {
-                            is.close();
-                        } catch (IOException e) { }
-                    }
-                }
-                reader = map.getPixelReader();
-
-                final int width = (int) map.getWidth();
-                final int height = (int) map.getHeight();
-
-                //Copy from source to destination pixel by pixel
-                output = new WritableImage(width, height);
-                if ("true".equals(settings.getProperty("gif"))) {
-                    gifBufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-                    int gifWidth = width;
-                    int gifHeight = height;
+                    InputStream is = null;
                     try {
-                        gifWidth = Integer.parseInt(settings.getProperty("gif.width"));
-                        gifHeight = Integer.parseInt(settings.getProperty("gif.height"));
-                    } catch (Exception e) { }
-                    gifSizedImage = new BufferedImage(gifWidth, gifHeight, BufferedImage.TYPE_INT_ARGB);
-//                    buffer = ((DataBufferInt)gifBufferedImage.getRaster().getDataBuffer()).getData();
-                } else {
-                    buffer = new int[width*height];
-                }
-                buffer = new int[width*height];
-                bufferWidth = width;
-                bufferHeight = height;
-                final PixelWriter writer = output.getPixelWriter();
-
-                for (int y = 0; y < height; ++y){
-                    for (int x = 0; x < width; ++x){
-                        final int color = reader.getArgb(x, y);
-                        provinces.get(colors.get(color)).points.add(y * width + x);
-                        buffer[y * width + x] = color;
-                        writer.setArgb(x, y, color);
-                        updateProgress(y*width+x, height*width);
+                        System.out.printf("Map file: %s\n", eu4Directory.getPath() + "/map/provinces.bmp");
+                        is = new FileInputStream(eu4Directory.getPath() + "/map/provinces.bmp");
+                        map = new Image(is);
+                    } catch (FileNotFoundException e) {
+                        System.err.println("File map/provinces.bmp not found!");
+                        map = new WritableImage(1,1);
+                    } finally {
+                        if (is != null) {
+                            try {
+                                is.close();
+                            } catch (IOException e) { }
+                        }
                     }
-                }
+                    reader = map.getPixelReader();
 
-                for(ProvinceInfo info : provinces.values()) {
-                    info.calculateCenter(width);
-                }
+                    final int width = (int) map.getWidth();
+                    final int height = (int) map.getHeight();
 
-                lock.release();
-                return null;
+                    //Copy from source to destination pixel by pixel
+                    output = new WritableImage(width, height);
+                    if ("true".equals(settings.getProperty("gif"))) {
+                        gifBufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                        int gifWidth = width;
+                        int gifHeight = height;
+                        try {
+                            gifWidth = Integer.parseInt(settings.getProperty("gif.width"));
+                            gifHeight = Integer.parseInt(settings.getProperty("gif.height"));
+                        } catch (Exception e) { }
+                        gifSizedImage = new BufferedImage(gifWidth, gifHeight, BufferedImage.TYPE_INT_ARGB);
+    //                    buffer = ((DataBufferInt)gifBufferedImage.getRaster().getDataBuffer()).getData();
+                    } else {
+                        buffer = new int[width*height];
+                    }
+                    buffer = new int[width*height];
+                    bufferWidth = width;
+                    bufferHeight = height;
+                    final PixelWriter writer = output.getPixelWriter();
+
+                    for (int y = 0; y < height; ++y){
+                        for (int x = 0; x < width; ++x){
+                            final int color = reader.getArgb(x, y);
+                            provinces.get(colors.get(color)).points.add(y * width + x);
+                            buffer[y * width + x] = color;
+                            writer.setArgb(x, y, color);
+                            updateProgress(y*width+x, height*width);
+                        }
+                    }
+
+                    for(ProvinceInfo info : provinces.values()) {
+                        info.calculateCenter(width);
+                    }
+
+                    lock.release();
+                    return null;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw e;
+                }
             }
         };
         progressBar.progressProperty().bind(mapLoader.progressProperty());
         mapLoader.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent t) {
+                System.out.println("Map loaded");
                 progressBar.progressProperty().unbind();
                 progressBar.setProgress(0);
-                dateLabel.setText("");
+                dateLabel.setText("Map loaded");
                 imageView.setImage(output);
                 int fitWidth = Integer.parseInt(settings.getProperty("map.fit.width", "0"));
                 int fitHeight = Integer.parseInt(settings.getProperty("map.fit.height", "0"));
@@ -869,6 +879,7 @@ public class ReplayerController implements Initializable {
      * Loads provinces from map/definition.csv.
      */
     private void loadProvinces() {
+        System.out.printf("Loading provinces...\n");
         provinces.clear();
         BufferedReader reader = null;
         try {
@@ -907,6 +918,7 @@ public class ReplayerController implements Initializable {
      * Loads sea provinces from map/default.map.
      */
     private void loadSeas() {
+        System.out.printf("Loading seas...\n");
         seas.clear();
         try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/default.map")) {
             final DefaultMapParser parser = new DefaultMapParser(new Pair<>(seas, provinces), Long.MAX_VALUE, is);

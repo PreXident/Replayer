@@ -48,6 +48,7 @@ public class Replayer extends Application {
 
     @Override
     public void start(final Stage stage) throws Exception {
+        System.out.printf("Starting...\n");
         //load default properties
         settings = new Properties(loadDefaulJarProperties());
 
@@ -59,8 +60,8 @@ public class Replayer extends Application {
             System.out.printf("If property_file argument is not provided, default property file \"%s\" will be used\n", DEFAULT_PROPERTIES);
             System.exit(0);
         }
-        System.out.printf("Starting...\n");
         if (args.size() == 1) {
+            System.out.printf("Loading property file\n");
             propertyFile = args.get(0);
             try (final InputStream is = new FileInputStream(propertyFile)) {
                 settings.load(is);
@@ -69,9 +70,9 @@ public class Replayer extends Application {
                 e.printStackTrace();
             }
         } else /*if (args.length == 0)*/ { //no property file provided
+            System.out.printf("No property file specified, using default path.\n");
             propertyFile = DEFAULT_PROPERTIES;
             try (final InputStream is = new FileInputStream(DEFAULT_PROPERTIES)) {
-                System.out.printf("No property file specified, using default path.\n");
                 settings.load(is);
             } catch(Exception e) {
                 System.err.printf(String.format("Error with default property file \"%s\"\n", DEFAULT_PROPERTIES));
@@ -113,6 +114,7 @@ public class Replayer extends Application {
      * @return default properties
      */
     private Properties loadDefaulJarProperties() {
+        System.out.printf("Loading default properties.\n");
         final Properties res = new Properties();
         try {
             res.load(getClass().getClassLoader().getResourceAsStream(DEFAULT_JAR_PROPERTIES));
