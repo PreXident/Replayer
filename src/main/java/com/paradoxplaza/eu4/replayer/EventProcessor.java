@@ -95,6 +95,7 @@ public class EventProcessor {
     private boolean processOwner(final Date date, final Owner owner) {
         final ProvinceInfo province = replayerController.provinces.get(owner.id);
         final CountryInfo previousOwner = replayerController.countries.get(province.owner);
+        final String previousController = province.controller;
         final CountryInfo newOwner = replayerController.countries.get(owner.value);
         if (newOwner != null && newOwner.expectingTagChange != null && newOwner.expectingTagChange.compareTo(date) > 0) {
             return false;
@@ -113,7 +114,7 @@ public class EventProcessor {
         }
         for(int p : province.points) {
             if ( p / replayerController.bufferWidth % 2 == 1
-                    || previousOwner == null
+                    || previousOwner == null || previousOwner.tag.equals(previousController)
                     || !replayerController.notableEvents.contains("Controller")) {
                 setColor(p, color);
             }

@@ -2,7 +2,7 @@
 #EU4 save game replayer#
 ########################
 
-This is a fan WiP project coded in free time and originally intended for my personal use only as JavaFX exercise, so there's no warranty, use only on your own risk! You will probably need at least jre7.
+This is a fan WiP project coded in free time and originally intended for my personal use only as JavaFX exercise, so there's no warranty, use only on your own risk! You will probably need at least jre7. Some forumites reported problems with using 32b Java on 64b computer that were fixed by installing 64b Java.
 Before starting, set "eu4.dir" property in file "replayer.properties" to directory containing the game. Property "days.per.tick" controls the speed of the replay.
 There's a bug in javafx which sometimes prevents the map from refreshing. If this is your case and Settings->Emergency Refresh does not help you, download jre7 update 40 or newer; or backup provinces.bmp and experiment with its size (for me the width has to be 4096 pixels or less, it likely depends on your graphic card).
 If you mess with (un)checking controller or owner events during replaying, you may get weird results.
@@ -39,6 +39,9 @@ In province history there's sometimes missing record of regaining province contr
 ############
 #Change log#
 ############
+
+0.4
+Non 1444.11.11 starts should work now
 
 0.3
 Displaying info when hovering over provinces

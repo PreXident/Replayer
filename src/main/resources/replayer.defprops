@@ -18,3 +18,5 @@ center.id=1
 list.days.per.tick=1;30;365
 #ms between gif steps
 gif.step=100
+#history processed form this date
+init.start=1300.1.1

@@ -98,8 +98,11 @@ public class ReplayerController implements Initializable {
     /** This is appended to log content before updating the log. */
     static final String LOG_FOOTER = "</span>";
 
+    /** Format for initial content of log. */
+    static final String LOG_INIT_FORMAT = String.format("<body><div id='%s'/>%%s</body>", LOG_ID);
+
     /** Initial content of log. */
-    static final String LOG_INIT = String.format("<body><div id='%s'/></body>", LOG_ID);
+    static final String LOG_INIT = String.format(LOG_INIT_FORMAT, "");
 
     /** JavaScript call to scroll to the bottom of the page. */
     static final String SCROLL_DOWN = "window.scrollTo(0,document.body.scrollHeight)";
@@ -327,13 +330,14 @@ public class ReplayerController implements Initializable {
                             if (newState == State.SUCCEEDED) {
                                 log.getEngine().executeScript(SCROLL_DOWN);
                                 dateGenerator = new DateGenerator(saveGame.date, saveGame.date);
-                                logContent.setLength(0);
+                                logContent.setLength(LOG_HEADER.length());
                                 endGif();
+                                e.getLoadWorker().stateProperty().removeListener(this);
                                 lock.release();
                             }
                         }
                     });
-                    e.loadContent(logContent.toString());
+                    e.loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
                 }
             });
          dateLabel.textProperty().bind(finalizer.titleProperty());
@@ -421,8 +425,20 @@ public class ReplayerController implements Initializable {
                 @Override
                 protected Void call() throws Exception {
                     dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
-                    updateTitle("Initializing starting date...");
+                    updateTitle("Initializing world...");
                     notLogUpdatingProcessor.processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)));
+                    //
+                    updateTitle("Progressing to starting date...");
+                    final Date maxDate = saveGame.startDate;
+                    Date date = new Date(settings.getProperty("init.start", "1300.1.1"));
+                    int day = 0;
+                    final int distance = Date.calculateDistance(date, saveGame.startDate);
+                    while (date.compareTo(maxDate) < 0) {
+                        final List<Event> events = saveGame.timeline.get(date);
+                        bufferChangeOnlyProcessor.processEvents(date, events);
+                        updateProgress(++day, distance);
+                        date = date.next();
+                    }
                     return null;
                 }
             };
@@ -441,7 +457,9 @@ public class ReplayerController implements Initializable {
                         }
                         updateGif(saveGame.startDate);
                     }
-                    updateLog();
+                    output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+                    log.getEngine().loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
+                    logContent.setLength(LOG_HEADER.length());
                     progressBar.progressProperty().bind(dateGenerator.progress);
                     dateGenerator.dateProperty().addListener(dateListener);
                     dateLabel.textProperty().bind(new StringBinding() {
@@ -651,8 +669,9 @@ public class ReplayerController implements Initializable {
             @Override
             public void changed(ObservableValue<? extends State> ov, State oldState, State newState) {
                 if (newState == State.SUCCEEDED) {
-                        JSObject win = (JSObject) webEngine.executeScript("window");
-                        win.setMember("java", new JavascriptBridge());
+                    JSObject win = (JSObject) webEngine.executeScript("window");
+                    win.setMember("java", new JavascriptBridge());
+                    webEngine.executeScript(SCROLL_DOWN);
                 }
             }
         });
