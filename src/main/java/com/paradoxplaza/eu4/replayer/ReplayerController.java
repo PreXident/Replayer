@@ -181,6 +181,9 @@ public class ReplayerController implements Initializable {
     /** Directory containing save games. */
     File saveDirectory;
 
+    /** Path to save game file. */
+    String saveFileName;
+
     /** Directory containing needed game files. */
     File eu4Directory;
 
@@ -240,6 +243,9 @@ public class ReplayerController implements Initializable {
 
     /** Period in ms between two frames in gif. */
     int gifStep;
+
+    /** After this number of ticks new gif file is created. */
+    int gifBreak;
 
     /** Standard event processor. */
     final EventProcessor eventProcessor = new EventProcessor(this);
@@ -304,15 +310,23 @@ public class ReplayerController implements Initializable {
                     Date date = dateGenerator.dateProperty().get();
                     int day = Date.calculateDistance(saveGame.startDate, date);
                     final int distance = Date.calculateDistance(saveGame.startDate, saveGame.date);
-                    int counter = 0;
+                    int tickCounter = 0;
+                    int fileNum = 1;
+                    int updateCounter = 0;
                     while (date.compareTo(maxDate) < 0) {
                         final List<Event> events = saveGame.timeline.get(date);
                         bufferChangeOnlyProcessor.processEvents(date, events);
                         updateProgress(++day, distance);
                         date = date.next();
-                        if (++counter >= daysPerTick) {
+                        if (++tickCounter >= daysPerTick) {
                             updateGif(date);
-                            counter = 0;
+                            tickCounter = 0;
+                            if (gifBreak != 0 && ++updateCounter >= gifBreak) {
+                                endGif();
+                                initGif(saveFileName + "." + ++fileNum);
+                                updateGif(date);
+                                updateCounter = 0;
+                            }
                         }
                     }
                     updateTitle(date.toString());
@@ -447,14 +461,9 @@ public class ReplayerController implements Initializable {
                 @Override
                 public void handle(WorkerStateEvent t) {
                     if ("true".equals(settings.getProperty("gif"))) {
-                        try {
-                            final File gifOutputFile = new File(file.getAbsolutePath() + ".gif");
-                            gifOutputFile.delete();
-                            gifOutput = new FileImageOutputStream(gifOutputFile);
-                            gifWriter = new GifSequenceWriter(gifOutput, BufferedImage.TYPE_INT_ARGB, gifStep, true);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        final String extension = gifBreak == 0 ? "" : ".1";
+                        saveFileName = file.getAbsolutePath();
+                        initGif(file.getAbsolutePath() + extension);
                         updateGif(saveGame.startDate);
                     }
                     output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
@@ -708,6 +717,8 @@ public class ReplayerController implements Initializable {
 
         gifStep = Integer.parseInt(settings.getProperty("gif.step", "100"));
 
+        gifBreak = Integer.parseInt(settings.getProperty("gif.new.file", "0"));
+
         saveDirectory = new File(settings.getProperty("save.dir", "/"));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
             saveDirectory = null;
@@ -746,6 +757,17 @@ public class ReplayerController implements Initializable {
             }
             gifWriter = null;
             gifOutput = null;
+        }
+    }
+
+    void initGif(final String origFile) {
+        try {
+            final File gifOutputFile = new File(origFile + ".gif");
+            gifOutputFile.delete();
+            gifOutput = new FileImageOutputStream(gifOutputFile);
+            gifWriter = new GifSequenceWriter(gifOutput, BufferedImage.TYPE_INT_ARGB, gifStep, true);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
