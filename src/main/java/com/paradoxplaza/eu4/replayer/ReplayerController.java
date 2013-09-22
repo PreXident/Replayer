@@ -959,6 +959,9 @@ public class ReplayerController implements Initializable {
     }
 
     void updateGif(final Date date) {
+        if (gifBufferedImage == null) {
+            return;
+        }
         final int[] a = ( (DataBufferInt) gifBufferedImage.getRaster().getDataBuffer() ).getData();
         System.arraycopy(buffer, 0, a, 0, buffer.length);
         final Graphics g = gifSizedImage.getGraphics();
