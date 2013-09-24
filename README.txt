@@ -41,6 +41,9 @@ In province history there's sometimes missing record of regaining province contr
 #Change log#
 ############
 
+0.6
+Added province religion map mode
+
 0.5
 Added property gif.new.file which tells after how many frames new gif file should be created, 0 means never
 
