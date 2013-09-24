@@ -884,7 +884,9 @@ public class ReplayerController implements Initializable {
                 progressBar.progressProperty().unbind();
                 progressBar.setProgress(0);
                 dateLabel.setText("Map loaded");
+                scrollPane.setContent(null);
                 imageView.setImage(output);
+                scrollPane.setContent(imageView);
                 int fitWidth = Integer.parseInt(settings.getProperty("map.fit.width", "0"));
                 int fitHeight = Integer.parseInt(settings.getProperty("map.fit.height", "0"));
                 imageView.setFitHeight(fitHeight);
