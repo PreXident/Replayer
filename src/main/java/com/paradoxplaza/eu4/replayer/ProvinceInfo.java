@@ -30,6 +30,9 @@ public class ProvinceInfo {
     /** Owner of this province. */
     public String owner = null;
 
+    /** Religion of this province. */
+    public String religion = null;
+
     /**
      * Only constructor.
      * @param color color of pixels associated to this province
@@ -58,6 +61,6 @@ public class ProvinceInfo {
 
     @Override
     public String toString() {
-        return String.format("id=%1$s\nname=%2$s\ncontroller=%3$s\nowner=%4$s", id, name, controller, owner);
+        return String.format("id=%1$s\nname=%2$s\ncontroller=%3$s\nowner=%4$s\nreligion=%5$s", id, name, controller, owner, religion);
     }
 }

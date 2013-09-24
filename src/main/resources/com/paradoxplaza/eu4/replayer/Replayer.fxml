@@ -48,6 +48,18 @@
 						</accelerator>
 					</MenuItem>
 				</Menu>
+				<Menu text="Map Modes">
+					<MenuItem text="Political" onAction="#politicalMapMode">
+						<accelerator>
+							<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="P"/>
+						</accelerator>
+					</MenuItem>
+					<MenuItem text="Religious" onAction="#religiousMapMode">
+						<accelerator>
+							<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="F"/>
+						</accelerator>
+					</MenuItem>
+				</Menu>
 				<Menu text="Settings">
 					<MenuItem text="Change EU4 Directory" onAction="#changeEU4Directory" >
 						<accelerator>

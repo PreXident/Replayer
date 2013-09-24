@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
+import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.GifSequenceWriter;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
@@ -114,7 +115,7 @@ public class ReplayerController implements Initializable {
      * @param blue
      * @return argb
      */
-    static int toColor(final int red, final int green, final int blue) {
+    static public int toColor(final int red, final int green, final int blue) {
         return 255 << 24 | red << 16 | green << 8 | blue;
     }
 
@@ -175,6 +176,12 @@ public class ReplayerController implements Initializable {
     /** Buffer height. */
     int bufferHeight;
 
+    /** Buffer with political map. */
+    int[] politicalBuffer;
+
+    /** Buffer with religious map. */
+    int[] religiousBuffer;
+
     /** How many pixels are added to width and height when zooming in/out. */
     int zoomStep;
 
@@ -193,11 +200,14 @@ public class ReplayerController implements Initializable {
     /** ID -> province mapping. */
     Map<String, ProvinceInfo> provinces = new HashMap<>();
 
-    /** Color -> ID mapping. */
+    /** Province color -> ID mapping. */
     Map<Integer, String> colors = new HashMap<>();
 
     /** Set of colors assigned to sea provinces. */
     Set<Integer> seas = new HashSet<>();
+
+    /** Religion name -> color mapping. */
+    Map<String, Integer> religions = new HashMap<>();
 
     /** Loaded save game to be replayed. */
     SaveGame saveGame;
@@ -253,7 +263,7 @@ public class ReplayerController implements Initializable {
     /** Event processor that does not update log nor {@link #output}. */
     final EventProcessor bufferChangeOnlyProcessor = new EventProcessor(this) {
         @Override
-        protected void setColor(final int pos, final int color) {
+        protected void setColor(int[] buffer, final int pos, final int color) {
             buffer[pos] = color;
         }
         @Override
@@ -381,7 +391,8 @@ public class ReplayerController implements Initializable {
             final SaveGameParser parser = new SaveGameParser(saveGame, file.length(), is);
             final int width = (int) map.getWidth();
             final int height = (int) map.getHeight();
-            buffer = new int[width * height];
+//            buffer = new int[width * height];
+//            politicalBuffer = buffer;
             imageView.setImage(null);
             final Task<Void> mapInitializer = new Task<Void>() {
                 @Override
@@ -403,7 +414,8 @@ public class ReplayerController implements Initializable {
                     for (int y = 0; y < height; ++y) {
                         for (int x = 0; x < width; ++x) {
                             final int color = reader.getArgb(x, y);
-                            buffer[y * width + x] = seas.contains(color) ? seaColor : landColor;
+                            politicalBuffer[y * width + x] = seas.contains(color) ? seaColor : landColor;
+                            religiousBuffer[y * width + x] = seas.contains(color) ? seaColor : landColor;
                             //writer.setArgb(x, y, seas.contains(color) ? seaColor : landColor);
                             updateProgress(y*width+x, size);
                         }
@@ -562,7 +574,13 @@ public class ReplayerController implements Initializable {
     }
 
     @FXML
-    private void refresh() throws InterruptedException {
+    private void politicalMapMode() {
+        buffer = politicalBuffer;
+        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+    }
+
+    @FXML
+    private void refresh() {
         if (!lock.tryAcquire()) {
            return;
         }
@@ -577,6 +595,12 @@ public class ReplayerController implements Initializable {
         imageView.setImage(i);
         scrollPane.setContent(imageView);
         lock.release();
+    }
+
+    @FXML
+    private void religiousMapMode() {
+        buffer = religiousBuffer;
+        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
     }
 
     @FXML
@@ -802,6 +826,7 @@ public class ReplayerController implements Initializable {
         loadMap();
         loadSeas();
         loadCountries();
+        loadReligions();
     }
 
     /**
@@ -846,10 +871,12 @@ public class ReplayerController implements Initializable {
                         } catch (Exception e) { }
                         gifSizedImage = new BufferedImage(gifWidth, gifHeight, BufferedImage.TYPE_INT_ARGB);
     //                    buffer = ((DataBufferInt)gifBufferedImage.getRaster().getDataBuffer()).getData();
-                    } else {
+                    } /*else {
                         buffer = new int[width*height];
-                    }
-                    buffer = new int[width*height];
+                    }*/
+                    politicalBuffer = new int[width*height];
+                    religiousBuffer = new int[width*height];
+                    buffer = politicalBuffer;
                     bufferWidth = width;
                     bufferHeight = height;
                     final PixelWriter writer = output.getPixelWriter();
@@ -858,7 +885,8 @@ public class ReplayerController implements Initializable {
                         for (int x = 0; x < width; ++x){
                             final int color = reader.getArgb(x, y);
                             provinces.get(colors.get(color)).points.add(y * width + x);
-                            buffer[y * width + x] = color;
+                            politicalBuffer[y * width + x] = color;
+                            religiousBuffer[y * width + x] = color;
                             writer.setArgb(x, y, color);
                             updateProgress(y*width+x, height*width);
                         }
@@ -932,6 +960,25 @@ public class ReplayerController implements Initializable {
                     reader.close();
                 } catch (IOException e) { }
             }
+        }
+    }
+
+    /**
+     * Loads religion colors from common/religions/*.
+     */
+    private void loadReligions() {
+        System.out.printf("Loading religions...\n");
+        religions.clear();
+        final File religionDir = new File(eu4Directory + "/common/religions");
+        for(final File religionFile : religionDir.listFiles()) {
+            if (!religionFile.isFile()) {
+                continue;
+            }
+
+            try (final InputStream is = new FileInputStream(religionFile)) {
+                final ReligionsParser parser = new ReligionsParser(religions, religionFile.length(), is);
+                parser.run();
+            } catch(Exception e) { e.printStackTrace(); }
         }
     }
 

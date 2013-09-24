@@ -3,6 +3,7 @@ package com.paradoxplaza.eu4.replayer;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
+import com.paradoxplaza.eu4.replayer.events.Religion;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
 
 /**
@@ -46,7 +47,7 @@ public class EventProcessor {
         }
         for(int p : province.points) {
             if ( p / replayerController.bufferWidth % 2 == 0) {
-                setColor(p, color);
+                setColor(replayerController.politicalBuffer, p, color);
             }
         }
         return true;
@@ -74,6 +75,8 @@ public class EventProcessor {
                 appendToLog = processOwner(date, (Owner) event);
             } else if (event instanceof TagChange) {
                 appendToLog = processTagChange(date, (TagChange) event);
+            } else if (event instanceof Religion) {
+                appendToLog = processReligion(date, (Religion) event);
             }
             if (appendToLog) {
                 logChange = true;
@@ -116,8 +119,25 @@ public class EventProcessor {
             if ( p / replayerController.bufferWidth % 2 == 1
                     || previousOwner == null || previousOwner.tag.equals(previousController)
                     || !replayerController.notableEvents.contains("Controller")) {
-                setColor(p, color);
+                setColor(replayerController.politicalBuffer, p, color);
             }
+        }
+        return true;
+    }
+
+    /**
+     * Processes religion change event.
+     * @param date date of the event
+     * @param religion religion change event
+     * @return true if event should be logged, false otherwise
+     */
+    private boolean processReligion(final Date date, final Religion religion) {
+        final ProvinceInfo province = replayerController.provinces.get(religion.id);
+        province.religion = religion.value;
+        final Integer Color = replayerController.religions.get(religion.value);
+        int color = Color == null ? replayerController.landColor : Color;
+        for(int p : province.points) {
+            setColor(replayerController.religiousBuffer, p, color);
         }
         return true;
     }
@@ -139,7 +159,7 @@ public class EventProcessor {
             province.controller = to.tag;
             for(int p : province.points) {
                 if ( p / replayerController.bufferWidth % 2 == 0) {
-                    setColor(p, to.color);
+                    setColor(replayerController.politicalBuffer, p, to.color);
                 }
             }
         }
@@ -149,7 +169,7 @@ public class EventProcessor {
             for(int p : province.points) {
                 if ( p / replayerController.bufferWidth % 2 == 1
                         || !replayerController.notableEvents.contains("Controller")) {
-                    setColor(p, to.color);
+                    setColor(replayerController.politicalBuffer, p, to.color);
                 }
             }
         }
@@ -163,12 +183,14 @@ public class EventProcessor {
      * @param pos
      * @param color
      */
-    protected void setColor(final int pos, final int color) {
-        replayerController.buffer[pos] = color;
-        replayerController.output.getPixelWriter().setArgb(
-                pos % replayerController.bufferWidth,
-                pos / replayerController.bufferWidth,
-                color);
+    protected void setColor(int[] buffer, final int pos, final int color) {
+        buffer[pos] = color;
+        if (replayerController.buffer == buffer) {
+            replayerController.output.getPixelWriter().setArgb(
+                    pos % replayerController.bufferWidth,
+                    pos / replayerController.bufferWidth,
+                    color);
+        }
     }
 
     /**
