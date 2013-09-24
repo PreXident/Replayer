@@ -1062,11 +1062,11 @@ public class ReplayerController implements Initializable {
                     fragmentNode = doc.importNode(fragmentNode, true);
                     doc.getElementById(LOG_ID).appendChild(fragmentNode);
                     log.getEngine().executeScript(SCROLL_DOWN);
-                    logContent.setLength(LOG_HEADER.length());
                 }
             }
         });
         e.loadContent(logContent.toString());
+        logContent.setLength(LOG_HEADER.length());
     }
 
     /**
