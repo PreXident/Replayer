@@ -61,6 +61,7 @@ import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -107,6 +108,42 @@ public class ReplayerController implements Initializable {
 
     /** JavaScript call to scroll to the bottom of the page. */
     static final String SCROLL_DOWN = "window.scrollTo(0,document.body.scrollHeight)";
+
+    /**
+     * Translates {@link #map} coordinate to {@link #scrollPane} procentual HValue/VValue.
+     * @param mapCoord map coordinate
+     * @param mapSize size of map
+     * @param scrollSize size of scrollPane
+     * @param imageViewSize size of imageView
+     * @return scrollPane procentual scroll position
+     */
+    static double mapCoordToScrollProcent(final int mapCoord, final double mapSize, final double scrollSize, final double imageViewSize) {
+        final double zero = scrollSize / 2; //coord of center when (H/V)Value == 0
+        final double unit = imageViewSize - 2 * zero; //size of scrollable area
+        final double scroll = mapCoord / mapSize * imageViewSize; //map coords to scroll coords
+        final double procent = (scroll - zero) / unit; //scroll coords to procent
+        if (procent < 0) {
+            return 0;
+        } else if (procent > 1) {
+            return 1;
+        }
+        return procent;
+    }
+
+    /**
+     * Translates procentual HValue/VValue to {@link #map} coordinate.
+     * @param procent scrollPane procentual scroll position
+     * @param mapSize size of map
+     * @param scrollSize size of scrollPane
+     * @param imageViewSize size of imageView
+     * @return map coordinate
+     */
+    static int scrollProcentToMapCoord(final double procent, final double mapSize, final double scrollSize, final double imageViewSize) {
+        final double zero = scrollSize / 2; //coord of center when (H/V)Value == 0
+        final double unit = imageViewSize - 2 * zero; //size of scrollable area
+        final double scroll = procent * unit + zero;
+        return (int) (scroll / imageViewSize * mapSize);
+    }
 
     /**
      * R, G, B to argb.
@@ -624,16 +661,40 @@ public class ReplayerController implements Initializable {
 
     @FXML
     private void zoomIn() {
+        Bounds bounds = imageView.getBoundsInParent();
+        final int x = scrollProcentToMapCoord(
+                scrollPane.getHvalue(), map.getWidth(),
+                scrollPane.getWidth(), bounds.getWidth());
+        final int y = scrollProcentToMapCoord(
+                scrollPane.getVvalue(), map.getHeight(),
+                scrollPane.getHeight(), bounds.getHeight());
         imageView.setFitHeight(imageView.getFitHeight() + zoomStep);
         imageView.setFitWidth(imageView.getFitWidth() + zoomStep);
+        bounds = imageView.getBoundsInParent();
+        scrollPane.setHvalue(mapCoordToScrollProcent(
+                x, map.getWidth(), scrollPane.getWidth(), bounds.getWidth()));
+        scrollPane.setVvalue(mapCoordToScrollProcent(
+                y, map.getHeight(), scrollPane.getHeight(), bounds.getHeight()));
     }
 
     @FXML
     private void zoomOut() {
+        Bounds bounds = imageView.getBoundsInParent();
+        final int x = scrollProcentToMapCoord(
+                scrollPane.getHvalue(), map.getWidth(),
+                scrollPane.getWidth(), bounds.getWidth());
+        final int y = scrollProcentToMapCoord(
+                scrollPane.getVvalue(), map.getHeight(),
+                scrollPane.getHeight(), bounds.getHeight());
         double h = imageView.getFitHeight() - zoomStep;
         imageView.setFitHeight(h < 0 ? imageView.getFitHeight() : h);
         double w = imageView.getFitWidth() - zoomStep;
         imageView.setFitWidth(w < 0 ? imageView.getFitWidth() : w);
+        bounds = imageView.getBoundsInParent();
+        scrollPane.setHvalue(mapCoordToScrollProcent(
+                x, map.getWidth(), scrollPane.getWidth(), bounds.getWidth()));
+        scrollPane.setVvalue(mapCoordToScrollProcent(
+                y, map.getHeight(), scrollPane.getHeight(), bounds.getHeight()));
     }
 
     @Override
@@ -641,6 +702,37 @@ public class ReplayerController implements Initializable {
         System.out.printf("Initializing...\n");
         log.prefWidthProperty().bind(logContainer.widthProperty());
         progressBar.prefWidthProperty().bind(bottom.widthProperty());
+
+        //center map if too small
+        imageView.fitHeightProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
+                final Bounds bounds = imageView.getBoundsInParent();
+                if (bounds.getWidth() < scrollPane.getWidth()) {
+                    imageView.setTranslateX((scrollPane.getWidth() - bounds.getWidth()) / 2);
+                } else {
+                    imageView.setTranslateX(0);
+                }
+                if (bounds.getHeight()< scrollPane.getHeight()) {
+                    imageView.setTranslateY((scrollPane.getHeight()- bounds.getHeight()) / 2);
+                } else {
+                    imageView.setTranslateY(0);
+                }
+            }
+        });
+
+        //mouse wheel to zoom in/out the map
+        scrollPane.addEventFilter(ScrollEvent.SCROLL, new EventHandler<ScrollEvent>() {
+            @Override
+            public void handle(ScrollEvent t) {
+                if (t.getDeltaY() < 0) {
+                    zoomOut();
+                } else {
+                    zoomIn();
+                }
+                t.consume();
+            }
+        });
 
         //to prevent menu from closing
         final EventHandler<MouseEvent> filter = new EventHandler<MouseEvent>() {
@@ -1087,27 +1179,6 @@ public class ReplayerController implements Initializable {
      * Its public methods are accessible from javascript in {@link #logContent}.
      */
     public class JavascriptBridge {
-
-        /**
-         * Translates {@link #map} coordinate to {@link #scrollPane} procentual HValue/VValue.
-         * @param mapCoord map coordinate
-         * @param mapSize size of map
-         * @param scrollSize size of scrollPane
-         * @param imageViewSize size of imageView
-         * @return scrollPane procentual scroll position
-         */
-        private double mapCoordToScrollProcent(final int mapCoord, final double mapSize, final double scrollSize, final double imageViewSize) {
-            final double zero = scrollSize / 2; //coord of center when (H/V)Value == 0
-            final double unit = imageViewSize - 2 * zero; //size of scrollable area
-            final double scroll = mapCoord / mapSize * imageViewSize; //map coords to scroll coords
-            final double procent = (scroll - zero) / unit; //scroll coords to procent
-            if (procent < 0) {
-                return 0;
-            } else if (procent > 1) {
-                return 1;
-            }
-            return procent;
-        }
 
         /**
          * Centers {@link #scrollPane} to province, if possible.
