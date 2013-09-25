@@ -34,12 +34,23 @@ In province history there's sometimes missing record of regaining province contr
 #Planned features#
 ##################
 
+- cultural map mode
+- selectable provinces
 - fast forward replay to any given date, not only end date
+- nation focus to display only selected state and its PU
 - monarchs, wars, ...
+- back rewind
 
 ############
 #Change log#
 ############
+
+0.7
+F5 for refresh
+Controls rearranged
+Buttons +/- removed
+Resizable log
+Zooming with mousewheel, centring map if too small and better zooming in general
 
 0.6
 Added province religion map mode
