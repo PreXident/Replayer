@@ -16,220 +16,224 @@
 		<URL value="@Replayer.css" />
 	</stylesheets>
 	<top>
-		<MenuBar fx:id="menuBar" >
-			<menus>
-				<Menu text="File" >
-					<MenuItem text="Load" onAction="#load">
-						<accelerator>
-							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP"  code="L"/>
-						</accelerator>
-					</MenuItem>
-					<SeparatorMenuItem />
-					<MenuItem text="Close" onAction="#close">
-						<accelerator>
-							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="C"/>
-						</accelerator>
-					</MenuItem>
-				</Menu>
-				<Menu text="Display">
-					<MenuItem text="Zoom In" onAction="#zoomIn">
-						<accelerator>
-							<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="ADD"/>
-						</accelerator>
-					</MenuItem>
-					<MenuItem text="Zoom Out" onAction="#zoomOut">
-						<accelerator>
-							<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="SUBTRACT"/>
-						</accelerator>
-					</MenuItem>
-					<MenuItem text="Reset Zoom" onAction="#resetZoom">
-						<accelerator>
-							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="NUMPAD0"/>
-						</accelerator>
-					</MenuItem>
-				</Menu>
-				<Menu text="Map Modes">
-					<MenuItem text="Political" onAction="#politicalMapMode">
-						<accelerator>
-							<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="P"/>
-						</accelerator>
-					</MenuItem>
-					<MenuItem text="Religious" onAction="#religiousMapMode">
-						<accelerator>
-							<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="F"/>
-						</accelerator>
-					</MenuItem>
-				</Menu>
-				<Menu text="Settings">
-					<MenuItem text="Change EU4 Directory" onAction="#changeEU4Directory" >
-						<accelerator>
-							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="D"/>
-						</accelerator>
-					</MenuItem>
-					<CustomMenuItem hideOnClick="false" text="Days Per Tick">
-						<content>
-							<HBox alignment="CENTER_LEFT" >
-								<Label text="Days Per Tick"/>
-								<ComboBox fx:id="daysCombo" editable="true"/>
-							</HBox>
-						</content>
-					</CustomMenuItem>
-					<MenuItem text="Emergency refresh" onAction="#refresh">
-						<accelerator>
-							<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="R"/>
-						</accelerator>
-					</MenuItem>
-					<SeparatorMenuItem/>
-					<Menu fx:id="eventMenu" text="Events">
-						<CustomMenuItem hideOnClick="false" text="Tax">
-							<content>
-								<CheckBox text="Base tax" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Building">
-							<content>
-								<CheckBox text="Building" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Capital">
-							<content>
-								<CheckBox text="Capital" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="City">
-							<content>
-								<CheckBox text="City" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Claim">
-							<content>
-								<CheckBox text="Claim" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="ColonySize">
-							<content>
-								<CheckBox text="Colony size" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Controller">
-							<content>
-								<CheckBox text="Controller" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Core">
-							<content>
-								<CheckBox text="Core" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Culture">
-							<content>
-								<CheckBox text="Culture" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Defender">
-							<content>
-								<CheckBox text="Defender" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="EnableReligion">
-							<content>
-								<CheckBox text="Enable religion" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Flag">
-							<content>
-								<CheckBox text="Flag" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Garrison">
-							<content>
-								<CheckBox text="Garrison" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Goods">
-							<content>
-								<CheckBox text="Trade goods" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Hre">
-							<content>
-								<CheckBox text="HRE" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Manpower">
-							<content>
-								<CheckBox text="Manpower" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Name">
-							<content>
-								<CheckBox text="Province name" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="NativeFerocity">
-							<content>
-								<CheckBox text="Native ferocity" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="NativeHostileness">
-							<content>
-								<CheckBox text="Native hostileness" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="NativeSize">
-							<content>
-								<CheckBox text="Native size" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="NewEmperor">
-							<content>
-								<CheckBox text="New emperor" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Owner">
-							<content>
-								<CheckBox text="Owner" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Religion">
-							<content>
-								<CheckBox text="Religion" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="RevoltRisk">
-							<content>
-								<CheckBox text="Revolt risk" prefHeight="15"/>
-							</content>
-						</CustomMenuItem>
+		<VBox>
+			<MenuBar fx:id="menuBar" >
+				<menus>
+					<Menu text="File" >
+						<MenuItem text="Load" onAction="#load">
+							<accelerator>
+								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP"  code="L"/>
+							</accelerator>
+						</MenuItem>
+						<SeparatorMenuItem />
+						<MenuItem text="Close" onAction="#close">
+							<accelerator>
+								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="C"/>
+							</accelerator>
+						</MenuItem>
 					</Menu>
-				</Menu>
-			</menus>
-		</MenuBar>
-	</top>
-	<center>
-		<ScrollPane fx:id="scrollPane" styleClass="map" pannable="true" >
-			<content>
-				<ImageView fx:id="imageView" preserveRatio="true" />
-			</content>
-			<tooltip>
-				<Tooltip text="nothing" />
-			</tooltip>
-		</ScrollPane>
-	</center>
-	<bottom>
-		<VBox fx:id="bottom" >
+					<Menu text="Display">
+						<MenuItem text="Zoom In" onAction="#zoomIn">
+							<accelerator>
+								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="ADD"/>
+							</accelerator>
+						</MenuItem>
+						<MenuItem text="Zoom Out" onAction="#zoomOut">
+							<accelerator>
+								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="SUBTRACT"/>
+							</accelerator>
+						</MenuItem>
+						<MenuItem text="Reset Zoom" onAction="#resetZoom">
+							<accelerator>
+								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="NUMPAD0"/>
+							</accelerator>
+						</MenuItem>
+					</Menu>
+					<Menu text="Map Modes">
+						<MenuItem text="Political" onAction="#politicalMapMode">
+							<accelerator>
+								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="P"/>
+							</accelerator>
+						</MenuItem>
+						<MenuItem text="Religious" onAction="#religiousMapMode">
+							<accelerator>
+								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="F"/>
+							</accelerator>
+						</MenuItem>
+					</Menu>
+					<Menu text="Settings">
+						<MenuItem text="Change EU4 Directory" onAction="#changeEU4Directory" >
+							<accelerator>
+								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="D"/>
+							</accelerator>
+						</MenuItem>
+						<CustomMenuItem hideOnClick="false" text="Days Per Tick">
+							<content>
+								<HBox alignment="CENTER_LEFT" >
+									<Label text="Days Per Tick"/>
+									<ComboBox fx:id="daysCombo" editable="true"/>
+								</HBox>
+							</content>
+						</CustomMenuItem>
+						<MenuItem text="Emergency refresh" onAction="#refresh">
+							<accelerator>
+								<KeyCodeCombination alt="UP" control="UP" meta="UP" shift="UP" shortcut="UP" code="F5"/>
+							</accelerator>
+						</MenuItem>
+						<SeparatorMenuItem/>
+						<Menu fx:id="eventMenu" text="Events">
+							<CustomMenuItem hideOnClick="false" text="Tax">
+								<content>
+									<CheckBox text="Base tax" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Building">
+								<content>
+									<CheckBox text="Building" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Capital">
+								<content>
+									<CheckBox text="Capital" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="City">
+								<content>
+									<CheckBox text="City" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Claim">
+								<content>
+									<CheckBox text="Claim" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="ColonySize">
+								<content>
+									<CheckBox text="Colony size" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Controller">
+								<content>
+									<CheckBox text="Controller" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Core">
+								<content>
+									<CheckBox text="Core" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Culture">
+								<content>
+									<CheckBox text="Culture" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Defender">
+								<content>
+									<CheckBox text="Defender" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="EnableReligion">
+								<content>
+									<CheckBox text="Enable religion" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Flag">
+								<content>
+									<CheckBox text="Flag" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Garrison">
+								<content>
+									<CheckBox text="Garrison" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Goods">
+								<content>
+									<CheckBox text="Trade goods" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Hre">
+								<content>
+									<CheckBox text="HRE" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Manpower">
+								<content>
+									<CheckBox text="Manpower" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Name">
+								<content>
+									<CheckBox text="Province name" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="NativeFerocity">
+								<content>
+									<CheckBox text="Native ferocity" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="NativeHostileness">
+								<content>
+									<CheckBox text="Native hostileness" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="NativeSize">
+								<content>
+									<CheckBox text="Native size" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="NewEmperor">
+								<content>
+									<CheckBox text="New emperor" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Owner">
+								<content>
+									<CheckBox text="Owner" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Religion">
+								<content>
+									<CheckBox text="Religion" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="RevoltRisk">
+								<content>
+									<CheckBox text="Revolt risk" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+						</Menu>
+					</Menu>
+				</menus>
+			</MenuBar>
 			<HBox alignment="CENTER_LEFT">
-				<Button text="-" onAction="#zoomOut"/>
-				<Button text="+" onAction="#zoomIn"/>
 				<Button text="|" onAction="#pause"/>
 				<Button text=">" onAction="#play"/>
 				<Button text=">|" onAction="#finish"/>
 				<Label fx:id="dateLabel"/>
 			</HBox>
-				<ProgressBar fx:id="progressBar" progress="0"/>
-			<HBox fx:id="logContainer" maxHeight="100">
-				<WebView fx:id="log"/>
-			</HBox>
 		</VBox>
+	</top>
+	<center>
+		<SplitPane orientation="VERTICAL" dividerPositions="0.75" >
+			<items>
+				<ScrollPane fx:id="scrollPane" styleClass="map" pannable="true" >
+					<content>
+						<ImageView fx:id="imageView" preserveRatio="true" />
+					</content>
+					<tooltip>
+						<Tooltip text="nothing" />
+					</tooltip>
+				</ScrollPane>
+				<VBox fx:id="bottom" >
+					<ProgressBar fx:id="progressBar" progress="0"/>
+					<HBox fx:id="logContainer" fillHeight="false" >
+						<WebView fx:id="log"/>
+					</HBox>
+				</VBox>
+			</items>
+		</SplitPane>
+	</center>
+	<bottom>
 	</bottom>
 </BorderPane>
