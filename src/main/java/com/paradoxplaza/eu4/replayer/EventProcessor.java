@@ -24,12 +24,22 @@ public class EventProcessor {
     }
 
     /**
+     * Generic visit method for events that do not need unique processing.
+     * @param date date of event
+     * @param event event to process
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean process(final Date date, final Event event) {
+        return true;
+    }
+
+    /**
      * Processes Controller event.
      * @param date date of the event
      * @param controller controller change
      * @return true if event should be logged, false otherwise
      */
-    private boolean processController(final Date date, final Controller controller) {
+    public boolean process(final Date date, final Controller controller) {
         final CountryInfo newController = replayerController.countries.get(controller.tag);
         if (newController != null && newController.expectingTagChange != null && newController.expectingTagChange.compareTo(date) > 0) {
             return false;
@@ -68,16 +78,7 @@ public class EventProcessor {
             if (!replayerController.notableEvents.contains(event.getClass().getSimpleName()) && !(event instanceof TagChange)) {
                 continue;
             }
-            boolean appendToLog = true;
-            if (event instanceof Controller) {
-                appendToLog = processController(date, (Controller) event);
-            } else if (event instanceof Owner) {
-                appendToLog = processOwner(date, (Owner) event);
-            } else if (event instanceof TagChange) {
-                appendToLog = processTagChange(date, (TagChange) event);
-            } else if (event instanceof Religion) {
-                appendToLog = processReligion(date, (Religion) event);
-            }
+            final boolean appendToLog = event.accept(date, this);
             if (appendToLog) {
                 logChange = true;
                 System.out.println(String.format("[%1$s]: %2$s", date, event));
@@ -95,7 +96,7 @@ public class EventProcessor {
      * @param owner owner change event
      * @return true if event should be logged, false otherwise
      */
-    private boolean processOwner(final Date date, final Owner owner) {
+    public boolean process(final Date date, final Owner owner) {
         final ProvinceInfo province = replayerController.provinces.get(owner.id);
         final CountryInfo previousOwner = replayerController.countries.get(province.owner);
         final String previousController = province.controller;
@@ -131,7 +132,7 @@ public class EventProcessor {
      * @param religion religion change event
      * @return true if event should be logged, false otherwise
      */
-    private boolean processReligion(final Date date, final Religion religion) {
+    public boolean process(final Date date, final Religion religion) {
         final ProvinceInfo province = replayerController.provinces.get(religion.id);
         province.religion = religion.value;
         final Integer Color = replayerController.religions.get(religion.value);
@@ -148,7 +149,7 @@ public class EventProcessor {
      * @param tagChange tag change event
      * @return true if event should be logged, false otherwise
      */
-    private boolean processTagChange(final Date date, final TagChange tagChange) {
+    public boolean process(final Date date, final TagChange tagChange) {
         final CountryInfo from = replayerController.countries.get(tagChange.fromTag);
         final CountryInfo to = replayerController.countries.get(tagChange.toTag);
         to.controls.addAll(from.controls);

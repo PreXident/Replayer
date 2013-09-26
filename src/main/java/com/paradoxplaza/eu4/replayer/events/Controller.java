@@ -1,5 +1,8 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import com.paradoxplaza.eu4.replayer.Date;
+import com.paradoxplaza.eu4.replayer.EventProcessor;
+
 /**
  * New controller of a province.
  */
@@ -21,5 +24,10 @@ public class Controller extends SimpleProvinceEvent {
         super(id, name, "Controller", "REB".equals(tag) ? tag + " (" + rebel + ")" : tag);
         this.tag = tag;
         this.rebel = rebel;
+    }
+
+    @Override
+    public boolean accept(final Date date, final EventProcessor processor) {
+        return processor.process(date, this);
     }
 }

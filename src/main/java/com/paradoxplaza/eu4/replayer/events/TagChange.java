@@ -1,5 +1,8 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import com.paradoxplaza.eu4.replayer.Date;
+import com.paradoxplaza.eu4.replayer.EventProcessor;
+
 /**
  * Represents country tag change.
  */
@@ -19,6 +22,11 @@ public class TagChange extends Event {
     public TagChange(final String toTag, final String fromTag) {
         this.toTag = toTag;
         this.fromTag = fromTag;
+    }
+
+    @Override
+    public boolean accept(final Date date, final EventProcessor processor) {
+        return processor.process(date, this);
     }
 
     @Override
