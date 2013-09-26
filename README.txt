@@ -34,7 +34,6 @@ In province history there's sometimes missing record of regaining province contr
 #Planned features#
 ##################
 
-- cultural map mode
 - selectable provinces
 - fast forward replay to any given date, not only end date
 - nation focus to display only selected state and its PU
@@ -44,6 +43,9 @@ In province history there's sometimes missing record of regaining province contr
 ############
 #Change log#
 ############
+
+0.8
+Added province culture map mode - cultures without primary country tag get generated color
 
 0.7
 F5 for refresh
