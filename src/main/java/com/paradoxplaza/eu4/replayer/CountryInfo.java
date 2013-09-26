@@ -9,19 +9,19 @@ import java.util.Set;
 public class CountryInfo {
 
     /** Country TAG. */
-    final String tag;
+    public final String tag;
 
     /** Country color. */
-    final int color;
+    public final int color;
 
     /** Set of provinces controlled by this country. */
-    final Set<String> controls = new HashSet<>();
+    public final Set<String> controls = new HashSet<>();
 
     /** Set of provinces owned by this country. */
-    final Set<String> owns = new HashSet<>();
+    public final Set<String> owns = new HashSet<>();
 
     /** Date the country will be created by tag change. */
-    Date expectingTagChange = null;
+    public Date expectingTagChange = null;
 
     /**
      * Only contructor.

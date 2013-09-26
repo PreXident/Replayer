@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Parses RELIGION_NAME={...}.
  */
-public class Religion extends CompoundState<Map<String,Integer>> {
+class Religion extends CompoundState<Map<String,Integer>> {
 
     /** Parses color={...}. */
     final Color color = new Color(this);

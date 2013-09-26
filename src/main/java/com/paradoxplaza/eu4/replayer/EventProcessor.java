@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.events.Controller;
+import com.paradoxplaza.eu4.replayer.events.Culture;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.Religion;
@@ -64,30 +65,20 @@ public class EventProcessor {
     }
 
     /**
-     * Process list of events that happended on certain date.
-     * @param date date of events
-     * @param events list of events
+     * Processes Culture event.
+     * @param date date of the event
+     * @param controller controller change
+     * @return true if event should be logged, false otherwise
      */
-    public final void processEvents(final Date date, final Iterable<Event> events) {
-        if (events == null) {
-            System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
-            return;
+    public boolean process(final Date date, final Culture culture) {
+        final ProvinceInfo province = replayerController.provinces.get(culture.id);
+        province.culture = culture.value;
+        final Integer Color = replayerController.cultures.get(culture.value);
+        int color = Color == null ? replayerController.landColor : Color;
+        for(int p : province.points) {
+            setColor(replayerController.culturalBuffer, p, color);
         }
-        boolean logChange = false;
-        for(Event event : events) {
-            if (!replayerController.notableEvents.contains(event.getClass().getSimpleName()) && !(event instanceof TagChange)) {
-                continue;
-            }
-            final boolean appendToLog = event.accept(date, this);
-            if (appendToLog) {
-                logChange = true;
-                System.out.println(String.format("[%1$s]: %2$s", date, event));
-                replayerController.logContent.append(String.format("[%1$s]: %2$#s<br>", date, event));
-            }
-        }
-        if (logChange) {
-            updateLog();
-        }
+        return true;
     }
 
     /**
@@ -175,6 +166,33 @@ public class EventProcessor {
             }
         }
         return true;
+    }
+
+    /**
+     * Process list of events that happended on certain date.
+     * @param date date of events
+     * @param events list of events
+     */
+    public final void processEvents(final Date date, final Iterable<Event> events) {
+        if (events == null) {
+            System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
+            return;
+        }
+        boolean logChange = false;
+        for(Event event : events) {
+            if (!replayerController.notableEvents.contains(event.getClass().getSimpleName()) && !(event instanceof TagChange)) {
+                continue;
+            }
+            final boolean appendToLog = event.accept(date, this);
+            if (appendToLog) {
+                logChange = true;
+                System.out.println(String.format("[%1$s]: %2$s", date, event));
+                replayerController.logContent.append(String.format("[%1$s]: %2$#s<br>", date, event));
+            }
+        }
+        if (logChange) {
+            updateLog();
+        }
     }
 
     /**

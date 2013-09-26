@@ -28,7 +28,7 @@
 						<SeparatorMenuItem />
 						<MenuItem text="Close" onAction="#close">
 							<accelerator>
-								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="C"/>
+								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="X"/>
 							</accelerator>
 						</MenuItem>
 					</Menu>
@@ -58,6 +58,11 @@
 						<MenuItem text="Religious" onAction="#religiousMapMode">
 							<accelerator>
 								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="F"/>
+							</accelerator>
+						</MenuItem>
+						<MenuItem text="Cultural" onAction="#culturalMapMode">
+							<accelerator>
+								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="C"/>
 							</accelerator>
 						</MenuItem>
 					</Menu>

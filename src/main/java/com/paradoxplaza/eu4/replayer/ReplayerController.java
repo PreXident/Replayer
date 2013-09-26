@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.events.Event;
+import com.paradoxplaza.eu4.replayer.parser.culture.CulturesParser;
 import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
@@ -219,6 +220,9 @@ public class ReplayerController implements Initializable {
     /** Buffer with religious map. */
     int[] religiousBuffer;
 
+    /** Buffer with cultural map. */
+    int[] culturalBuffer;
+
     /** How many pixels are added to width and height when zooming in/out. */
     int zoomStep;
 
@@ -248,6 +252,9 @@ public class ReplayerController implements Initializable {
 
     /** Religion name -> color mapping. */
     Map<String, Integer> religions = new HashMap<>();
+
+    /** Culture name -> color mapping. */
+    Map<String, Integer> cultures = new HashMap<>();
 
     /** Loaded save game to be replayed. */
     SaveGame saveGame;
@@ -336,6 +343,12 @@ public class ReplayerController implements Initializable {
     @FXML
     private void close() {
         Platform.exit();
+    }
+
+    @FXML
+    private void culturalMapMode() {
+        buffer = culturalBuffer;
+        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
     }
 
     @FXML
@@ -467,6 +480,7 @@ public class ReplayerController implements Initializable {
                             final int color = reader.getArgb(x, y);
                             politicalBuffer[y * width + x] = seas.contains(color) ? seaColor : landColor;
                             religiousBuffer[y * width + x] = seas.contains(color) ? seaColor : landColor;
+                            culturalBuffer[y * width + x] = seas.contains(color) ? seaColor : landColor;
                             //writer.setArgb(x, y, seas.contains(color) ? seaColor : landColor);
                             updateProgress(y*width+x, size);
                         }
@@ -931,6 +945,25 @@ public class ReplayerController implements Initializable {
     }
 
     /**
+     * Loads religion colors from common/religions/*.
+     */
+    private void loadCultures() {
+        System.out.printf("Loading cultures...\n");
+        religions.clear();
+        final File religionDir = new File(eu4Directory + "/common/cultures");
+        for(final File cultureFile : religionDir.listFiles()) {
+            if (!cultureFile.isFile()) {
+                continue;
+            }
+
+            try (final InputStream is = new FileInputStream(cultureFile)) {
+                final CulturesParser parser = new CulturesParser(new Pair<>(countries, cultures), cultureFile.length(), is);
+                parser.run();
+            } catch(Exception e) { e.printStackTrace(); }
+        }
+    }
+
+    /**
      * Loads data in proper order.
      */
     private void loadData() {
@@ -940,6 +973,7 @@ public class ReplayerController implements Initializable {
         loadMap();
         loadSeas();
         loadCountries();
+        loadCultures();
         loadReligions();
     }
 
@@ -990,6 +1024,7 @@ public class ReplayerController implements Initializable {
                     }*/
                     politicalBuffer = new int[width*height];
                     religiousBuffer = new int[width*height];
+                    culturalBuffer = new int[width*height];
                     buffer = politicalBuffer;
                     bufferWidth = width;
                     bufferHeight = height;
@@ -1001,6 +1036,7 @@ public class ReplayerController implements Initializable {
                             provinces.get(colors.get(color)).points.add(y * width + x);
                             politicalBuffer[y * width + x] = color;
                             religiousBuffer[y * width + x] = color;
+                            culturalBuffer[y * width + x] = color;
                             writer.setArgb(x, y, color);
                             updateProgress(y*width+x, height*width);
                         }
