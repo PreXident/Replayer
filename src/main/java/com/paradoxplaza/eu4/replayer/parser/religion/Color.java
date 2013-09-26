@@ -29,7 +29,7 @@ public class Color extends CompoundState<Map<String, Integer>> {
 
     /**
      * Sets name of the religion.
-     * @param name new name
+     * @param religion new name
      * @return this
      */
     public Color withReligion(final String religion) {

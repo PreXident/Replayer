@@ -67,7 +67,7 @@ public class EventProcessor {
     /**
      * Processes Culture event.
      * @param date date of the event
-     * @param controller controller change
+     * @param culture controller change
      * @return true if event should be logged, false otherwise
      */
     public boolean process(final Date date, final Culture culture) {
