@@ -250,6 +250,9 @@ public class ReplayerController implements Initializable {
     /** Set of colors assigned to sea provinces. */
     Set<Integer> seas = new HashSet<>();
 
+    /** Set of points constituting borders. */
+    Set<Integer> borders = new HashSet<>();
+
     /** Religion name -> color mapping. */
     Map<String, Integer> religions = new HashMap<>();
 
@@ -264,6 +267,12 @@ public class ReplayerController implements Initializable {
 
     /** Color to display no man's land. */
     int landColor;
+
+    /** Color to display province bordes. */
+    int borderColor;
+
+    /** Flag indication whether borders should be drawn. */
+    boolean drawBorders;
 
     /** Number of days processed in one tick. */
     int daysPerTick;
@@ -455,8 +464,6 @@ public class ReplayerController implements Initializable {
             final SaveGameParser parser = new SaveGameParser(saveGame, file.length(), is);
             final int width = (int) map.getWidth();
             final int height = (int) map.getHeight();
-//            buffer = new int[width * height];
-//            politicalBuffer = buffer;
             imageView.setImage(null);
             final Task<Void> mapInitializer = new Task<Void>() {
                 @Override
@@ -464,25 +471,24 @@ public class ReplayerController implements Initializable {
                     updateTitle("Initializing map...");
                     final int width = (int) map.getWidth();
                     final int height = (int) map.getHeight();
-                    seaColor = toColor(
-                            Integer.parseInt(settings.getProperty("sea.color.red", "0")),
-                            Integer.parseInt(settings.getProperty("sea.color.green", "0")),
-                            Integer.parseInt(settings.getProperty("sea.color.blue", "255")));
-                    landColor = toColor(
-                            Integer.parseInt(settings.getProperty("land.color.red", "150")),
-                            Integer.parseInt(settings.getProperty("land.color.green", "150")),
-                            Integer.parseInt(settings.getProperty("land.color.blue", "150")));
-                    //final PixelWriter writer = output.getPixelWriter();
 
                     final long size = height * width;
                     for (int y = 0; y < height; ++y) {
                         for (int x = 0; x < width; ++x) {
+                            final int pos = y * width + x;
                             final int color = reader.getArgb(x, y);
-                            politicalBuffer[y * width + x] = seas.contains(color) ? seaColor : landColor;
-                            religiousBuffer[y * width + x] = seas.contains(color) ? seaColor : landColor;
-                            culturalBuffer[y * width + x] = seas.contains(color) ? seaColor : landColor;
-                            //writer.setArgb(x, y, seas.contains(color) ? seaColor : landColor);
-                            updateProgress(y*width+x, size);
+                            int finalColor;
+                            if (seas.contains(color)) {
+                                finalColor = seaColor;
+                            } else if (borders.contains(pos)) {
+                                finalColor = borderColor;
+                            } else {
+                                finalColor = landColor;
+                            }
+                            politicalBuffer[pos] = finalColor;
+                            religiousBuffer[pos] = finalColor;
+                            culturalBuffer[pos] = finalColor;
+                            updateProgress(pos, size);
                         }
                     }
                     return null;
@@ -846,8 +852,21 @@ public class ReplayerController implements Initializable {
         daysCombo.getSelectionModel().select(settings.getProperty("days.per.tick", "1"));
 
         gifStep = Integer.parseInt(settings.getProperty("gif.step", "100"));
-
         gifBreak = Integer.parseInt(settings.getProperty("gif.new.file", "0"));
+
+        seaColor = toColor(
+                Integer.parseInt(settings.getProperty("sea.color.red", "0")),
+                Integer.parseInt(settings.getProperty("sea.color.green", "0")),
+                Integer.parseInt(settings.getProperty("sea.color.blue", "255")));
+        landColor = toColor(
+                Integer.parseInt(settings.getProperty("land.color.red", "150")),
+                Integer.parseInt(settings.getProperty("land.color.green", "150")),
+                Integer.parseInt(settings.getProperty("land.color.blue", "150")));
+        borderColor = toColor(
+                Integer.parseInt(settings.getProperty("border.color.red", "0")),
+                Integer.parseInt(settings.getProperty("border.color.green", "0")),
+                Integer.parseInt(settings.getProperty("border.color.blue", "0")));
+        drawBorders = "true".equals(settings.getProperty("borders", "false"));
 
         saveDirectory = new File(settings.getProperty("save.dir", "/"));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
@@ -981,11 +1000,11 @@ public class ReplayerController implements Initializable {
      * Starts loading the map from map/provinces.bmp.
      */
     private void loadMap() {
-        dateLabel.textProperty().unbind();
-        dateLabel.setText("Loading map...");
+        System.out.println("Loading map...");
         final Task<Void> mapLoader = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
+                updateTitle("Loading map...");
                 try {
                     InputStream is = null;
                     try {
@@ -1032,8 +1051,25 @@ public class ReplayerController implements Initializable {
 
                     for (int y = 0; y < height; ++y){
                         for (int x = 0; x < width; ++x){
-                            final int color = reader.getArgb(x, y);
-                            provinces.get(colors.get(color)).points.add(y * width + x);
+                            int color = reader.getArgb(x, y);
+                            boolean border = false;
+                            if (drawBorders) {
+                                if (x > 0 && reader.getArgb(x-1, y) != color) {
+                                    border = true;
+                                } else if (x < width - 1 && reader.getArgb(x+1, y) != color) {
+                                    border = true;
+                                } else if (y > 0 && reader.getArgb(x, y-1) != color) {
+                                    border = true;
+                                } else if (y < height - 1 && reader.getArgb(x, y+1) != color) {
+                                    border = true;
+                                }
+                            }
+                            if (border) {
+                                color = borderColor;
+                                borders.add(y * width + x);
+                            } else {
+                                provinces.get(colors.get(color)).points.add(y * width + x);
+                            }
                             politicalBuffer[y * width + x] = color;
                             religiousBuffer[y * width + x] = color;
                             culturalBuffer[y * width + x] = color;
@@ -1055,9 +1091,11 @@ public class ReplayerController implements Initializable {
             }
         };
         progressBar.progressProperty().bind(mapLoader.progressProperty());
+        dateLabel.textProperty().bind(mapLoader.titleProperty());
         mapLoader.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent t) {
+                dateLabel.textProperty().unbind();
                 System.out.println("Map loaded");
                 progressBar.progressProperty().unbind();
                 progressBar.setProgress(0);
