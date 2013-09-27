@@ -102,7 +102,7 @@ public class ReplayerController implements Initializable {
     static final String LOG_FOOTER = "</span>";
 
     /** Format for initial content of log. */
-    static final String LOG_INIT_FORMAT = String.format("<body><div id='%s'/>%%s</body>", LOG_ID);
+    static final String LOG_INIT_FORMAT = String.format("<body><div id='%s'>%%s</div></body>", LOG_ID);
 
     /** Initial content of log. */
     static final String LOG_INIT = String.format(LOG_INIT_FORMAT, "");
@@ -826,7 +826,6 @@ public class ReplayerController implements Initializable {
     public void setSettings(final Properties settings) {
         this.settings = settings;
 
-        final ClassLoader loader = getClass().getClassLoader();
         notableEvents.clear();
         notableEvents.addAll(Arrays.asList(settings.getProperty("events", "").split(";")));
         for(final MenuItem item : eventMenu.getItems()) {
