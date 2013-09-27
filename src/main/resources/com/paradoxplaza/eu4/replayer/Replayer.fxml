@@ -80,6 +80,14 @@
 								</HBox>
 							</content>
 						</CustomMenuItem>
+						<CustomMenuItem hideOnClick="false" text="Days Per Tick">
+							<content>
+								<HBox alignment="CENTER_LEFT" >
+									<Label text="Focus"/>
+									<TextField fx:id="focusEdit"/>
+								</HBox>
+							</content>
+						</CustomMenuItem>
 						<MenuItem text="Emergency refresh" onAction="#refresh">
 							<accelerator>
 								<KeyCodeCombination alt="UP" control="UP" meta="UP" shift="UP" shortcut="UP" code="F5"/>

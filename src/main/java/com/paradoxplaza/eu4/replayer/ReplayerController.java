@@ -54,6 +54,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -187,6 +188,9 @@ public class ReplayerController implements Initializable {
     @FXML
     ComboBox<String> daysCombo;
 
+    @FXML
+    TextField focusEdit;
+
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
 
@@ -309,6 +313,9 @@ public class ReplayerController implements Initializable {
 
     /** After this number of ticks new gif file is created. */
     int gifBreak;
+
+    /** Tag of state in focus. */
+    String focusTag;
 
     /** Standard event processor. */
     final EventProcessor eventProcessor = new EventProcessor(this);
@@ -458,6 +465,7 @@ public class ReplayerController implements Initializable {
             ci.owns.clear();
             ci.expectingTagChange = null;
         }
+        focusTag = settings.getProperty("focus", ""); //this needs to be reset as tag changes are followed during replaying
 
         try {
             final InputStream is = new FileInputStream(file);
@@ -796,6 +804,15 @@ public class ReplayerController implements Initializable {
             }
         });
 
+        focusEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        focusEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                focusTag = newVal;
+                settings.setProperty("focus", newVal);
+            }
+        });
+
         imageView.setOnMouseMoved(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent t) {
@@ -867,6 +884,9 @@ public class ReplayerController implements Initializable {
                 Integer.parseInt(settings.getProperty("border.color.green", "0")),
                 Integer.parseInt(settings.getProperty("border.color.blue", "0")));
         drawBorders = "true".equals(settings.getProperty("borders", "false"));
+
+        focusTag = settings.getProperty("focus", "");
+        focusEdit.setText(focusTag);
 
         saveDirectory = new File(settings.getProperty("save.dir", "/"));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {

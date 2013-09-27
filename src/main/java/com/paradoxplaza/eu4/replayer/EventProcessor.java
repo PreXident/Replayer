@@ -46,13 +46,20 @@ public class EventProcessor {
             return false;
         }
         final ProvinceInfo province = replayerController.provinces.get(controller.id);
+        if (!replayerController.focusTag.equals("")
+                && !replayerController.focusTag.equals(controller.tag)
+                && !replayerController.focusTag.equals(province.controller)) {
+            return false;
+        }
         final CountryInfo previousController = replayerController.countries.get(province.controller);
         if (previousController != null) {
             previousController.controls.remove(province.id);
         }
         province.controller = controller.tag;
         int color = replayerController.landColor;
-        if (newController != null) {
+        if (newController != null
+                && (replayerController.focusTag.equals("")
+                    || newController.tag.equals(replayerController.focusTag))) {
             newController.controls.add(province.id);
             color = newController.color;
         }
@@ -95,6 +102,11 @@ public class EventProcessor {
         if (newOwner != null && newOwner.expectingTagChange != null && newOwner.expectingTagChange.compareTo(date) > 0) {
             return false;
         }
+        if (!replayerController.focusTag.equals("")
+                && !replayerController.focusTag.equals(owner.value)
+                && !replayerController.focusTag.equals(province.owner)) {
+            return false;
+        }
         if (previousOwner != null) {
             previousOwner.owns.remove(province.id);
             previousOwner.controls.remove(province.id);
@@ -102,7 +114,9 @@ public class EventProcessor {
         province.owner = owner.value;
         province.controller = owner.value;
         int color = replayerController.landColor;
-        if (newOwner != null) {
+        if (newOwner != null
+                && (replayerController.focusTag.equals("")
+                    || newOwner.tag.equals(replayerController.focusTag))) {
             newOwner.owns.add(province.id);
             newOwner.controls.add(province.id);
             color = newOwner.color;
@@ -141,6 +155,13 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean process(final Date date, final TagChange tagChange) {
+        if (!replayerController.focusTag.equals("")) {
+            if (replayerController.focusTag.equals(tagChange.fromTag)) {
+                replayerController.focusTag = tagChange.toTag;
+            } else if (!replayerController.focusTag.equals(tagChange.toTag)) {
+                return false;
+            }
+        }
         final CountryInfo from = replayerController.countries.get(tagChange.fromTag);
         final CountryInfo to = replayerController.countries.get(tagChange.toTag);
         to.controls.addAll(from.controls);
