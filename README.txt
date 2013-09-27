@@ -44,6 +44,10 @@ In province history there's sometimes missing record of regaining province contr
 #Change log#
 ############
 
+0.9
+Added optional borders - set borders=true in properties
+CSS file is now used for log styling to get rid of the unpleasant scrollbar behaviour
+
 0.8
 Added province culture map mode - cultures without primary country tag get generated color
 
