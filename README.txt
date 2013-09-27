@@ -23,6 +23,8 @@ map/default.map
 map/provinces.bmp
 map/definition.csv
 common/country_tags/* + files mentioned in there (typically common/countries/*)
+common/religions/*
+common/cultures/*
 
 ############
 #Known Bugs#
