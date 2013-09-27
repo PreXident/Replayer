@@ -1,7 +1,9 @@
 package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.events.Event;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +13,7 @@ import java.util.Map;
  */
 public class SaveGame {
 
-    /** Current date. */
+    /** Current date, meaning the end date of the SaveGame. */
     public Date date = new Date();
 
     /** Starting date. */

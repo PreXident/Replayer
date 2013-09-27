@@ -1,14 +1,18 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
-import com.paradoxplaza.eu4.replayer.Date;
+import com.paradoxplaza.eu4.replayer.DateGenerator;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.Empty;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
+
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.regex.Pattern;
+
 import javafx.beans.value.WritableValue;
 
 /**
@@ -97,7 +101,7 @@ class CountryHistory extends CompoundState<SaveGame> {
     public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         this.saveGame = saveGame;
         if (DATE.matcher(word).matches()) {
-            return getInnerHistory().withTag(tag).withDate(new Date(word));
+            return getInnerHistory().withTag(tag).withDate(DateGenerator.parse(word));
         }
         switch (word) {
             case "changed_tag_from":

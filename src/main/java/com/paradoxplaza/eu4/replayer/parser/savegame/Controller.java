@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
-import com.paradoxplaza.eu4.replayer.Date;
+import java.util.Date;
+
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.State;

@@ -32,13 +32,12 @@ public class TextParser<Context> extends Task<Context> {
      * @param start starting stare
      * @param input input stream to parse
      */
-    public TextParser(final Context context, final Start<Context> start, final long size, final InputStream input) {
+    public TextParser(final Context context, final StartAdapter<Context> start, final long size, final InputStream input) {
         this.context = context;
         state = start;
         this.size = size;
         this.stream = new PositionInputStream(input);
         tokenizer = start.createTokenizer(stream);
-        tokenizer.quoteChar('"');
     }
 
     /**

@@ -3,34 +3,26 @@ package com.paradoxplaza.eu4.replayer.parser;
 import java.io.InputStream;
 import java.io.StreamTokenizer;
 
+
 /**
- * Represents starting state of TextParser.
+ * Represents a starting state of a {@link TextParser}
+ *
+ * @param <Context> The context of the start node
  */
-public abstract class Start<Context> extends State<Context> {
-
-    /**
-     * Only constructor.
-     * @param parent parent state
-     */
-    public Start(final State<Context> parent) {
-        super(parent);
-    }
-
-    /**
+public abstract class Start<Context>
+		extends State<Context> {
+	
+	/**
+	 * Start states have no parent states, so call them without a parameter
+	 */
+	public Start() {
+		super(null);
+	}
+	
+	/**
      * Creates tokenizer used by TextParser. Quote character is always '"'.
      * @param input InputStream to parse
      * @return new StreamTokenizer
      */
-    public final StreamTokenizer createTokenizer(final InputStream input) {
-        final StreamTokenizer t = _createTokenizer(input);
-        t.quoteChar('"');
-        return t;
-    }
-
-    /**
-     * Creates tokenizer used by TextParser. Quote character is always '"'.
-     * @param input InputStream to parse
-     * @return new StreamTokenizer
-     */
-    protected abstract StreamTokenizer _createTokenizer(final InputStream input);
+    abstract StreamTokenizer createTokenizer(final InputStream input);
 }

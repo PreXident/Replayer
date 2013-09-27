@@ -1,7 +1,9 @@
 package com.paradoxplaza.eu4.replayer.events;
 
-import com.paradoxplaza.eu4.replayer.Date;
+
 import com.paradoxplaza.eu4.replayer.EventProcessor;
+
+import java.util.Date;
 import java.util.Formattable;
 import java.util.Formatter;
 

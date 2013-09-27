@@ -7,6 +7,7 @@ import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.GifSequenceWriter;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -21,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +34,8 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -72,9 +77,12 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Duration;
+
 import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageOutputStream;
+
 import netscape.javascript.JSObject;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -375,18 +383,21 @@ public class ReplayerController implements Initializable {
                 protected Void call() throws Exception {
                     updateTitle("Finishing gameplay...");
 
-                    final Date maxDate = saveGame.date;
                     Date date = dateGenerator.dateProperty().get();
-                    int day = Date.calculateDistance(saveGame.startDate, date);
-                    final int distance = Date.calculateDistance(saveGame.startDate, saveGame.date);
+                    int day = DateGenerator.getDaysBetween(saveGame.startDate, date);
+                    final int distance = DateGenerator.getDaysBetween(saveGame.startDate, saveGame.date);
                     int tickCounter = 0;
                     int fileNum = 1;
                     int updateCounter = 0;
+                    final Date maxDate = saveGame.date;
                     while (date.compareTo(maxDate) < 0) {
                         final List<Event> events = saveGame.timeline.get(date);
                         bufferChangeOnlyProcessor.processEvents(date, events);
                         updateProgress(++day, distance);
-                        date = date.next();
+                       // TODO: Please review. I wanted to do date = dateGenerator.next(), 
+                        // but this causes an endless loop somewhere. I could not see how this happens from the code below ...
+                        dateGenerator.cal.add(Calendar.DATE, 1);
+                        date = dateGenerator.cal.getTime();
                         if (++tickCounter >= daysPerTick) {
                             updateGif(date);
                             tickCounter = 0;
@@ -507,20 +518,20 @@ public class ReplayerController implements Initializable {
             final Task<Void> starter = new Task<Void>() {
                 @Override
                 protected Void call() throws Exception {
-                    dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
+                    
                     updateTitle("Initializing world...");
                     notLogUpdatingProcessor.processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)));
-                    //
+
                     updateTitle("Progressing to starting date...");
-                    final Date maxDate = saveGame.startDate;
-                    Date date = new Date(settings.getProperty("init.start", "1300.1.1"));
-                    int day = 0;
-                    final int distance = Date.calculateDistance(date, saveGame.startDate);
-                    while (date.compareTo(maxDate) < 0) {
+                    Date date = DateGenerator.parse(settings.getProperty("init.start", "1300.1.1"));
+                    dateGenerator = new DateGenerator(date, saveGame.date);
+                    final double distance = DateGenerator.getDaysBetween(date, saveGame.startDate);
+                    while (date.compareTo(saveGame.startDate) < 0) {
                         final List<Event> events = saveGame.timeline.get(date);
                         bufferChangeOnlyProcessor.processEvents(date, events);
-                        updateProgress(++day, distance);
-                        date = date.next();
+                        final double alreadyDone = DateGenerator.getDaysBetween(date, dateGenerator.dateProperty().getValue());
+                        updateProgress(alreadyDone, distance);
+                        date = dateGenerator.next();
                     }
                     return null;
                 }
@@ -538,15 +549,15 @@ public class ReplayerController implements Initializable {
                     output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
                     log.getEngine().loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
                     logContent.setLength(LOG_HEADER.length());
-                    progressBar.progressProperty().bind(dateGenerator.progress);
+                    progressBar.progressProperty().bind(dateGenerator.progressProperty());
                     dateGenerator.dateProperty().addListener(dateListener);
                     dateLabel.textProperty().bind(new StringBinding() {
                         {
-                            bind(dateGenerator.date);
+                            bind(dateGenerator.dateProperty());
                         }
                         @Override
                         protected String computeValue() {
-                            return dateGenerator.date.get().toString();
+                            return dateGenerator.dateProperty().get().toString();
                         }
                     });
                     imageView.setImage(output);
@@ -616,7 +627,7 @@ public class ReplayerController implements Initializable {
         }
 
         timeline = new Timeline();
-        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.setCycleCount(Animation.INDEFINITE);
         timeline.getKeyFrames().add(
                 new KeyFrame(Duration.seconds(0.1),
                   new EventHandler<ActionEvent>() {

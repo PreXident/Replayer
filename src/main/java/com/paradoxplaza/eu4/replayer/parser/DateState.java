@@ -1,6 +1,9 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
-import com.paradoxplaza.eu4.replayer.Date;
+import java.util.Date;
+
+import com.paradoxplaza.eu4.replayer.DateGenerator;
+
 import javafx.beans.value.WritableValue;
 
 /**
@@ -23,6 +26,6 @@ public class DateState<Context> extends ValueState<Context, Date> {
 
     @Override
     protected Date createOutput(final String word) {
-        return new Date(word);
+        return DateGenerator.parse(word);
     }
 }

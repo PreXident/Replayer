@@ -1,7 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
-import com.paradoxplaza.eu4.replayer.Date;
+import com.paradoxplaza.eu4.replayer.DateGenerator;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.Building;
 import com.paradoxplaza.eu4.replayer.events.Capital;
@@ -26,7 +26,10 @@ import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.Empty;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
+
+import java.util.Date;
 import java.util.regex.Pattern;
+
 import javafx.beans.value.WritableValue;
 
 /**
@@ -301,7 +304,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
         this.saveGame = saveGame;
         processing = word;
         if (DATE.matcher(word).matches()) {
-            return getInnerHistory().withID(id).withName(name).withDate(new Date(word));
+            return getInnerHistory().withID(id).withName(name).withDate(DateGenerator.parse(word));
         }
         switch (word) {
             case "add_core":

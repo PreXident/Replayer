@@ -1,51 +1,21 @@
 package com.paradoxplaza.eu4.replayer.parser.religion;
 
-import com.paradoxplaza.eu4.replayer.parser.State;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StreamTokenizer;
 import java.util.Map;
 
+import com.paradoxplaza.eu4.replayer.parser.StartAdapter;
+import com.paradoxplaza.eu4.replayer.parser.State;
+
 /**
- * Start state for ReligionParser.
+ * StartAdapter state for ReligionParser.
  */
-class Start extends com.paradoxplaza.eu4.replayer.parser.Start<Map<String, Integer>> {
+class Start extends StartAdapter<Map<String, Integer>> {
 
     /** State processing religion groups. */
     final ReligionGroup religionGroup = new ReligionGroup(this);
 
-    /**
-     * Only contructor.
-     */
-    public Start() {
-        super(null);
-    }
-
     @Override
     public Start end(final Map<String, Integer> context) {
         return this;
-    }
-
-    @Override
-    protected StreamTokenizer _createTokenizer(final InputStream input) {
-        final StreamTokenizer t = new StreamTokenizer(new BufferedReader(new InputStreamReader(input)));
-        t.resetSyntax();
-        t.commentChar('#');
-        t.eolIsSignificant(false);
-        t.lowerCaseMode(false);
-        t.wordChars('.', '.');
-        t.wordChars('0', '9');
-        t.wordChars('a', 'z');
-        t.wordChars('A', 'Z');
-        t.wordChars('_', '_');
-        t.wordChars('-', '-');
-        t.wordChars(128, Integer.MAX_VALUE);
-        t.whitespaceChars('\t', '\t');
-        t.whitespaceChars(' ', ' ');
-        t.whitespaceChars('\n', '\n');
-        t.whitespaceChars('\r', '\r');
-        return t;
     }
 
     @Override
