@@ -102,7 +102,7 @@ public class ReplayerController implements Initializable {
     static final String LOG_FOOTER = "</span>";
 
     /** Format for initial content of log. */
-    static final String LOG_INIT_FORMAT = String.format("<body><div id='%s'>%%s</div></body>", LOG_ID);
+    static final String LOG_INIT_FORMAT = String.format("<html><body><div id='%1$s'>%%s</div></body></html>", LOG_ID);
 
     /** Initial content of log. */
     static final String LOG_INIT = String.format(LOG_INIT_FORMAT, "");
@@ -811,6 +811,7 @@ public class ReplayerController implements Initializable {
                     JSObject win = (JSObject) webEngine.executeScript("window");
                     win.setMember("java", new JavascriptBridge());
                     webEngine.executeScript(SCROLL_DOWN);
+                    log.getEngine().setUserStyleSheetLocation(getClass().getResource("Log.css").toExternalForm());
                 }
             }
         });
