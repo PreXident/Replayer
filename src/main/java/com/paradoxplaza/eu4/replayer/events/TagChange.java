@@ -31,6 +31,6 @@ public class TagChange extends Event {
 
     @Override
     public String toString() {
-        return String.format("Country %2$s changed tag to %1$s enabled", toTag, fromTag);
+        return String.format("Country %2$s changed tag to %1$s", toTag, fromTag);
     }
 }
