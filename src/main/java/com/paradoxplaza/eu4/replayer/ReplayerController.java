@@ -49,6 +49,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -63,6 +64,7 @@ import javafx.scene.image.PixelFormat;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
@@ -835,6 +837,24 @@ public class ReplayerController implements Initializable {
             }
         });
 
+        log.setContextMenuEnabled(false); //throws exception when in fxml
+        final ContextMenu cm = new ContextMenu();
+        final MenuItem clearLog = new MenuItem("Clear log");
+        clearLog.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+                log.getEngine().loadContent(LOG_INIT);
+            }
+        });
+        cm.getItems().add(clearLog);
+        log.addEventHandler(MouseEvent.MOUSE_CLICKED,
+            new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    if (e.getButton() == MouseButton.SECONDARY)
+                        cm.show(log, e.getScreenX(), e.getScreenY());
+                }
+        });
         final WebEngine webEngine = log.getEngine();
         webEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
             @Override
