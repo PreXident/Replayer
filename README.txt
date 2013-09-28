@@ -36,15 +36,19 @@ In province history there's sometimes missing record of regaining province contr
 #Planned features#
 ##################
 
+- jump to any given date, not only end date
 - selectable provinces
-- fast forward replay to any given date, not only end date
-- nation focus to display only selected state and its PU
 - monarchs, wars, ...
-- back rewind
+- nation focus to display PUs
 
 ############
 #Change log#
 ############
+
+0.10
+Added focus feature in settings to display only controller and owner changes related to a certain tag (set before loading a save!)
+Added context menu for clearing the log
+Added back rewind
 
 0.9
 Added optional borders - set borders=true in properties
@@ -83,7 +87,15 @@ Initial release
 #Sources#
 #########
 
-If anyone is interested or paranoid enough, sources are freely available, just PM me. However they are no masterpiece I am afraid ;-) It's a netbeans free form project, so you just need to adjust properties in build.xml if JAVA_HOME is not set and then use ant.
+If anyone is interested or paranoid enough, sources are freely available. However they are no masterpiece I am afraid ;-) It's a netbeans free form project, so you just need to adjust properties in build.xml if JAVA_HOME is not set and then use ant.
+Check the repository PreXident/Replayer at Bitbucket.
+
+##############
+#Contributors#
+##############
+
+PreXident
+Lateralus (Hottemax at Bitbucket)
 
 ################
 #Used Libraries#
