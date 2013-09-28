@@ -99,6 +99,19 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
         return date.get();
     }
 
+    /**
+     * Sets current date.
+     * @param date date to skip to
+     */
+    public void skipTo(final Date date) {
+        if (min.compareTo(date) > 0 || max.compareTo(date) < 0) {
+            throw new IllegalArgumentException("Cannot skip to Date outside the period!");
+        }
+        this.date.set(date);
+        day = Date.calculateDistance(min, date);
+        progress.set(day/distance);
+    }
+
     @Override
     public void remove() {
         //nothing

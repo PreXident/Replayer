@@ -15,6 +15,12 @@ public abstract class SimpleProvinceEvent extends ProvinceEvent {
     final public String value;
 
     /**
+     * Previous value.
+     * Set during processing. Used during unprocessing.
+     */
+    public String previousValue;
+
+    /**
      * Only constructor.
      * @param id province id
      * @param name province name

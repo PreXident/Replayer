@@ -25,8 +25,13 @@ public class TagChange extends Event {
     }
 
     @Override
-    public boolean accept(final Date date, final EventProcessor processor) {
+    public boolean beProcessed(final Date date, final EventProcessor processor) {
         return processor.process(date, this);
+    }
+
+    @Override
+    public boolean beUnprocessed(final Date date, final EventProcessor processor) {
+        return processor.unprocess(date, this);
     }
 
     @Override

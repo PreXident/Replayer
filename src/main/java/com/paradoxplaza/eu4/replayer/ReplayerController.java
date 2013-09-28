@@ -161,6 +161,9 @@ public class ReplayerController implements Initializable {
         return 255 << 24 | red << 16 | green << 8 | blue;
     }
 
+    /** Possible directions of replaying. */
+    enum Direction { FORWARD, BACKWARD }
+
     @FXML
     BorderPane root;
 
@@ -287,6 +290,9 @@ public class ReplayerController implements Initializable {
     /** Timer for replaying. */
     Timeline timeline;
 
+    /** Current direction of replaying. */
+    Direction direction = null;
+
     /** Generates dates for replaying dates. */
     DateGenerator dateGenerator;
 
@@ -344,6 +350,49 @@ public class ReplayerController implements Initializable {
         @Override
         protected void updateLog() { }
     };
+
+    @FXML
+    private void backPlay() {
+        if (!lock.tryAcquire()) {
+           return;
+        }
+        if (saveGame == null) {
+            lock.release();
+            return;
+        }
+        if (timeline != null) {
+            if (direction == Direction.BACKWARD) {
+                timeline.play();
+                lock.release();
+                return;
+            } else {
+                timeline.stop();
+            }
+        }
+
+        //final Timeline tl = new Timeline();
+        timeline = new Timeline();
+        timeline.setCycleCount(Animation.INDEFINITE);
+        timeline.getKeyFrames().add(
+                new KeyFrame(Duration.seconds(0.1),
+                  new EventHandler<ActionEvent>() {
+                    @Override
+                    public void handle(final ActionEvent e) {
+                        for (int i = 0; i < daysPerTick; ++i) {
+                            if (dateGenerator.hasPrev()) {
+                                dateGenerator.prev();
+                            } else {
+                                timeline.stop();
+                                timeline = null;
+                                break;
+                            }
+                        }
+                    }
+                }));
+        direction = Direction.BACKWARD;
+        timeline.playFromStart();
+        lock.release();
+    }
 
     @FXML
     private void changeEU4Directory() throws InterruptedException{
@@ -414,7 +463,6 @@ public class ReplayerController implements Initializable {
                             }
                         }
                     }
-                    updateTitle(date.toString());
                     return null;
                 }
             };
@@ -428,10 +476,12 @@ public class ReplayerController implements Initializable {
                         public void changed(ObservableValue ov, State oldState, State newState) {
                             if (newState == State.SUCCEEDED) {
                                 log.getEngine().executeScript(SCROLL_DOWN);
-                                dateGenerator = new DateGenerator(saveGame.date, saveGame.date);
                                 logContent.setLength(LOG_HEADER.length());
                                 endGif();
                                 e.getLoadWorker().stateProperty().removeListener(this);
+                                dateGenerator.skipTo(saveGame.date);
+                                dateLabel.textProperty().bind(new DateStringBinding());
+                                progressBar.progressProperty().bind(dateGenerator.progressProperty());
                                 lock.release();
                             }
                         }
@@ -558,15 +608,7 @@ public class ReplayerController implements Initializable {
                     logContent.setLength(LOG_HEADER.length());
                     progressBar.progressProperty().bind(dateGenerator.progressProperty());
                     dateGenerator.dateProperty().addListener(dateListener);
-                    dateLabel.textProperty().bind(new StringBinding() {
-                        {
-                            bind(dateGenerator.dateProperty());
-                        }
-                        @Override
-                        protected String computeValue() {
-                            return dateGenerator.dateProperty().get().toString();
-                        }
-                    });
+                    dateLabel.textProperty().bind(new DateStringBinding());
                     imageView.setImage(output);
                     new JavascriptBridge().prov(settings.getProperty("center.id", "1"));
                     lock.release();
@@ -628,9 +670,13 @@ public class ReplayerController implements Initializable {
             return;
         }
         if (timeline != null) {
-            timeline.play();
-            lock.release();
-            return;
+            if (direction == Direction.FORWARD) {
+                timeline.play();
+                lock.release();
+                return;
+            } else {
+                timeline.stop();
+            }
         }
 
         timeline = new Timeline();
@@ -646,13 +692,12 @@ public class ReplayerController implements Initializable {
                             } else {
                                 timeline.stop();
                                 timeline = null;
-                                //endGif();
                                 break;
                             }
                         }
-                        //updateGif();
-                      }
+                    }
                 }));
+        direction = Direction.FORWARD;
         timeline.playFromStart();
         lock.release();
     }
@@ -1293,8 +1338,31 @@ public class ReplayerController implements Initializable {
         @Override
         public void changed(final ObservableValue<? extends Date> ov, final Date oldVal, final Date newVal) {
             final List<Event> events = saveGame.timeline.get(newVal);
-            eventProcessor.processEvents(newVal, events);
-            //timeline.pause();
+            if (direction == null) {
+                return;
+            }
+            switch (direction) {
+                case FORWARD:
+                    eventProcessor.processEvents(newVal, events);
+                    break;
+                case BACKWARD:
+                    eventProcessor.unprocessEvents(newVal, events);
+                default:
+                    assert false : "invalid replay direction";
+            }
+        }
+    }
+
+    /**
+     * Class for binding between {@link #dateLabel} and {@link #dateGenerator}.
+     */
+    class DateStringBinding extends StringBinding {
+        {
+            bind(dateGenerator.dateProperty());
+        }
+        @Override
+        protected String computeValue() {
+            return dateGenerator.dateProperty().get().toString();
         }
     }
 

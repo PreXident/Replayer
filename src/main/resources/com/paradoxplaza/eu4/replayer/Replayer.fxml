@@ -220,6 +220,7 @@
 				</menus>
 			</MenuBar>
 			<HBox alignment="CENTER_LEFT">
+				<Button text="&lt;" onAction="#backPlay"/>
 				<Button text="|" onAction="#pause"/>
 				<Button text=">" onAction="#play"/>
 				<Button text=">|" onAction="#finish"/>

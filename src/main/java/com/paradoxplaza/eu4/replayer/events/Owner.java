@@ -8,6 +8,9 @@ import com.paradoxplaza.eu4.replayer.EventProcessor;
  */
 public class Owner extends SimpleProvinceEvent {
 
+    /** Previous controller of the province. */
+    public String previousController = null;
+
     /**
      * Only constructor
      * @param id province id
@@ -19,7 +22,12 @@ public class Owner extends SimpleProvinceEvent {
     }
 
     @Override
-    public boolean accept(final Date date, final EventProcessor processor) {
+    public boolean beProcessed(final Date date, final EventProcessor processor) {
         return processor.process(date, this);
+    }
+
+    @Override
+    public boolean beUnprocessed(final Date date, final EventProcessor processor) {
+        return processor.unprocess(date, this);
     }
 }

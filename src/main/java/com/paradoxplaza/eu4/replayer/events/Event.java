@@ -18,8 +18,20 @@ public abstract class Event implements Formattable {
      * @param processor EventProcessor to process the event
      * @return true if event should be logged, false otherwise
      */
-    public boolean accept(final Date date, final EventProcessor processor) {
+    public boolean beProcessed(final Date date, final EventProcessor processor) {
         return processor.process(date, this);
+    }
+
+    /**
+     * Accepts processor and let it unprocess this event.
+     * This method is intended to be overriden in descendants that should be
+     * unprocessed in a unique way.
+     * @param date date of the event
+     * @param processor EventProcessor to unprocess the event
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean beUnprocessed(final Date date, final EventProcessor processor) {
+        return processor.unprocess(date, this);
     }
 
     @Override
