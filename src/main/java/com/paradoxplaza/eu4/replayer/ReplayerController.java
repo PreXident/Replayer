@@ -315,8 +315,14 @@ public class ReplayerController implements Initializable {
     /** After this number of ticks new gif file is created. */
     int gifBreak;
 
-    /** Tag of state in focus. */
-    String focusTag;
+    /** Tag of state in focus. Never null. */
+    String focusTag = "";
+
+    /**
+     * Flag indicating whether {@link #focusTag} is be used.
+     * If true, focusTag is not empty, but contains country tag in focus.
+     */
+    boolean focusing = false;
 
     /** Standard event processor. */
     final EventProcessor eventProcessor = new EventProcessor(this);
@@ -467,6 +473,7 @@ public class ReplayerController implements Initializable {
             ci.expectingTagChange = null;
         }
         focusTag = settings.getProperty("focus", ""); //this needs to be reset as tag changes are followed during replaying
+        focusing = !focusTag.equals("");
 
         try {
             final InputStream is = new FileInputStream(file);
@@ -810,6 +817,7 @@ public class ReplayerController implements Initializable {
             @Override
             public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
                 focusTag = newVal;
+                focusing = !"".equals(newVal);
                 settings.setProperty("focus", newVal);
             }
         });
@@ -887,6 +895,7 @@ public class ReplayerController implements Initializable {
         drawBorders = "true".equals(settings.getProperty("borders", "false"));
 
         focusTag = settings.getProperty("focus", "");
+        focusing = !focusTag.equals("");
         focusEdit.setText(focusTag);
 
         saveDirectory = new File(settings.getProperty("save.dir", "/"));

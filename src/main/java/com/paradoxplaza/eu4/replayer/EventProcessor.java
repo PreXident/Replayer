@@ -46,7 +46,7 @@ public class EventProcessor {
             return false;
         }
         final ProvinceInfo province = replayerController.provinces.get(controller.id);
-        if (!replayerController.focusTag.equals("")
+        if (replayerController.focusing
                 && !replayerController.focusTag.equals(controller.tag)
                 && !replayerController.focusTag.equals(province.controller)) {
             return false;
@@ -58,7 +58,7 @@ public class EventProcessor {
         province.controller = controller.tag;
         int color = replayerController.landColor;
         if (newController != null
-                && (replayerController.focusTag.equals("")
+                && (!replayerController.focusing
                     || newController.tag.equals(replayerController.focusTag))) {
             newController.controls.add(province.id);
             color = newController.color;
@@ -102,7 +102,7 @@ public class EventProcessor {
         if (newOwner != null && newOwner.expectingTagChange != null && newOwner.expectingTagChange.compareTo(date) > 0) {
             return false;
         }
-        if (!replayerController.focusTag.equals("")
+        if (replayerController.focusing
                 && !replayerController.focusTag.equals(owner.value)
                 && !replayerController.focusTag.equals(province.owner)) {
             return false;
@@ -115,7 +115,7 @@ public class EventProcessor {
         province.controller = owner.value;
         int color = replayerController.landColor;
         if (newOwner != null
-                && (replayerController.focusTag.equals("")
+                && (!replayerController.focusing
                     || newOwner.tag.equals(replayerController.focusTag))) {
             newOwner.owns.add(province.id);
             newOwner.controls.add(province.id);
@@ -155,7 +155,7 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean process(final Date date, final TagChange tagChange) {
-        if (!replayerController.focusTag.equals("")) {
+        if (replayerController.focusing) {
             if (replayerController.focusTag.equals(tagChange.fromTag)) {
                 replayerController.focusTag = tagChange.toTag;
             } else if (!replayerController.focusTag.equals(tagChange.toTag)) {
