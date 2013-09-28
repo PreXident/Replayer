@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class SaveGame {
 
-    /** Current date. */
+    /** Current date, meaning the end date of the SaveGame. */
     public Date date = new Date();
 
     /** Starting date. */

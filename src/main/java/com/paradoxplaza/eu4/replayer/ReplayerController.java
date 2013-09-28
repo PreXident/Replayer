@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -546,15 +547,15 @@ public class ReplayerController implements Initializable {
                     output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
                     log.getEngine().loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
                     logContent.setLength(LOG_HEADER.length());
-                    progressBar.progressProperty().bind(dateGenerator.progress);
+                    progressBar.progressProperty().bind(dateGenerator.progressProperty());
                     dateGenerator.dateProperty().addListener(dateListener);
                     dateLabel.textProperty().bind(new StringBinding() {
                         {
-                            bind(dateGenerator.date);
+                            bind(dateGenerator.dateProperty());
                         }
                         @Override
                         protected String computeValue() {
-                            return dateGenerator.date.get().toString();
+                            return dateGenerator.dateProperty().get().toString();
                         }
                     });
                     imageView.setImage(output);
@@ -624,7 +625,7 @@ public class ReplayerController implements Initializable {
         }
 
         timeline = new Timeline();
-        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.setCycleCount(Animation.INDEFINITE);
         timeline.getKeyFrames().add(
                 new KeyFrame(Duration.seconds(0.1),
                   new EventHandler<ActionEvent>() {

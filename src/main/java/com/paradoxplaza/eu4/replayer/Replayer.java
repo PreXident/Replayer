@@ -50,7 +50,7 @@ public class Replayer extends Application {
     public void start(final Stage stage) throws Exception {
         System.out.printf("Starting...\n");
         //load default properties
-        settings = new Properties(loadDefaulJarProperties());
+        settings = new Properties(loadDefaultJarProperties());
 
         //parse arguments from command line, ie. load property file
         final List<String> args = getParameters().getRaw();
@@ -64,7 +64,7 @@ public class Replayer extends Application {
             System.out.printf("Loading property file\n");
             propertyFile = args.get(0);
             try (final InputStream is = new FileInputStream(propertyFile)) {
-                settings.load(is);
+            	 settings.load(is);
             } catch(Exception e) {
                 System.err.printf("Error with specified property file\n");
                 e.printStackTrace();
@@ -113,7 +113,7 @@ public class Replayer extends Application {
      * Loads and returns default properties from {@link #DEFAULT_JAR_PROPERTIES}.
      * @return default properties
      */
-    private Properties loadDefaulJarProperties() {
+    private Properties loadDefaultJarProperties() {
         System.out.printf("Loading default properties.\n");
         final Properties res = new Properties();
         try {
