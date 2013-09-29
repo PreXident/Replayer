@@ -1552,7 +1552,7 @@ public class ReplayerController implements Initializable {
             updateTitle(String.format(updateInitFormat, target));
 
             int day = Date.calculateDistance(saveGame.startDate, iter);
-            final int distance = Date.calculateDistance(saveGame.startDate, saveGame.date);
+            final int distance = Date.calculateDistance(saveGame.startDate, saveGame.date) + 1;
             while (!iter.equals(bound)) {
                 final List<Event> events = saveGame.timeline.get(iter);
                 processEvents(iter, events);
