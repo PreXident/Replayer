@@ -220,12 +220,32 @@
 				</menus>
 			</MenuBar>
 			<HBox alignment="CENTER_LEFT">
-				<Button text="&lt;" onAction="#backPlay"/>
-				<Button text="|" onAction="#pause"/>
-				<Button text=">" onAction="#play"/>
-				<Button text=">|" onAction="#finish"/>
+				<Button text="&lt;" onAction="#backPlay">
+					<tooltip>
+						<Tooltip text="Backplay" />
+					</tooltip>
+				</Button>
+				<Button text="|" onAction="#pause">
+					<tooltip>
+						<Tooltip text="Pause" />
+					</tooltip>
+				</Button>
+				<Button text=">" onAction="#play">
+					<tooltip>
+						<Tooltip text="Play" />
+					</tooltip>
+				</Button>
+				<Button text=">|" onAction="#finish">
+					<tooltip>
+						<Tooltip text="Finish savegame (with potential gif output)" />
+					</tooltip>
+				</Button>
 				<TextField fx:id="dateLabel" prefWidth="75" />
-				<Button fx:id="jumpButton" text="->" onAction="#jump" visible="false" />
+				<Button fx:id="jumpButton" text="->" onAction="#jump" visible="false">
+					<tooltip>
+						<Tooltip text="Jump to specified date" />
+					</tooltip>
+				</Button>
 			</HBox>
 		</VBox>
 	</top>
