@@ -57,7 +57,7 @@
 						</MenuItem>
 						<MenuItem text="Religious" onAction="#religiousMapMode">
 							<accelerator>
-								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="F"/>
+								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="R"/>
 							</accelerator>
 						</MenuItem>
 						<MenuItem text="Cultural" onAction="#culturalMapMode">
@@ -240,6 +240,7 @@
 					</tooltip>
 				</ScrollPane>
 				<VBox fx:id="bottom" >
+					<Label fx:id="statusLabel" text="" />
 					<ProgressBar fx:id="progressBar" progress="0"/>
 					<HBox fx:id="logContainer" fillHeight="false" >
 						<WebView fx:id="log"/>

@@ -197,6 +197,9 @@ public class ReplayerController implements Initializable {
     @FXML
     TextField focusEdit;
 
+    @FXML
+    Label statusLabel;
+
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
 
@@ -482,6 +485,8 @@ public class ReplayerController implements Initializable {
                                 dateGenerator.skipTo(saveGame.date);
                                 dateLabel.textProperty().bind(new DateStringBinding());
                                 progressBar.progressProperty().bind(dateGenerator.progressProperty());
+                                statusLabel.textProperty().unbind();
+                                statusLabel.setText("Fast forward done!");
                                 lock.release();
                             }
                         }
@@ -489,7 +494,7 @@ public class ReplayerController implements Initializable {
                     e.loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
                 }
             });
-         dateLabel.textProperty().bind(finalizer.titleProperty());
+         statusLabel.textProperty().bind(finalizer.titleProperty());
          progressBar.progressProperty().bind(finalizer.progressProperty());
          new Thread(finalizer, "Game finalizer").start();
     }
@@ -566,7 +571,7 @@ public class ReplayerController implements Initializable {
                 @Override
                 public void handle(WorkerStateEvent t) {
                     output.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), buffer, 0, width);
-                    dateLabel.textProperty().bind(parser.titleProperty());
+                    statusLabel.textProperty().bind(parser.titleProperty());
                     progressBar.progressProperty().bind(parser.progressProperty());
                     new Thread(parser, "parser").start();
                 }
@@ -611,6 +616,8 @@ public class ReplayerController implements Initializable {
                     dateLabel.textProperty().bind(new DateStringBinding());
                     imageView.setImage(output);
                     new JavascriptBridge().prov(settings.getProperty("center.id", "1"));
+                    statusLabel.textProperty().unbind();
+                    statusLabel.setText("Save game loaded");
                     lock.release();
                 }
             });
@@ -628,7 +635,7 @@ public class ReplayerController implements Initializable {
             parser.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
                 @Override
                 public void handle(WorkerStateEvent t) {
-                    dateLabel.textProperty().bind(starter.titleProperty());
+                    statusLabel.textProperty().bind(starter.titleProperty());
                     progressBar.progressProperty().bind(starter.progressProperty());
                     for (Map.Entry<String, Date> change : saveGame.tagChanges.entrySet()) {
                         countries.get(change.getKey()).expectingTagChange = change.getValue();
@@ -647,7 +654,7 @@ public class ReplayerController implements Initializable {
                 }
             });
 
-            dateLabel.textProperty().bind(mapInitializer.titleProperty());
+            statusLabel.textProperty().bind(mapInitializer.titleProperty());
             progressBar.progressProperty().bind(mapInitializer.progressProperty());
             new Thread(mapInitializer, "mapInitializer").start();
         } catch (Exception e) { e.printStackTrace(); }
@@ -1186,15 +1193,15 @@ public class ReplayerController implements Initializable {
             }
         };
         progressBar.progressProperty().bind(mapLoader.progressProperty());
-        dateLabel.textProperty().bind(mapLoader.titleProperty());
+        statusLabel.textProperty().bind(mapLoader.titleProperty());
         mapLoader.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent t) {
-                dateLabel.textProperty().unbind();
                 System.out.println("Map loaded");
                 progressBar.progressProperty().unbind();
                 progressBar.setProgress(0);
-                dateLabel.setText("Map loaded");
+                statusLabel.textProperty().unbind();
+                statusLabel.setText("Map loaded");
                 scrollPane.setContent(null);
                 imageView.setImage(output);
                 scrollPane.setContent(imageView);
@@ -1341,12 +1348,15 @@ public class ReplayerController implements Initializable {
             if (direction == null) {
                 return;
             }
+            statusLabel.textProperty().unbind();
+            statusLabel.setText("");
             switch (direction) {
                 case FORWARD:
                     eventProcessor.processEvents(newVal, events);
                     break;
                 case BACKWARD:
                     eventProcessor.unprocessEvents(newVal, events);
+                    break;
                 default:
                     assert false : "invalid replay direction";
             }
