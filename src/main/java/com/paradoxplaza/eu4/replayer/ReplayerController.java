@@ -204,6 +204,12 @@ public class ReplayerController implements Initializable {
     @FXML
     Button jumpButton;
 
+    @FXML
+    HBox provinceContainer;
+
+    @FXML
+    WebView provinceLog;
+
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
 
@@ -332,6 +338,9 @@ public class ReplayerController implements Initializable {
 
     /** Tag of state in focus. Never null. */
     String focusTag = "";
+
+    /** ID of selected province. */
+    String selectedProvince;
 
     /**
      * Flag indicating whether {@link #focusTag} is be used.
@@ -890,6 +899,7 @@ public class ReplayerController implements Initializable {
     public void initialize(final URL url, final ResourceBundle rb) {
         System.out.printf("Initializing...\n");
         log.prefWidthProperty().bind(logContainer.widthProperty());
+        provinceLog.prefWidthProperty().bind(provinceContainer.widthProperty());
         progressBar.prefWidthProperty().bind(bottom.widthProperty());
 
         //center map if too small
@@ -984,6 +994,20 @@ public class ReplayerController implements Initializable {
                 final String provinceHint = provinces.get(colors.get(reader.getArgb(x, y))).toString();
                 if (!scrollPane.getTooltip().getText().equals(provinceHint)) {
                     scrollPane.setTooltip(new Tooltip(provinceHint));
+                }
+            }
+        });
+
+        imageView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent t) {
+                final Bounds imageBounds = imageView.getBoundsInParent();
+                int x = (int) (t.getX() * bufferWidth / imageBounds.getWidth());
+                int y = (int) (t.getY() * bufferHeight / imageBounds.getHeight());
+                selectedProvince = colors.get(reader.getArgb(x, y));
+                final ProvinceInfo province = provinces.get(selectedProvince);
+                if (province != null) {
+                    provinceLog.getEngine().loadContent(province.getLog());
                 }
             }
         });
@@ -1454,11 +1478,15 @@ public class ReplayerController implements Initializable {
         @Override
         public void changed(final ObservableValue<? extends Date> ov, final Date oldVal, final Date newVal) {
             dateLabel.setText(newVal.toString());
+            final ProvinceInfo province = provinces.get(selectedProvince);
+            if (province != null) {
+                provinceLog.getEngine().loadContent(province.getLog());
+            }
 
-            final List<Event> events = saveGame.timeline.get(newVal);
             if (direction == null) {
                 return;
             }
+            final List<Event> events = saveGame.timeline.get(newVal);
             statusLabel.textProperty().unbind();
             statusLabel.setText("");
             switch (direction) {
@@ -1499,6 +1527,9 @@ public class ReplayerController implements Initializable {
         }
     }
 
+    /**
+     * Class for jumping to specified date.
+     */
     abstract class Jumper extends Task<Void> {
 
         protected String updateInitFormat = "Jumping to %s";

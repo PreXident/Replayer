@@ -250,7 +250,7 @@
 		</VBox>
 	</top>
 	<center>
-		<SplitPane orientation="VERTICAL" dividerPositions="0.75" >
+		<SplitPane orientation="VERTICAL" dividerPositions="0.65" >
 			<items>
 				<ScrollPane fx:id="scrollPane" styleClass="map" pannable="true" >
 					<content>
@@ -263,9 +263,18 @@
 				<VBox fx:id="bottom" >
 					<Label fx:id="statusLabel" text="" />
 					<ProgressBar fx:id="progressBar" progress="0"/>
-					<HBox fx:id="logContainer" fillHeight="false" >
-						<WebView fx:id="log"/>
-					</HBox>
+					<TabPane tabClosingPolicy="UNAVAILABLE" side="TOP">
+						<Tab text="Log" >
+							<HBox styleClass="web-view-container" fx:id="logContainer" >
+								<WebView fx:id="log"/>
+							</HBox>
+						</Tab>
+						<Tab text="Province">
+							<HBox styleClass="web-view-container" fx:id="provinceContainer" >
+								<WebView fx:id="provinceLog"/>
+							</HBox>
+						</Tab>
+					</TabPane>
 				</VBox>
 			</items>
 		</SplitPane>

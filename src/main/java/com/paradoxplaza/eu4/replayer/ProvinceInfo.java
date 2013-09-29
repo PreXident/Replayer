@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.events.Event;
+import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,9 @@ public class ProvinceInfo {
     /** Culture of this province. */
     public String culture = null;
 
+    /** Events that happened to this province. */
+    List<Pair<Date,Event>> events = new ArrayList<>();
+
     /**
      * Only constructor.
      * @param color color of pixels associated to this province
@@ -44,6 +49,15 @@ public class ProvinceInfo {
         this.id = id;
         this.name = name;
         this.color = color;
+    }
+
+    /**
+     * Adds event related to this province to its {@link #events}.
+     * @param date date of event
+     * @param event province event
+     */
+    public void addEvent(final Date date, final Event event) {
+        events.add(new Pair<>(date, event));
     }
 
     /**
@@ -60,6 +74,44 @@ public class ProvinceInfo {
             y += p / mapWidth;
         }
         center.move(x / points.size(), y / points.size());
+    }
+
+    /**
+     * Returns html representation of {@link #events}.
+     * @return html representation of events
+     */
+    private String eventLog() {
+        final StringBuilder s = new StringBuilder();
+        for(Pair<Date, Event> pair : events) {
+            s.append(String.format("[%1$s]: %2$#s<br>", pair.getFirst(), pair.getSecond()));
+        }
+        return s.toString();
+    }
+
+    /**
+     * Returns html page with province info.
+     * @return html page with province info
+     */
+    public String getLog() {
+        return String.format(
+                "<html><body" +
+                    "<p>id=%1$s<br>name=%2$s<br>controller=%3$s<br>owner=%4$s<br>religion=%5$s<br>culture=%6$s</p>" +
+                    "<p>%7$s</p>" +
+                "<body></html>",
+                id, name, controller, owner, religion, culture, eventLog());
+    }
+
+    /**
+     * Removes event related to this province to its {@link #events}.
+     * @param event event to remove
+     */
+    public void remove(final Event event) {
+        for (int i = events.size() - 1; i > 0; --i) {
+            Pair<Date, Event> pair = events.get(i);
+            if (pair.getSecond().equals(event)) {
+                events.remove(i);
+            }
+        }
     }
 
     @Override

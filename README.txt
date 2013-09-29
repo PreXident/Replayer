@@ -46,6 +46,7 @@ In province history there's sometimes missing record of regaining province contr
 
 0.11
 You can now jump to any date within save game, but log content is replaced, not appended
+Added selectable provinces, info and events related to the selected province are displayed in a separated log
 
 0.10
 Added focus feature in settings to display only controller and owner changes related to a certain tag (set before loading a save!)

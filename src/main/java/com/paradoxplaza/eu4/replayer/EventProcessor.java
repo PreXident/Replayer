@@ -219,10 +219,9 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean process(final Date date, final Controller controller) {
-        if (controller.previousValue == null) {
-            final ProvinceInfo province = replayerController.provinces.get(controller.id);
-            controller.previousValue = province.controller;
-        }
+        final ProvinceInfo province = replayerController.provinces.get(controller.id);
+        province.addEvent(date, controller);
+        controller.previousValue = province.controller;
         return changeController(date, controller.id, controller.tag);
     }
 
@@ -233,10 +232,9 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean process(final Date date, final Culture culture) {
-        if (culture.previousValue == null) {
-            final ProvinceInfo province = replayerController.provinces.get(culture.id);
-            culture.previousValue = province.culture;
-        }
+        final ProvinceInfo province = replayerController.provinces.get(culture.id);
+        province.addEvent(date, culture);
+        culture.previousValue = province.culture;
         return changeCulture(date, culture.id, culture.value);
     }
 
@@ -247,11 +245,10 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean process(final Date date, final Owner owner) {
-        if (owner.previousValue == null) {
-            final ProvinceInfo province = replayerController.provinces.get(owner.id);
-            owner.previousValue = province.owner;
-            owner.previousController = province.controller;
-        }
+        final ProvinceInfo province = replayerController.provinces.get(owner.id);
+        province.addEvent(date, owner);
+        owner.previousValue = province.owner;
+        owner.previousController = province.controller;
         return changeOwner(date, owner.id, owner.value, owner.value);
     }
 
@@ -262,10 +259,9 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean process(final Date date, final Religion religion) {
-        if (religion.previousValue == null) {
-            final ProvinceInfo province = replayerController.provinces.get(religion.id);
-            religion.previousValue = province.religion;
-        }
+        final ProvinceInfo province = replayerController.provinces.get(religion.id);
+        province.addEvent(date, religion);
+        religion.previousValue = province.religion;
         return changeReligion(date, religion.id, religion.value);
     }
 
@@ -327,6 +323,8 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean unprocess(final Date date, final Controller controller) {
+        final ProvinceInfo province = replayerController.provinces.get(controller.id);
+        province.remove(controller);
         return changeController(date, controller.id, controller.previousValue);
     }
 
@@ -337,6 +335,8 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean unprocess(final Date date, final Culture culture) {
+        final ProvinceInfo province = replayerController.provinces.get(culture.id);
+        province.remove(culture);
         return changeCulture(date, culture.id, culture.previousValue);
     }
 
@@ -347,6 +347,8 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean unprocess(final Date date, final Owner owner) {
+        final ProvinceInfo province = replayerController.provinces.get(owner.id);
+        province.remove(owner);
         return changeOwner(date, owner.id, owner.previousValue, owner.previousController);
     }
 
@@ -357,6 +359,8 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean unprocess(final Date date, final Religion religion) {
+        final ProvinceInfo province = replayerController.provinces.get(religion.id);
+        province.remove(religion);
         return changeReligion(date, religion.id, religion.previousValue);
     }
 
