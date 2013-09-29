@@ -7,6 +7,7 @@ import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.GifSequenceWriter;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -35,7 +36,6 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
@@ -47,6 +47,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
@@ -180,7 +181,7 @@ public class ReplayerController implements Initializable {
     HBox logContainer;
 
     @FXML
-    Label dateLabel;
+    TextField dateLabel;
 
     @FXML
     VBox bottom;
@@ -199,6 +200,9 @@ public class ReplayerController implements Initializable {
 
     @FXML
     Label statusLabel;
+
+    @FXML
+    Button jumpButton;
 
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
@@ -438,65 +442,160 @@ public class ReplayerController implements Initializable {
             return;
         }
         pause();
-        final Task<Void> finalizer = new Task<Void>() {
-                @Override
-                protected Void call() throws Exception {
-                    updateTitle("Finishing gameplay...");
+        direction = null;
+        final Task<Void> finalizer = new Jumper() {
+            int tickCounter = 0;
+            int fileNum = 1;
+            int updateCounter = 0;
 
-                    final Date maxDate = saveGame.date;
-                    Date date = dateGenerator.dateProperty().get();
-                    int day = Date.calculateDistance(saveGame.startDate, date);
-                    final int distance = Date.calculateDistance(saveGame.startDate, saveGame.date);
-                    int tickCounter = 0;
-                    int fileNum = 1;
-                    int updateCounter = 0;
-                    while (date.compareTo(maxDate) < 0) {
-                        final List<Event> events = saveGame.timeline.get(date);
-                        bufferChangeOnlyProcessor.processEvents(date, events);
-                        updateProgress(++day, distance);
-                        date = date.next();
-                        if (++tickCounter >= daysPerTick) {
-                            updateGif(date);
-                            tickCounter = 0;
-                            if (gifBreak != 0 && ++updateCounter >= gifBreak) {
-                                endGif();
-                                initGif(saveFileName + "." + ++fileNum);
-                                updateGif(date);
-                                updateCounter = 0;
-                            }
-                        }
+            {
+                updateInitFormat = "Finishing gameplay...";
+                updateDoneFormat = "Fast forward done!";
+            }
+
+            @Override
+            protected Date getBound() {
+                return saveGame.date.next();
+            }
+
+            @Override
+            protected Date getTarget() {
+                return saveGame.date;
+            }
+
+            @Override
+            protected Date getIter() {
+                return dateGenerator.dateProperty().get().next();
+            }
+
+            @Override
+            protected Date iterNext(Date iter) {
+                if (++tickCounter >= daysPerTick) {
+                    updateGif(iter);
+                    tickCounter = 0;
+                    if (gifBreak != 0 && ++updateCounter >= gifBreak) {
+                        endGif();
+                        initGif(saveFileName + "." + ++fileNum);
+                        updateGif(iter);
+                        updateCounter = 0;
                     }
-                    return null;
                 }
-            };
-            finalizer.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-                @Override
-                public void handle(WorkerStateEvent t) {
-                    output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
-                    final WebEngine e = log.getEngine();
-                    e.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
-                        @Override
-                        public void changed(ObservableValue ov, State oldState, State newState) {
-                            if (newState == State.SUCCEEDED) {
-                                log.getEngine().executeScript(SCROLL_DOWN);
-                                logContent.setLength(LOG_HEADER.length());
-                                endGif();
-                                e.getLoadWorker().stateProperty().removeListener(this);
-                                dateGenerator.skipTo(saveGame.date);
-                                dateLabel.textProperty().bind(new DateStringBinding());
-                                progressBar.progressProperty().bind(dateGenerator.progressProperty());
-                                statusLabel.textProperty().unbind();
-                                statusLabel.setText("Fast forward done!");
-                                lock.release();
-                            }
-                        }
-                    });
-                    e.loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
-                }
-            });
-         statusLabel.textProperty().bind(finalizer.titleProperty());
-         progressBar.progressProperty().bind(finalizer.progressProperty());
-         new Thread(finalizer, "Game finalizer").start();
+                return iter.next();
+            }
+
+            @Override
+            protected void processEvents(final Date date, final List<Event> events) {
+                bufferChangeOnlyProcessor.processEvents(date, events);
+            }
+
+            @Override
+            protected int updateDay(final int day) {
+                return day + 1;
+            }
+        };
+        statusLabel.textProperty().bind(finalizer.titleProperty());
+        progressBar.progressProperty().bind(finalizer.progressProperty());
+        new Thread(finalizer, "Game finalizer").start();
+    }
+
+    @FXML
+    private void jump() {
+        if (!lock.tryAcquire()) {
+           return;
+        }
+        if (saveGame == null) {
+            lock.release();
+            return;
+        }
+        try {
+            final Date target = new Date(dateLabel.getText());
+            direction = null;
+            if (target.compareTo(dateGenerator.min) < 0 || target.compareTo(dateGenerator.max) > 0) {
+                statusLabel.setText("Date outside save game!");
+                lock.release();
+                return;
+            }
+            pause();
+            final Date date = dateGenerator.dateProperty().get();
+            if (date.equals(target)) {
+                lock.release();
+                return;
+            }
+            Task<Void> jumper;
+            if (date.compareTo(target) < 0) {
+                jumper = new Jumper() {
+
+                    @Override
+                    protected Date getBound() {
+                        return target.next();
+                    }
+
+                    @Override
+                    protected Date getTarget() {
+                        return target;
+                    }
+
+                    @Override
+                    protected Date getIter() {
+                        return date.next();
+                    }
+
+                    @Override
+                    protected Date iterNext(final Date iter) {
+                        return iter.next();
+                    }
+
+                    @Override
+                    protected void processEvents(final Date date, final List<Event> events) {
+                        bufferChangeOnlyProcessor.processEvents(date, events);
+                    }
+
+                    @Override
+                    protected int updateDay(final int day) {
+                        return day + 1;
+                    }
+                };
+            } else /* if (date.compareTo(target) > 0 */ {
+                jumper = new Jumper() {
+
+                    @Override
+                    protected Date getBound() {
+                        return target;
+                    }
+
+                    @Override
+                    protected Date getTarget() {
+                        return target;
+                    }
+
+                    @Override
+                    protected Date getIter() {
+                        return date;
+                    }
+
+                    @Override
+                    protected Date iterNext(final Date iter) {
+                        return iter.prev();
+                    }
+
+                    @Override
+                    protected void processEvents(final Date date, final List<Event> events) {
+                        bufferChangeOnlyProcessor.unprocessEvents(date, events);
+                    }
+
+                    @Override
+                    protected int updateDay(final int day) {
+                        return day - 1;
+                    }
+                };
+            }
+            statusLabel.textProperty().bind(jumper.titleProperty());
+            progressBar.progressProperty().bind(jumper.progressProperty());
+            new Thread(jumper, "Jumper").start();
+        } catch (Exception e) {
+            statusLabel.setText("Cannot parse date!");
+            lock.release();
+        }
     }
 
     @FXML
@@ -588,8 +687,8 @@ public class ReplayerController implements Initializable {
                     final Date maxDate = saveGame.startDate;
                     Date date = new Date(settings.getProperty("init.start", "1300.1.1"));
                     int day = 0;
-                    final int distance = Date.calculateDistance(date, saveGame.startDate);
-                    while (date.compareTo(maxDate) < 0) {
+                    final int distance = Date.calculateDistance(date, saveGame.startDate) + 1;
+                    while (date.compareTo(maxDate) <= 0) {
                         final List<Event> events = saveGame.timeline.get(date);
                         bufferChangeOnlyProcessor.processEvents(date, events);
                         updateProgress(++day, distance);
@@ -613,7 +712,7 @@ public class ReplayerController implements Initializable {
                     logContent.setLength(LOG_HEADER.length());
                     progressBar.progressProperty().bind(dateGenerator.progressProperty());
                     dateGenerator.dateProperty().addListener(dateListener);
-                    dateLabel.textProperty().bind(new DateStringBinding());
+                    dateLabel.setText(dateGenerator.dateProperty().get().toString());
                     imageView.setImage(output);
                     new JavascriptBridge().prov(settings.getProperty("center.id", "1"));
                     statusLabel.textProperty().unbind();
@@ -886,6 +985,16 @@ public class ReplayerController implements Initializable {
                 if (!scrollPane.getTooltip().getText().equals(provinceHint)) {
                     scrollPane.setTooltip(new Tooltip(provinceHint));
                 }
+            }
+        });
+
+        dateLabel.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(final ObservableValue<? extends String> ov, final String oldVal, final String newVal) {
+                if (dateGenerator == null) {
+                    return;
+                }
+                jumpButton.setVisible(!newVal.equals(dateGenerator.dateProperty().get().toString()));
             }
         });
 
@@ -1344,6 +1453,8 @@ public class ReplayerController implements Initializable {
 
         @Override
         public void changed(final ObservableValue<? extends Date> ov, final Date oldVal, final Date newVal) {
+            dateLabel.setText(newVal.toString());
+
             final List<Event> events = saveGame.timeline.get(newVal);
             if (direction == null) {
                 return;
@@ -1360,19 +1471,6 @@ public class ReplayerController implements Initializable {
                 default:
                     assert false : "invalid replay direction";
             }
-        }
-    }
-
-    /**
-     * Class for binding between {@link #dateLabel} and {@link #dateGenerator}.
-     */
-    class DateStringBinding extends StringBinding {
-        {
-            bind(dateGenerator.dateProperty());
-        }
-        @Override
-        protected String computeValue() {
-            return dateGenerator.dateProperty().get().toString();
         }
     }
 
@@ -1398,6 +1496,72 @@ public class ReplayerController implements Initializable {
             scrollPane.setVvalue(mapCoordToScrollProcent(
                     center.y, map.getHeight(), scrollPane.getHeight(), imageBounds.getHeight()));
             return false;
+        }
+    }
+
+    abstract class Jumper extends Task<Void> {
+
+        protected String updateInitFormat = "Jumping to %s";
+
+        protected String updateDoneFormat = "Jumped to %s";
+
+        {
+            this.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+                @Override
+                public void handle(WorkerStateEvent t) {
+                    output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+                    final WebEngine e = log.getEngine();
+                    e.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+                        @Override
+                        public void changed(ObservableValue ov, State oldState, State newState) {
+                            if (newState == State.SUCCEEDED) {
+                                log.getEngine().executeScript(SCROLL_DOWN);
+                                logContent.setLength(LOG_HEADER.length());
+                                endGif();
+                                e.getLoadWorker().stateProperty().removeListener(this);
+                                dateGenerator.skipTo(getTarget());
+                                statusLabel.textProperty().unbind();
+                                dateLabel.textProperty().set(dateGenerator.dateProperty().get().toString());
+                                jumpButton.setVisible(false);
+                                lock.release();
+                            }
+                        }
+                    });
+                    e.loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
+                }
+            });
+        }
+
+        abstract protected Date getBound();
+
+        abstract protected Date getTarget();
+
+        abstract protected Date getIter();
+
+        abstract protected Date iterNext(final Date iter);
+
+        abstract protected void processEvents(final Date date, final List<Event> events);
+
+        abstract protected int updateDay(final int day);
+
+        @Override
+        protected final Void call() throws Exception {
+            Date iter = getIter();
+            final Date target = getTarget();
+            final Date bound = getBound();
+            updateTitle(String.format(updateInitFormat, target));
+
+            int day = Date.calculateDistance(saveGame.startDate, iter);
+            final int distance = Date.calculateDistance(saveGame.startDate, saveGame.date);
+            while (!iter.equals(bound)) {
+                final List<Event> events = saveGame.timeline.get(iter);
+                processEvents(iter, events);
+                day = updateDay(day);
+                updateProgress(day, distance);
+                iter = iterNext(iter);
+            }
+            updateTitle(String.format(updateDoneFormat, target));
+            return null;
         }
     }
 }

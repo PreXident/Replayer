@@ -305,6 +305,8 @@ public class EventProcessor {
         }
         if (logChange) {
             updateLog();
+        } else {
+            System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
         }
     }
 
@@ -399,6 +401,8 @@ public class EventProcessor {
         }
         if (logChange) {
             updateLog();
+        } else {
+            System.out.println(String.format("![%1$s]: %2$s", date, "nothing happened"));
         }
     }
 

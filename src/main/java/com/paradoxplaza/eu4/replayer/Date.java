@@ -30,7 +30,12 @@ public class Date implements Comparable<Date> {
      * @param up upper date
      * @return number of days between lower and upper date
      */
-    static int calculateDistance(final Date low, final Date up) {
+    static int calculateDistance(Date low, Date up) {
+        if (low.compareTo(up) > 0) {
+            final Date swap = low;
+            low = up;
+            up = swap;
+        }
         final int years = up.year - low.year;
         int lowDays = low.day;
         for (int i = 0; i < low.month - 1; ++i) {

@@ -13,7 +13,7 @@ Tested on only one machine and one complete vanilla save started in 1444.11.11, 
 Submit any bugs, problems and feature requests on Paradox forums or PM me (nick PreXident), maybe we can figure it out.
 http://forum.paradoxplaza.com/forum/showthread.php?722493-UTILITY-Java-Save-Game-Replayer
 
-If you want to replay ironman save, try this approach: backup, load, load other, load, save locally, restore your backup
+If you want to replay ironman save, try this approach: backup, load, load other, load, save locally, restore your backup (tested pre 1.2)
 
 ############
 #Used files#
@@ -36,7 +36,6 @@ In province history there's sometimes missing record of regaining province contr
 #Planned features#
 ##################
 
-- jump to any given date, not only end date
 - selectable provinces
 - monarchs, wars, ...
 - nation focus to display PUs
@@ -44,6 +43,9 @@ In province history there's sometimes missing record of regaining province contr
 ############
 #Change log#
 ############
+
+0.11
+You can now jump to any date within save game, but log content is replaced, not appended
 
 0.10
 Added focus feature in settings to display only controller and owner changes related to a certain tag (set before loading a save!)

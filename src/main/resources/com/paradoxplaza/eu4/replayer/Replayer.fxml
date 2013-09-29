@@ -224,7 +224,8 @@
 				<Button text="|" onAction="#pause"/>
 				<Button text=">" onAction="#play"/>
 				<Button text=">|" onAction="#finish"/>
-				<Label fx:id="dateLabel"/>
+				<TextField fx:id="dateLabel" prefWidth="75" />
+				<Button fx:id="jumpButton" text="->" onAction="#jump" visible="false" />
 			</HBox>
 		</VBox>
 	</top>
