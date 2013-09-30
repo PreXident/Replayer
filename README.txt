@@ -36,7 +36,6 @@ In province history there's sometimes missing record of regaining province contr
 #Planned features#
 ##################
 
-- selectable provinces
 - monarchs, wars, ...
 - nation focus to display PUs
 
