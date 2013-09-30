@@ -165,7 +165,7 @@ public class EventProcessor {
      * @param date date of change
      * @param newTag change tag to this
      * @param oldTag change tag from this
-     * @return
+     * @return true if event should be logged, false otherwise
      */
     public boolean changeTag(final Date date,
             final String newTag, final String oldTag) {
