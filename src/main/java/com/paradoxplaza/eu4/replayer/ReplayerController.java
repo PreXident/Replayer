@@ -342,6 +342,9 @@ public class ReplayerController implements Initializable {
     /** ID of selected province. */
     String selectedProvince;
 
+    /** Content of selected province log. */
+    String selectedProvinceLogContent;
+
     /**
      * Flag indicating whether {@link #focusTag} is be used.
      * If true, focusTag is not empty, but contains country tag in focus.
@@ -1007,7 +1010,11 @@ public class ReplayerController implements Initializable {
                 selectedProvince = colors.get(reader.getArgb(x, y));
                 final ProvinceInfo province = provinces.get(selectedProvince);
                 if (province != null) {
-                    provinceLog.getEngine().loadContent(province.getLog());
+                    final String provinceLogContent = province.getLog();
+                    if (!provinceLogContent.equals(selectedProvinceLogContent)) {
+                        provinceLog.getEngine().loadContent(provinceLogContent);
+                        selectedProvinceLogContent = provinceLogContent;
+                    }
                 }
             }
         });
@@ -1468,6 +1475,15 @@ public class ReplayerController implements Initializable {
         });
         e.loadContent(logContent.toString());
         logContent.setLength(LOG_HEADER.length());
+
+        final ProvinceInfo province = provinces.get(selectedProvince);
+        if (province != null) {
+            final String provinceLogContent = province.getLog();
+            if (!provinceLogContent.equals(selectedProvinceLogContent)) {
+                provinceLog.getEngine().loadContent(provinceLogContent);
+                selectedProvinceLogContent = provinceLogContent;
+            }
+        }
     }
 
     /**
@@ -1478,10 +1494,6 @@ public class ReplayerController implements Initializable {
         @Override
         public void changed(final ObservableValue<? extends Date> ov, final Date oldVal, final Date newVal) {
             dateLabel.setText(newVal.toString());
-            final ProvinceInfo province = provinces.get(selectedProvince);
-            if (province != null) {
-                provinceLog.getEngine().loadContent(province.getLog());
-            }
 
             if (direction == null) {
                 return;
