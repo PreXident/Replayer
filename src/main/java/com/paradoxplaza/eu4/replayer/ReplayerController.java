@@ -7,7 +7,6 @@ import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.GifSequenceWriter;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
-import com.paradoxplaza.eu4.replayer.utils.Ref;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -115,6 +114,12 @@ public class ReplayerController implements Initializable {
     /** JavaScript call to scroll to the bottom of the page. */
     static final String SCROLL_DOWN = "window.scrollTo(0,document.body.scrollHeight)";
 
+    /** Path appended to user's home directory to get default save folder on Windows. */
+    static final String WIN_SAVE_DIR = "/Documents/Paradox Interactive/Europa Universalis IV/save games";
+    
+    /** Path appended to user's home directory to get default save folder on Linux. */
+    static final String LINUX_SAVE_DIR = "/.paradoxinteractive/Europa Universalis IV/save games";
+    
     /**
      * Translates {@link #map} coordinate to {@link #scrollPane} procentual HValue/VValue.
      * @param mapCoord map coordinate
@@ -424,7 +429,7 @@ public class ReplayerController implements Initializable {
         if (eu4Directory != null && eu4Directory.exists() && eu4Directory.isDirectory()) {
             directoryChooser.setInitialDirectory(eu4Directory);
         }
-        File dir = directoryChooser.showDialog(getWindow());
+        final File dir = directoryChooser.showDialog(getWindow());
         if (dir != null) {
             eu4Directory = dir;
             settings.setProperty("eu4.dir", eu4Directory.getPath());
@@ -1110,9 +1115,19 @@ public class ReplayerController implements Initializable {
         focusing = !focusTag.equals("");
         focusEdit.setText(focusTag);
 
-        saveDirectory = new File(settings.getProperty("save.dir", "/"));
+        saveDirectory = new File(settings.getProperty("save.dir", ""));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
-            saveDirectory = null;
+            final String osname = System.getProperty("os.name", "");
+            String defaultSaveDir = System.getProperty("user.home");
+            if (osname.startsWith("Windows")) {
+                defaultSaveDir += WIN_SAVE_DIR;
+            } else if (osname.startsWith("Linux")) {
+                defaultSaveDir += LINUX_SAVE_DIR;
+            }
+            saveDirectory = new File(defaultSaveDir);
+            if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
+                saveDirectory = new File(System.getProperty("user.home"), "/");
+            }
         }
 
         eu4Directory = new File(settings.getProperty("eu4.dir"));
