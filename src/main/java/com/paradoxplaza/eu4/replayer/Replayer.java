@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,10 +9,12 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Properties;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 /**
@@ -80,6 +83,20 @@ public class Replayer extends Application {
             }
         }
 
+        //ask for eu4 directory if property is not valid
+        final String eu4dir = settings.getProperty("eu4.dir");
+        if (eu4dir == null || !new File(eu4dir).exists()) {
+            final DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Select EU4 directory");
+            final File dir = directoryChooser.showDialog(null);
+            if (dir == null) {
+                System.out.println("No dir specified! Exiting...");
+                Platform.exit();
+            } else {
+                settings.put("eu4.dir", dir.getPath());
+            }
+        }
+        
         //create javafx controls
         final FXMLLoader loader = new FXMLLoader(getClass().getResource("Replayer.fxml"));
         final Parent root = (Parent) loader.load();
