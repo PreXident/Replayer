@@ -43,6 +43,12 @@ In province history there's sometimes missing record of regaining province contr
 #Change log#
 ############
 
+0.12
+If eu4.dir is invalid when program loads, user is prompted to choose a valid one.
+When save directory from properties is invalid, program tries to locate it at default place (OS dependant). If even that fails, user's home dir is selected.
+Added fast rewind (<<) that as well as fast forward (>>, formerly >|) can be now stopped by pause (||).
+Extended days.per.tick into delta.per.tick and period.per.tick - so users can easily specify eg. 2 Months per tick.
+
 0.11
 You can now jump to any date within save game, but log content is replaced, not appended
 Added selectable provinces, info and events related to the selected province are displayed in a separated log
