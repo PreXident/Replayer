@@ -96,7 +96,7 @@ public class Replayer extends Application {
                 settings.put("eu4.dir", dir.getPath());
             }
         }
-        
+
         //create javafx controls
         final FXMLLoader loader = new FXMLLoader(getClass().getResource("Replayer.fxml"));
         final Parent root = (Parent) loader.load();

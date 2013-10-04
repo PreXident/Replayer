@@ -5,11 +5,23 @@ package com.paradoxplaza.eu4.replayer;
  */
 public class Date implements Comparable<Date> {
 
+    /** Enum representing different time periods. */
+    public enum Period { DAY, MONTH, YEAR }
+
     /** Number of days in each month ignoring leap years. */
     static byte[] monthsDays = new byte[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
     /** Number of days in a year. */
     static short yearDays = 365;
+
+    /** Period representing day. */
+    static public final Period DAY = Period.DAY;
+
+    /** Period representing month. */
+    static public final Period MONTH = Period.MONTH;
+
+    /** Period representing year. */
+    static public final Period YEAR = Period.YEAR;
 
     /**
      * Throws InvalidArgumentException if given date is invalid.
@@ -166,6 +178,104 @@ public class Date implements Comparable<Date> {
             }
         }
         return new Date(y, m, d);
+    }
+
+    /**
+     * Returns Date with distance delta units.
+     * @param period delta units
+     * @param delta how many units to skip
+     * @return Date with distance delta units
+     */
+    public Date skip(final Period period, final int delta) {
+        if (delta > 0) {
+            return skipForward(period, delta);
+        } else {
+            return skipBackward(period, -delta);
+        }
+    }
+
+    /**
+     * Returns Date in the past.
+     * @param period delta units
+     * @param delta how many units to skip
+     * @return Date in the past
+     */
+    private Date skipBackward(final Period period, final int delta) {
+        int d = day;
+        int m = month;
+        int y = year;
+
+        switch (period) {
+            case DAY:
+                d -= delta;
+                while (d < 1) {
+                    d += monthsDays[m-1];
+                    --m;
+                    if (m < 1) {
+                        m = 12;
+                        --y;
+                    }
+                }
+                break;
+            case MONTH:
+                m -= delta + 1;
+                y += m / 12;
+                m = m % 12;
+                ++m;
+                if (m < 1) {
+                    m = 12 + m;
+                    --y;
+                }
+                if (d > monthsDays[m-1]) {
+                    d = monthsDays[m-1];
+                }
+                break;
+            case YEAR:
+                y -= delta;
+                break;
+        }
+
+        return new Date((short) y, (byte) m, (byte) d);
+    }
+
+    /**
+     * Returns future Date.
+     * @param period delta units
+     * @param delta how many units to skip
+     * @return future Date
+     */
+    private Date skipForward(final Period period, final int delta) {
+        int d = day;
+        int m = month;
+        int y = year;
+
+        switch (period) {
+            case DAY:
+                d += delta;
+                while (d > monthsDays[m-1]) {
+                    d -= monthsDays[m-1];
+                    ++m;
+                    if (m > 12) {
+                        m = 1;
+                        ++y;
+                    }
+                }
+                break;
+            case MONTH:
+                m += delta - 1;
+                y += m / 12;
+                m = m % 12;
+                ++m;
+                if (d > monthsDays[m-1]) {
+                    d = monthsDays[m-1];
+                }
+                break;
+            case YEAR:
+                y += delta;
+                break;
+        }
+
+        return new Date((short) y, (byte) m, (byte) d);
     }
 
     /**

@@ -116,10 +116,10 @@ public class ReplayerController implements Initializable {
 
     /** Path appended to user's home directory to get default save folder on Windows. */
     static final String WIN_SAVE_DIR = "/Documents/Paradox Interactive/Europa Universalis IV/save games";
-    
+
     /** Path appended to user's home directory to get default save folder on Linux. */
     static final String LINUX_SAVE_DIR = "/.paradoxinteractive/Europa Universalis IV/save games";
-    
+
     /**
      * Translates {@link #map} coordinate to {@link #scrollPane} procentual HValue/VValue.
      * @param mapCoord map coordinate
@@ -215,6 +215,9 @@ public class ReplayerController implements Initializable {
     @FXML
     WebView provinceLog;
 
+    @FXML
+    ComboBox<String> periodCombo;
+
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
 
@@ -302,8 +305,11 @@ public class ReplayerController implements Initializable {
     /** Flag indication whether borders should be drawn. */
     boolean drawBorders;
 
-    /** Number of days processed in one tick. */
-    int daysPerTick;
+    /** Number of periods processed in one tick. */
+    int deltaPerTick;
+
+    /** Period per tick. */
+    Date.Period period;
 
     /** Timer for replaying. */
     Timeline timeline;
@@ -358,7 +364,7 @@ public class ReplayerController implements Initializable {
 
     /** Jumper that fast forwards/rewinds the save. */
     Jumper finalizer;
-    
+
     /** Standard event processor. */
     final EventProcessor eventProcessor = new EventProcessor(this);
 
@@ -405,9 +411,11 @@ public class ReplayerController implements Initializable {
                   new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(final ActionEvent e) {
-                        for (int i = 0; i < daysPerTick; ++i) {
+                        Date iter = dateGenerator.dateProperty().get();
+                        final Date target = iter.skip(period, -deltaPerTick);
+                        while (!target.equals(iter)) {
                             if (dateGenerator.hasPrev()) {
-                                dateGenerator.prev();
+                                iter = dateGenerator.prev();
                             } else {
                                 timeline.stop();
                                 timeline = null;
@@ -464,13 +472,14 @@ public class ReplayerController implements Initializable {
         pause();
         direction = null;
         finalizer = new Jumper() {
-            int tickCounter = 0;
             int fileNum = 1;
             int updateCounter = 0;
+            Date gifTarget;
 
             {
                 updateInitFormat = "Finishing gameplay...";
                 updateDoneFormat = "Fast forward done!";
+                gifTarget = dateGenerator.dateProperty().get().skip(period, deltaPerTick);
             }
 
             @Override
@@ -479,8 +488,8 @@ public class ReplayerController implements Initializable {
             }
 
             @Override
-            protected Date getTarget() {
-                return saveGame.date;
+            protected Date getCurrentDate() {
+                return currentDate;
             }
 
             @Override
@@ -489,10 +498,15 @@ public class ReplayerController implements Initializable {
             }
 
             @Override
+            protected Date getTarget() {
+                return saveGame.date;
+            }
+
+            @Override
             protected Date iterNext(Date iter) {
-                if (++tickCounter >= daysPerTick) {
+                if (iter.equals(gifTarget)) {
                     updateGif(iter);
-                    tickCounter = 0;
+                    gifTarget = iter.skip(period, deltaPerTick);
                     if (gifBreak != 0 && ++updateCounter >= gifBreak) {
                         endGif();
                         initGif(saveFileName + "." + ++fileNum);
@@ -552,13 +566,18 @@ public class ReplayerController implements Initializable {
                     }
 
                     @Override
-                    protected Date getTarget() {
-                        return target;
+                    protected Date getCurrentDate() {
+                        return currentDate;
                     }
 
                     @Override
                     protected Date getIter() {
                         return date.next();
+                    }
+
+                    @Override
+                    protected Date getTarget() {
+                        return target;
                     }
 
                     @Override
@@ -585,13 +604,18 @@ public class ReplayerController implements Initializable {
                     }
 
                     @Override
-                    protected Date getTarget() {
-                        return target;
+                    protected Date getCurrentDate() {
+                        return currentDate.prev();
                     }
 
                     @Override
                     protected Date getIter() {
                         return date;
+                    }
+
+                    @Override
+                    protected Date getTarget() {
+                        return target;
                     }
 
                     @Override
@@ -819,9 +843,11 @@ public class ReplayerController implements Initializable {
                   new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(final ActionEvent e) {
-                        for (int i = 0; i < daysPerTick; ++i) {
+                        Date iter = dateGenerator.dateProperty().get();
+                        final Date target = iter.skip(period, deltaPerTick);
+                        while (!target.equals(iter)) {
                             if (dateGenerator.hasNext()) {
-                                dateGenerator.next();
+                                iter = dateGenerator.next();
                             } else {
                                 timeline.stop();
                                 timeline = null;
@@ -888,7 +914,7 @@ public class ReplayerController implements Initializable {
         dateLabel.setText(saveGame.startDate.toString());
         finalizer = jump();
     }
-    
+
     @FXML
     private void zoomIn() {
         Bounds bounds = imageView.getBoundsInParent();
@@ -999,11 +1025,41 @@ public class ReplayerController implements Initializable {
             @Override
             public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
                 try {
-                    daysPerTick = Integer.parseInt(newVal);
-                    settings.setProperty("days.per.tick", newVal);
+                    final int parsed = Integer.parseInt(newVal);
+                    if (parsed < 0) {
+                        daysCombo.setValue(oldVal);
+                        return;
+                    }
+                    deltaPerTick = parsed;
+                    settings.setProperty("delta.per.tick", newVal);
                 } catch (NumberFormatException e) {
                     daysCombo.setValue(oldVal);
                 }
+            }
+        });
+
+        periodCombo.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        periodCombo.valueProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                if (newVal == null) {
+                    return;
+                }
+                switch (newVal) {
+                    case "Days":
+                        period = Date.DAY;
+                        break;
+                    case "Months":
+                        period = Date.MONTH;
+                        break;
+                    case "Years":
+                        period = Date.YEAR;
+                        break;
+                    default:
+                        periodCombo.setValue(oldVal);
+                        return;
+                }
+                settings.setProperty("period.per.tick", newVal);
             }
         });
 
@@ -1115,8 +1171,9 @@ public class ReplayerController implements Initializable {
 
         zoomStep = Integer.parseInt(settings.getProperty("zoom.step", "100"));
 
-        daysCombo.getItems().addAll(settings.getProperty("list.days.per.tick", "1;30;365").split(";"));
-        daysCombo.getSelectionModel().select(settings.getProperty("days.per.tick", "1"));
+        daysCombo.getItems().addAll(settings.getProperty("list.delta.per.tick", "1;30;365").split(";"));
+        daysCombo.getSelectionModel().select(settings.getProperty("delta.per.tick", "1"));
+        periodCombo.getSelectionModel().select(settings.getProperty("period.per.tick", "Days"));
 
         gifStep = Integer.parseInt(settings.getProperty("gif.step", "100"));
         gifBreak = Integer.parseInt(settings.getProperty("gif.new.file", "0"));
@@ -1545,7 +1602,7 @@ public class ReplayerController implements Initializable {
                     eventProcessor.processEvents(newVal, events);
                     break;
                 case BACKWARD:
-                    eventProcessor.unprocessEvents(newVal, events);
+                    eventProcessor.unprocessEvents(newVal.next(), events);
                     break;
                 default:
                     assert false : "invalid replay direction";
@@ -1591,7 +1648,7 @@ public class ReplayerController implements Initializable {
 
         /** Last date that was processed. */
         protected Date currentDate;
-        
+
         /**
          * Only constructor.
          */
@@ -1610,7 +1667,7 @@ public class ReplayerController implements Initializable {
                                     logContent.setLength(LOG_HEADER.length());
                                     endGif();
                                     e.getLoadWorker().stateProperty().removeListener(this);
-                                    dateGenerator.skipTo(currentDate);
+                                    dateGenerator.skipTo(getCurrentDate());
                                     statusLabel.textProperty().unbind();
                                     dateLabel.textProperty().set(dateGenerator.dateProperty().get().toString());
                                     jumpButton.setVisible(false);
@@ -1629,9 +1686,11 @@ public class ReplayerController implements Initializable {
 
         abstract protected Date getBound();
 
-        abstract protected Date getTarget();
+        abstract protected Date getCurrentDate();
 
         abstract protected Date getIter();
+
+        abstract protected Date getTarget();
 
         abstract protected Date iterNext(final Date iter);
 

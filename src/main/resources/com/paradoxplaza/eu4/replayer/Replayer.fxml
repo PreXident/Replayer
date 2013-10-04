@@ -9,6 +9,7 @@
 <?import javafx.scene.input.*?>
 <?import java.net.URL ?>
 <?import javafx.scene.web.WebView?>
+<?import javafx.collections.FXCollections?>
 
 <BorderPane fx:id="root" prefHeight="600" prefWidth="800" xmlns:fx="http://javafx.com/fxml"
 			fx:controller="com.paradoxplaza.eu4.replayer.ReplayerController" styleClass="root" >
@@ -75,8 +76,20 @@
 						<CustomMenuItem hideOnClick="false" text="Days Per Tick">
 							<content>
 								<HBox alignment="CENTER_LEFT" >
-									<Label text="Days Per Tick"/>
+									<Label text="Per Tick"/>
 									<ComboBox fx:id="daysCombo" editable="true"/>
+									<ComboBox fx:id="periodCombo" editable="true">
+										<items>
+											<FXCollections fx:factory="observableArrayList">
+												<String fx:value="Days" />
+												<String fx:value="Months" />
+												<String fx:value="Years" />
+											</FXCollections>
+										</items>
+										<value>
+											<String fx:value="Days" />
+										</value>
+									</ComboBox>
 								</HBox>
 							</content>
 						</CustomMenuItem>
