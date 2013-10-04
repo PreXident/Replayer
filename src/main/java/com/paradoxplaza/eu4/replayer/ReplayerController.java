@@ -1114,6 +1114,17 @@ public class ReplayerController implements Initializable {
             }
         });
 
+        final WebEngine provinceEngine = provinceLog.getEngine();
+        provinceEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+            @Override
+            public void changed(ObservableValue<? extends State> ov, State oldState, State newState) {
+                if (newState == State.SUCCEEDED) {
+                    JSObject win = (JSObject) provinceEngine.executeScript("window");
+                    win.setMember("java", new JavascriptBridge());
+                }
+            }
+        });
+
         log.setContextMenuEnabled(false); //throws exception when in fxml
         final ContextMenu cm = new ContextMenu();
         final MenuItem clearLog = new MenuItem("Clear log");
