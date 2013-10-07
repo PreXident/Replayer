@@ -79,6 +79,12 @@ public class Pair<First, Second> implements Cloneable, Serializable {
             return false;
         }
         Pair p = (Pair) obj;
+        if (first == null) {
+            return p.first == null;
+        }
+        if (second == null) {
+            return p.second == null;
+        }
         return first.equals(p.first) && second.equals(p.second);
     }
 
