@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.utils.UnclosableStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -61,12 +62,15 @@ public class Replayer extends Application {
             //TODO
             System.out.printf("USAGE: java -jar replayer.jar [property_file]\n");
             System.out.printf("If property_file argument is not provided, default property file \"%s\" will be used\n", DEFAULT_PROPERTIES);
+            System.out.printf("If property_file argument is '-', standard input will be read\n");
             System.exit(0);
         }
         if (args.size() == 1) {
             System.out.printf("Loading property file\n");
             propertyFile = args.get(0);
-            try (final InputStream is = new FileInputStream(propertyFile)) {
+            try (final InputStream is =
+                    propertyFile.equals("-") ? new UnclosableStream(System.in)
+                        : new FileInputStream(propertyFile)) {
             	 settings.load(is);
             } catch(Exception e) {
                 System.err.printf("Error with specified property file\n");
@@ -146,11 +150,13 @@ public class Replayer extends Application {
     public void stop() {
         System.out.println("Closing...\n");
         controller.stop();
-        try (final OutputStream os = new FileOutputStream(propertyFile)) {
-            settings.store(os, null);
-        } catch(IOException e) {
-            System.err.printf("Error while storing settings to \"%1$s\"", propertyFile);
-            e.printStackTrace();
+        if (!propertyFile.equals("-")) {
+            try (final OutputStream os = new FileOutputStream(propertyFile)) {
+                settings.store(os, null);
+            } catch(IOException e) {
+                System.err.printf("Error while storing settings to \"%1$s\"", propertyFile);
+                e.printStackTrace();
+            }
         }
     }
 }
