@@ -533,13 +533,13 @@ public class ReplayerController implements Initializable {
     }
 
     @FXML
-    private Jumper jump() {
+    private void jump() {
         if (!lock.tryAcquire()) {
-           return null;
+           return;
         }
         if (saveGame == null) {
             lock.release();
-            return null;
+            return;
         }
         pause();
         try {
@@ -548,17 +548,16 @@ public class ReplayerController implements Initializable {
             if (target.compareTo(dateGenerator.min) < 0 || target.compareTo(dateGenerator.max) > 0) {
                 statusLabel.setText("Date outside save game!");
                 lock.release();
-                return null;
+                return;
             }
             pause();
             final Date date = dateGenerator.dateProperty().get();
             if (date.equals(target)) {
                 lock.release();
-                return null;
+                return;
             }
-            Jumper jumper;
             if (date.compareTo(target) < 0) {
-                jumper = new Jumper() {
+                finalizer = new Jumper() {
 
                     @Override
                     protected Date getBound() {
@@ -596,7 +595,7 @@ public class ReplayerController implements Initializable {
                     }
                 };
             } else /* if (date.compareTo(target) > 0 */ {
-                jumper = new Jumper() {
+                finalizer = new Jumper() {
 
                     @Override
                     protected Date getBound() {
@@ -634,14 +633,12 @@ public class ReplayerController implements Initializable {
                     }
                 };
             }
-            statusLabel.textProperty().bind(jumper.titleProperty());
-            progressBar.progressProperty().bind(jumper.progressProperty());
-            new Thread(jumper, "Jumper").start();
-            return jumper;
+            statusLabel.textProperty().bind(finalizer.titleProperty());
+            progressBar.progressProperty().bind(finalizer.progressProperty());
+            new Thread(finalizer, "Jumper").start();
         } catch (Exception e) {
             statusLabel.setText("Cannot parse date!");
             lock.release();
-            return null;
         }
     }
 
@@ -912,7 +909,7 @@ public class ReplayerController implements Initializable {
         }
         lock.release();
         dateLabel.setText(saveGame.startDate.toString());
-        finalizer = jump();
+        jump();
     }
 
     @FXML
