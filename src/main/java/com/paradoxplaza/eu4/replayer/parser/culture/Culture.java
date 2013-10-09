@@ -53,7 +53,7 @@ class Culture extends CompoundState<Pair<Map<String, CountryInfo>, Map<String, I
 
     @Override
     protected void endCompound(final Pair<Map<String, CountryInfo>, Map<String, Integer>> context) {
-        if (primary.val == null) {
+        if (primary.val == null || context.getFirst().get(primary.val) == null) {
             context.getSecond().put(name, name.hashCode() | 0xFF000000);
         } else {
             context.getSecond().put(name, context.getFirst().get(primary.val).color);

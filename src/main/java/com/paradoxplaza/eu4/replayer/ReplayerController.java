@@ -1414,7 +1414,12 @@ public class ReplayerController implements Initializable {
                                 color = borderColor;
                                 borders.add(y * width + x);
                             } else {
-                                provinces.get(colors.get(color)).points.add(y * width + x);
+                                final String id = colors.get(color);
+                                if (id != null) {
+                                    provinces.get(id).points.add(y * width + x);
+                                } else {
+                                    System.err.printf("[%s,%s] Unknown color: 0x%x\n", x, y, color);
+                                }
                             }
                             politicalBuffer[y * width + x] = color;
                             religiousBuffer[y * width + x] = color;
