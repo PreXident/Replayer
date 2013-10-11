@@ -43,6 +43,11 @@ In province history there's sometimes missing record of regaining province contr
 #Change log#
 ############
 
+0.13
+Jumping by '->' can now be cancelled by '||'
+Added experimental mod support - property mod.basedir should point to the game's directory in your documents (e.g. C\:\\Users\\System_Lord\\Documents\\Paradox Interactive\\Europa Universalis IV
+) and mod.list should contain semicolon separated list of mods to load (e.g. mod/iu.mod;mod/test.mod). The order in the list is important!
+
 0.12
 If eu4.dir is invalid when program loads, user is prompted to choose a valid one.
 When save directory from properties is invalid, program tries to locate it at default place (OS dependant). If even that fails, user's home dir is selected.
@@ -110,3 +115,4 @@ Lateralus (Hottemax at Bitbucket)
 ################
 Elliot Kroo's GifSequenceWriter under Creative Commons Attribution 3.0 Unported License.
 PositionInputStream by erickson.
+Apache Commons Compress under Apache License
