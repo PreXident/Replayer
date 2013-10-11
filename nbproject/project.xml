@@ -109,7 +109,7 @@
             </compilation-unit>
             <compilation-unit>
                 <package-root>src/main/java</package-root>
-                <classpath mode="compile">${jar.javafx}</classpath>
+                <classpath mode="compile">lib/commons-compress-1.5.jar;${jar.javafx}</classpath>
                 <source-level>1.7</source-level>
             </compilation-unit>
             <compilation-unit>

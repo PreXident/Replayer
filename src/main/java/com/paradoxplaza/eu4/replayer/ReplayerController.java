@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -114,11 +115,29 @@ public class ReplayerController implements Initializable {
     /** JavaScript call to scroll to the bottom of the page. */
     static final String SCROLL_DOWN = "window.scrollTo(0,document.body.scrollHeight)";
 
-    /** Path appended to user's home directory to get default save folder on Windows. */
-    static final String WIN_SAVE_DIR = "/Documents/Paradox Interactive/Europa Universalis IV/save games";
+    /** Path appended to user's home directory to get default "game" folder on Windows. */
+    static final String WIN_DIR = "/Documents/Paradox Interactive/Europa Universalis IV";
 
-    /** Path appended to user's home directory to get default save folder on Linux. */
-    static final String LINUX_SAVE_DIR = "/.paradoxinteractive/Europa Universalis IV/save games";
+    /** Path appended to user's home directory to get default game folder on Linux. */
+    static final String LINUX_DIR = "/.paradoxinteractive/Europa Universalis IV";
+
+    /** Default base direcotry containing settings, mods, saves, etc. */
+    static final String DEFAULT_BASE_DIR =
+            System.getProperty("user.home", "") +
+            (
+                //Windows
+                System.getProperty("os.name", "").startsWith("Windows") ? WIN_DIR :
+                //Linux
+                System.getProperty("os.name", "").startsWith("Linux") ? LINUX_DIR :
+                //Mac?
+                ""
+            );
+
+    /** Default save game directory. */
+    static final String DEFAULT_SAVE_DIR = DEFAULT_BASE_DIR + "/save games";
+
+    /** Default mod directory. */
+    static final String DEFAULT_MOD_DIR = DEFAULT_BASE_DIR + "/mod";
 
     /**
      * Translates {@link #map} coordinate to {@link #scrollPane} procentual HValue/VValue.
@@ -364,6 +383,9 @@ public class ReplayerController implements Initializable {
 
     /** Jumper that fast forwards/rewinds the save. */
     Jumper finalizer;
+
+    /** Handles files with respect to mods. */
+    FileManager fileManager = new FileManager(this);
 
     /** Standard event processor. */
     final EventProcessor eventProcessor = new EventProcessor(this);
@@ -781,7 +803,13 @@ public class ReplayerController implements Initializable {
                     statusLabel.textProperty().bind(starter.titleProperty());
                     progressBar.progressProperty().bind(starter.progressProperty());
                     for (Map.Entry<String, Date> change : saveGame.tagChanges.entrySet()) {
-                        countries.get(change.getKey()).expectingTagChange = change.getValue();
+                        final String tag = change.getKey();
+                        final CountryInfo country = countries.get(tag);
+                        if (country != null) {
+                            country.expectingTagChange = change.getValue();
+                        } else {
+                            System.err.printf("Unknown tag '%s' in tag changes!\n", tag);
+                        }
                     }
                     new Thread(starter, "starter").start();
                 }
@@ -1206,14 +1234,7 @@ public class ReplayerController implements Initializable {
 
         saveDirectory = new File(settings.getProperty("save.dir", ""));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
-            final String osname = System.getProperty("os.name", "");
-            String defaultSaveDir = System.getProperty("user.home");
-            if (osname.startsWith("Windows")) {
-                defaultSaveDir += WIN_SAVE_DIR;
-            } else if (osname.startsWith("Linux")) {
-                defaultSaveDir += LINUX_SAVE_DIR;
-            }
-            saveDirectory = new File(defaultSaveDir);
+            saveDirectory = new File(DEFAULT_SAVE_DIR);
             if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
                 saveDirectory = new File(System.getProperty("user.home"), "/");
             }
@@ -1273,20 +1294,18 @@ public class ReplayerController implements Initializable {
     private void loadCountries() {
         System.out.printf("Loading countries...\n");
         countries.clear();
-        final File countryTagDir = new File(eu4Directory + "/common/country_tags");
-        for(final File tagFile : countryTagDir.listFiles()) {
-            if (!tagFile.isFile()) {
-                continue;
-            }
 
-            try (final InputStream is = new FileInputStream(tagFile)) {
+        for (final InputStream is : fileManager.listFiles("common/country_tags")) {
+            try (final InputStream tagStream = is) {
                 final Properties tags = new Properties();
-                tags.load(is);
+                tags.load(tagStream);
                 for (Object key : tags.keySet()) {
                     String path = ((String) tags.get(key)).trim();
-                    //get rid of "
-                    path = path.substring(1, path.length() - 1);
-                    try (final BufferedReader countryReader = new BufferedReader(new FileReader(eu4Directory + "/common/" + path))) {
+                    path = path.substring(1, path.length() - 1); //get rid of "
+                    try (final BufferedReader countryReader =
+                            new BufferedReader(
+                                new InputStreamReader(
+                                    fileManager.getInputStream("common/" + path)))) {
                         String line = countryReader.readLine();
                         while (line != null) {
                             final Matcher m = TAG_COLOR_PATTERN.matcher(line);
@@ -1315,14 +1334,9 @@ public class ReplayerController implements Initializable {
     private void loadCultures() {
         System.out.printf("Loading cultures...\n");
         religions.clear();
-        final File religionDir = new File(eu4Directory + "/common/cultures");
-        for(final File cultureFile : religionDir.listFiles()) {
-            if (!cultureFile.isFile()) {
-                continue;
-            }
-
-            try (final InputStream is = new FileInputStream(cultureFile)) {
-                final CulturesParser parser = new CulturesParser(new Pair<>(countries, cultures), cultureFile.length(), is);
+        for(final InputStream cultureStream : fileManager.listFiles("common/cultures")) {
+            try (final InputStream is = cultureStream) {
+                final CulturesParser parser = new CulturesParser(new Pair<>(countries, cultures), Long.MAX_VALUE, is);
                 parser.run();
             } catch(Exception e) { e.printStackTrace(); }
         }
@@ -1334,6 +1348,7 @@ public class ReplayerController implements Initializable {
     private void loadData() {
         System.out.printf("Loading data:\n");
         titleProperty.set(TITLE);
+        fileManager.loadMods();
         loadProvinces();
         loadMap();
         loadSeas();
@@ -1354,8 +1369,7 @@ public class ReplayerController implements Initializable {
                 try {
                     InputStream is = null;
                     try {
-                        System.out.printf("Map file: %s\n", eu4Directory.getPath() + "/map/provinces.bmp");
-                        is = new FileInputStream(eu4Directory.getPath() + "/map/provinces.bmp");
+                        is = fileManager.getInputStream("map/provinces.bmp");
                         map = new Image(is);
                     } catch (FileNotFoundException e) {
                         System.err.println("File map/provinces.bmp not found!");
@@ -1471,7 +1485,7 @@ public class ReplayerController implements Initializable {
         provinces.clear();
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new FileReader(eu4Directory.getPath() + "/map/definition.csv"));
+            reader = new BufferedReader(new InputStreamReader(fileManager.getInputStream("map/definition.csv")));
             //skip first line
             String line = reader.readLine();
             line = reader.readLine();
@@ -1508,14 +1522,9 @@ public class ReplayerController implements Initializable {
     private void loadReligions() {
         System.out.printf("Loading religions...\n");
         religions.clear();
-        final File religionDir = new File(eu4Directory + "/common/religions");
-        for(final File religionFile : religionDir.listFiles()) {
-            if (!religionFile.isFile()) {
-                continue;
-            }
-
-            try (final InputStream is = new FileInputStream(religionFile)) {
-                final ReligionsParser parser = new ReligionsParser(religions, religionFile.length(), is);
+        for(final InputStream religionStream : fileManager.listFiles("common/religions")) {
+            try (final InputStream is = religionStream) {
+                final ReligionsParser parser = new ReligionsParser(religions, Long.MAX_VALUE, is);
                 parser.run();
             } catch(Exception e) { e.printStackTrace(); }
         }
