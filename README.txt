@@ -43,6 +43,9 @@ In province history there's sometimes missing record of regaining province contr
 #Change log#
 ############
 
+1.0
+Fixed an (probably mostly silent) exception thrown when empty or no mod is specified
+
 0.13
 Jumping by '->' can now be cancelled by '||'
 Added experimental mod support - property mod.basedir should point to the game's directory in your documents (e.g. C\:\\Users\\System_Lord\\Documents\\Paradox Interactive\\Europa Universalis IV) if it is not in the default place; and property mod.list should contain semicolon separated list of mods to load (e.g. mod/iu.mod;mod/test.mod). The order in the list is important!
