@@ -171,6 +171,9 @@ class FileManager {
         modDirPath = controller.settings.getProperty("mod.basedir", ReplayerController.DEFAULT_BASE_DIR);
         final String[] modDescriptors = controller.settings.getProperty("mod.list", "").split(";");
         for (String desc : modDescriptors) {
+            if ("".equals(desc)) {
+                continue;
+            }
             final String modPath = modDirPath + "/" + desc;
             try (final InputStream is = new FileInputStream(modPath)) {
                 final ModParser parser = new ModParser(mods, Long.MAX_VALUE, is);
