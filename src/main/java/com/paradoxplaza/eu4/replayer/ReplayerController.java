@@ -16,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -374,6 +373,21 @@ public class ReplayerController implements Initializable {
 
     /** Content of selected province log. */
     String selectedProvinceLogContent;
+
+    /** Flag indicating whether the date should be drawn to gif. */
+    boolean gifDateDraw;
+
+    /** Font color of the gif date. */
+    Color gifDateColor;
+
+    /** Font size of the gif date. */
+    float gifDateSize;
+
+    /** X-coord of the gif date. */
+    int gifDateX;
+
+    /** Y-coord of the gif date. */
+    int gifDateY;
 
     /**
      * Flag indicating whether {@link #focusTag} is be used.
@@ -1240,6 +1254,12 @@ public class ReplayerController implements Initializable {
             }
         }
 
+        gifDateDraw = settings.getProperty("gif.date.draw", "true").equals("true");
+        gifDateColor = Color.decode(settings.getProperty("gif.date.color", "0x000000"));
+        gifDateSize = Float.parseFloat(settings.getProperty("gif.date.size", "12"));
+        gifDateX = Integer.parseInt(settings.getProperty("gif.date.x", "60"));
+        gifDateY = Integer.parseInt(settings.getProperty("gif.date.y", "60"));
+
         eu4Directory = new File(settings.getProperty("eu4.dir"));
         try {
             lock.acquire();
@@ -1563,8 +1583,11 @@ public class ReplayerController implements Initializable {
         System.arraycopy(buffer, 0, a, 0, buffer.length);
         final Graphics g = gifSizedImage.getGraphics();
         g.drawImage(gifBufferedImage, 0, 0, gifSizedImage.getWidth(), gifSizedImage.getHeight(), null);
-        g.setColor(Color.BLACK);
-        g.drawString(date.toString(), 60, 60);
+        if (gifDateDraw) {
+            g.setColor(gifDateColor);
+            g.setFont(g.getFont().deriveFont(gifDateSize));
+            g.drawString(date.toString(), gifDateX, gifDateY);
+        }
         g.dispose();
         try {
             gifWriter.writeToSequence(gifSizedImage);

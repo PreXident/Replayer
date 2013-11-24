@@ -24,3 +24,13 @@ init.start=1300.1.1
 border.color.red=0
 border.color.green=0
 border.color.blue=0
+#flag indicating whether the date should be drawn to gif
+gif.date.draw=true
+#font color of the gif date; use hexadecimal or octal number
+gif.date.color=0x000000
+#font size of the gif date
+gif.date.size=12
+#x-coord of the gif date
+gif.date.x=60
+#y-coord of the gif date
+gif.date.y=60
