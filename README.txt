@@ -43,6 +43,29 @@ In province history there's sometimes missing record of regaining province contr
 #Change log#
 ############
 
+1.1
+Added a bunch of new gif related properties:
+#flag indicating whether the date should be drawn to gif
+
+gif.date.draw=true
+
+#font color of the gif date; use hexadecimal or octal number
+
+gif.date.color=0x000000
+
+#font size of the gif date
+
+gif.date.size=12
+
+#x-coord of the gif date
+
+gif.date.x=60
+
+#y-coord of the gif date
+
+gif.date.y=60
+Also pressing >> when at end date should not cause progressbar to run from one side to the other.
+
 1.0
 Fixed an (probably mostly silent) exception thrown when empty or no mod is specified
 
