@@ -72,7 +72,7 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
 
     @Override
     public boolean hasNext() {
-        return date.get().compareTo(max) <= 0;
+        return date.get().compareTo(max) < 0;
     }
 
     @Override
