@@ -48,7 +48,14 @@ Due to non optimal handling of colonial nations in history files and save games,
 
 1.2
 Updated to CoP
-Unfortunately no support for Randomized New World and problems with colonial nations (see known bugs)
+Unfortunately no support for Randomized New World and problems with colonial nations (displayed on game start (ie non 1444 starts) as part of motherland)
+Add a bunch of new gif related properties:
+gif.subimage as a flag that only part of the map should be exported to gif; other properties specify the exported part
+gif.subimage.x
+gif.subimage.y
+gif.subimage.width
+gif.subimage.height
+You will probably want to change gif.width and gif.height so the gif is not stretched
 
 1.1
 Added a bunch of new gif related properties:

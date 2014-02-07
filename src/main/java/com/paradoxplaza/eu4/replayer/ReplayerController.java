@@ -390,6 +390,21 @@ public class ReplayerController implements Initializable {
     /** Y-coord of the gif date. */
     int gifDateY;
 
+    /** Flag if only part of map should be giffed. */
+    boolean gifSubImage;
+
+    /** X-coord of gif subimage. */
+    int gifSubImageX;
+
+    /** Y-coord of gif subimage. */
+    int gifSubImageY;
+
+    /** Width of gif subimage. */
+    int gifSubImageWidth;
+
+    /** Height of gif subimage. */
+    int gifSubImageHeight;
+
     /**
      * Flag indicating whether {@link #focusTag} is be used.
      * If true, focusTag is not empty, but contains country tag in focus.
@@ -1264,6 +1279,16 @@ public class ReplayerController implements Initializable {
         gifDateX = Integer.parseInt(settings.getProperty("gif.date.x", "60"));
         gifDateY = Integer.parseInt(settings.getProperty("gif.date.y", "60"));
 
+        gifSubImage = settings.getProperty("gif.subimage", "false").equals("true");
+        if (gifSubImage) {
+            gifSubImageX = Integer.parseInt(settings.getProperty("gif.subimage.x", "0"));
+            gifSubImageY = Integer.parseInt(settings.getProperty("gif.subimage.y", "0"));
+            gifSubImageWidth = Integer.parseInt(settings.getProperty("gif.subimage.width",
+                    settings.getProperty("gif.width", "0")));
+            gifSubImageHeight = Integer.parseInt(settings.getProperty("gif.subimage.height",
+                    settings.getProperty("gif.height", "0")));
+        }
+
         eu4Directory = new File(settings.getProperty("eu4.dir"));
         try {
             lock.acquire();
@@ -1586,7 +1611,8 @@ public class ReplayerController implements Initializable {
         final int[] a = ( (DataBufferInt) gifBufferedImage.getRaster().getDataBuffer() ).getData();
         System.arraycopy(buffer, 0, a, 0, buffer.length);
         final Graphics g = gifSizedImage.getGraphics();
-        g.drawImage(gifBufferedImage, 0, 0, gifSizedImage.getWidth(), gifSizedImage.getHeight(), null);
+        final BufferedImage src = gifSubImage ? gifBufferedImage.getSubimage(gifSubImageX, gifSubImageY, gifSubImageWidth, gifSubImageHeight) : gifBufferedImage;
+        g.drawImage(src, 0, 0, gifSizedImage.getWidth(), gifSizedImage.getHeight(), null);
         if (gifDateDraw) {
             g.setColor(gifDateColor);
             g.setFont(g.getFont().deriveFont(gifDateSize));
