@@ -1,8 +1,8 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
-import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
+import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.parser.State;
 
 /**
@@ -18,6 +18,9 @@ class Country extends CompoundState<SaveGame> {
 
     /** State ignoring uninteresting data. */
     Ignore<SaveGame> ignore = new Ignore<>(this);
+
+    /** State processing dynamic countries' colors. */
+    CountryColor countryColor = new CountryColor(this);
 
     /**
      * Only constructor
@@ -47,6 +50,8 @@ class Country extends CompoundState<SaveGame> {
         switch (word) {
             case "history":
                 return history.withTag(tag);
+            case "map_color":
+                return countryColor.withCountry(tag);
             default:
                 return ignore;
         }

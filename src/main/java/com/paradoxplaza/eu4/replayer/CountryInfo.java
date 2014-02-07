@@ -26,6 +26,7 @@ public class CountryInfo {
     /**
      * Only contructor.
      * @param tag country tag
+     * @param color country color
      */
     public CountryInfo(final String tag, final int color) {
         this.tag = tag;

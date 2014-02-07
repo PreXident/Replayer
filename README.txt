@@ -31,6 +31,7 @@ common/cultures/*
 ############
 
 In province history there's sometimes missing record of regaining province control from rebels. So in the end there are more rebel controlled provinces than there should be. If you have any idea why this is happening or how to detect this, please share!
+Due to non optimal handling of colonial nations in history files and save games, colonial nations on game start (ie non 1444 starts) displayed as part of motherland
 
 ##################
 #Planned features#
@@ -38,10 +39,16 @@ In province history there's sometimes missing record of regaining province contr
 
 - monarchs, wars, ...
 - nation focus to display PUs
+- randomized new world
+- binary saves
 
 ############
 #Change log#
 ############
+
+1.2
+Updated to CoP
+Unfortunately no support for Randomized New World and problems with colonial nations (see known bugs)
 
 1.1
 Added a bunch of new gif related properties:

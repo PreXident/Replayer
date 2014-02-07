@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -816,6 +817,9 @@ public class ReplayerController implements Initializable {
                 public void handle(WorkerStateEvent t) {
                     statusLabel.textProperty().bind(starter.titleProperty());
                     progressBar.progressProperty().bind(starter.progressProperty());
+                    for (Entry<String, Integer> c : saveGame.dynamicCountriesColors.entrySet()) {
+                        countries.put(c.getKey(), new CountryInfo(c.getKey(), c.getValue()));
+                    }
                     for (Map.Entry<String, Date> change : saveGame.tagChanges.entrySet()) {
                         final String tag = change.getKey();
                         final CountryInfo country = countries.get(tag);

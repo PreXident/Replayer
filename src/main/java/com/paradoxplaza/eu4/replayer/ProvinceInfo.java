@@ -43,6 +43,8 @@ public class ProvinceInfo {
 
     /**
      * Only constructor.
+     * @param id province id
+     * @param name province name
      * @param color color of pixels associated to this province
      */
     public ProvinceInfo(final String id, final String name, final int color) {

@@ -24,6 +24,9 @@ public class SaveGame {
     /** Set of country tags that appeard during game through tag changes. */
     public final Map<String, Date> tagChanges = new HashMap<>();
 
+    /** Colors of dynamic countries. */
+    public final Map<String, Integer> dynamicCountriesColors = new HashMap<>();
+
     /**
      * Adds event on given date to timeline at the end of the list.
      * Events with priority needs their overloadings!
@@ -58,5 +61,13 @@ public class SaveGame {
             timeline.put(date, list);
         }
         return list;
+    }
+
+    /**
+     * Returns mapping of dynamic countries' colors.
+     * @return mapping of dynamic countries' colors
+     */
+    public Map<String, Integer> getDynamicCountriesColors() {
+        return dynamicCountriesColors;
     }
 }
