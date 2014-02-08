@@ -50,7 +50,7 @@ Due to non optimal handling of colonial nations in history files and save games,
 Updated to CoP
 Unfortunately no support for Randomized New World and problems with colonial nations (displayed on game start (ie non 1444 starts) as part of motherland)
 Add a bunch of new gif related properties:
-gif.subimage as a flag that only part of the map should be exported to gif; other properties specify the exported part
+gif.subimage as a flag that only section of the map should be exported to gif; other properties specify the exported part
 gif.subimage.x
 gif.subimage.y
 gif.subimage.width
@@ -60,23 +60,14 @@ You will probably want to change gif.width and gif.height so the gif is not stre
 1.1
 Added a bunch of new gif related properties:
 #flag indicating whether the date should be drawn to gif
-
 gif.date.draw=true
-
 #font color of the gif date; use hexadecimal or octal number
-
 gif.date.color=0x000000
-
 #font size of the gif date
-
 gif.date.size=12
-
 #x-coord of the gif date
-
 gif.date.x=60
-
 #y-coord of the gif date
-
 gif.date.y=60
 Also pressing >> when at end date should not cause progressbar to run from one side to the other.
 
