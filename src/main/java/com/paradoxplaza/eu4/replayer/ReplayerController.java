@@ -1350,7 +1350,9 @@ public class ReplayerController implements Initializable {
                 tags.load(tagStream);
                 for (Object key : tags.keySet()) {
                     String path = ((String) tags.get(key)).trim();
-                    path = path.substring(1, path.length() - 1); //get rid of "
+                    if (path.startsWith("\"")) {
+                        path = path.substring(1, path.length() - 1); //get rid of "
+                    }
                     try (final BufferedReader countryReader =
                             new BufferedReader(
                                 new InputStreamReader(

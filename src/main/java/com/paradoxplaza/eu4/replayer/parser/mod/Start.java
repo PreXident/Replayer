@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer.parser.mod;
 
 import com.paradoxplaza.eu4.replayer.ModInfo;
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
+import com.paradoxplaza.eu4.replayer.parser.RepeatableValueState;
 import com.paradoxplaza.eu4.replayer.parser.StartAdapter;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
@@ -25,15 +26,15 @@ public class Start extends StartAdapter<List<ModInfo>> {
     /** State for processing important values. */
     final StringState<List<ModInfo>> stringState = new StringState<>(this);
 
-    /** State for processing replace_path={...}. */
-    final ReplacePath replacePath = new ReplacePath(this);
+    /** State for processing replace_path="...". */
+    final RepeatableValueState<List<ModInfo>> replacePath = new RepeatableValueState<>(this);
 
     /** Ignores insignificant mod info. */
     final Ignore<List<ModInfo>> ignore = new Ignore<>(this);
 
     @Override
     public Start end(final List<ModInfo> context) {
-        final ModInfo modInfo = new ModInfo(name.val, dir.val, archive.val, replacePath.paths);
+        final ModInfo modInfo = new ModInfo(name.val, dir.val, archive.val, replacePath.getValues());
         context.add(modInfo);
         return this;
     }

@@ -9,7 +9,10 @@ import java.util.Set;
 
 /**
  * Processes replace_path = {...}.
+ * @deprecated replace_path has actually format replace_path="..."
+ * @see com.paradoxplaza.eu4.replayer.parser.RepeatableValueState
  */
+@Deprecated
 public class ReplacePath extends CompoundState<List<ModInfo>> {
 
     /** List of path to replace. */
