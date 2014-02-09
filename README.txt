@@ -46,6 +46,9 @@ Due to non optimal handling of colonial nations in history files and save games,
 #Change log#
 ############
 
+1.3
+Fixed replaced_path, so games converted from CK2 actually work
+
 1.2
 Updated to CoP
 Unfortunately no support for Randomized New World and problems with colonial nations (displayed on game start (ie non 1444 starts) as part of motherland)
