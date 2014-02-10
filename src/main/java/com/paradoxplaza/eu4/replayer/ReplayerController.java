@@ -1,12 +1,14 @@
 package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.events.Event;
+import com.paradoxplaza.eu4.replayer.parser.country.CountryParser;
 import com.paradoxplaza.eu4.replayer.parser.culture.CulturesParser;
 import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.GifSequenceWriter;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -1353,25 +1355,12 @@ public class ReplayerController implements Initializable {
                     if (path.startsWith("\"")) {
                         path = path.substring(1, path.length() - 1); //get rid of "
                     }
-                    try (final BufferedReader countryReader =
-                            new BufferedReader(
-                                new InputStreamReader(
-                                    fileManager.getInputStream("common/" + path)))) {
-                        String line = countryReader.readLine();
-                        while (line != null) {
-                            final Matcher m = TAG_COLOR_PATTERN.matcher(line);
-                            if (m.matches()) {
-                                countries.put((String)key,
-                                        new CountryInfo((String) key,
-                                            toColor(
-                                                Integer.parseInt(m.group(1)),
-                                                Integer.parseInt(m.group(2)),
-                                                Integer.parseInt(m.group(3)))));
-                                break;
-                            }
-                            line = countryReader.readLine();
-                        }
-                    } catch (Exception e) { e.printStackTrace(); }
+                    try (final InputStream cs = fileManager.getInputStream("common/" + path)) {
+                        final Ref<Integer> color = new Ref<>();
+                        final CountryParser parser = new CountryParser(color, Long.MAX_VALUE, cs);
+                        parser.run();
+                        countries.put((String) key, new CountryInfo((String) key, color.val));
+                    } catch(Exception e) { e.printStackTrace(); }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
