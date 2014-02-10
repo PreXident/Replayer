@@ -33,7 +33,6 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.Semaphore;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -726,6 +725,13 @@ public class ReplayerController implements Initializable {
             ci.controls.clear();
             ci.owns.clear();
             ci.expectingTagChange = null;
+        }
+        for (ProvinceInfo pi : provinces.values()) {
+            pi.controller = null;
+            pi.owner = null;
+            pi.culture = null;
+            pi.religion = null;
+            pi.events.clear();
         }
         focusTag = settings.getProperty("focus", ""); //this needs to be reset as tag changes are followed during replaying
         focusing = !focusTag.equals("");
