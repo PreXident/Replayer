@@ -1,8 +1,9 @@
 .+/!/.+
 !/.+
 build/.+
-dist/.+
 javadoc/.+
 reports/.+
+.gradle/+
+.nb-gradle/+
 nbproject/private/private.xml
 nbproject/build.properties

@@ -1,19 +1,25 @@
 <project name="Replayer" default="dist" xmlns:fx="javafx:com.sun.javafx.tools.ant">
+	<property file="version.properties" />
+	<property name="project.version" value="${ext.projectVersion}"/>
 	<property environment="env"/>
 	<property name="jar.javafx" value="${env.JAVA_HOME}/jre/lib/jfxrt.jar" />
 	<property name="jar.ant-javafx" value="${env.JAVA_HOME}/lib/ant-javafx.jar" />
-	<property name="dir.build" value="build" />
+	<property name="dir.build" value="build/classes/main" />
 	<property name="dir.src" value="src/main/java" />
 	<property name="dir.lib" value="lib" />
 	<property name="dir.res" value="src/main/resources" />
-	<property name="dir.dist" value="dist" />
-	<property name="dir.javadoc" value="javadoc" />
+	<property name="dir.dist" value="build/dist" />
+	<property name="dir.dist.res" value="dist" />
+	<property name="dir.javadoc" value="build/javadoc" />
+	<property name="dir.clean" value="build" />
 	<property name="file.javadoc.overview" value="src/overview.html" />
 	<property name="file.dist" value="replayer.jar" />
+	<property name="file.dist.zip" value="replayer-${project.version}.zip" />
+	<property name="file.readme" value="README.txt" />
 	<property name="class.main" value="com.paradoxplaza.eu4.replayer.Replayer" />
 	<!-- testing properties -->
 	<property name="dir.test.src" value="src/test/java" />
-	<property name="dir.test.reports" value="reports" />
+	<property name="dir.test.reports" value="build/reports" />
 
 	<path id="path.javafx" >
 		<filelist dir="${dir.javafx}/jre/lib"
@@ -79,11 +85,19 @@
 
 			<!-- Customize jar manifest (optional) -->
 			<manifest>
-				<attribute name="Implementation-Version" value="1.0"/>
+				<attribute name="Implementation-Title" value="EU4 Replayer"/>
+				<attribute name="Implementation-Version" value="${project.version}"/>
+				<attribute name="Implementation-Vendor" value="PreXident"/>
 				<attribute name="JavaFX-Feature-Proxy" value="None"/> <!-- this does not seem to work :-/ -->
 				<!--<attribute name="SplashScreen-Image" value="splash/splash.gif"/>-->
 			</manifest>
 		</fx:jar>
+		<copy todir="${dir.dist}">
+			<fileset dir="${dir.dist.res}" />
+			<file file="${file.readme}" />
+		</copy>
+		<zip destFile="${dir.dist}/${file.dist.zip}"
+				basedir="${dir.dist}" excludes="**/*.zip"/>
 	</target>
 
 	<target name="run" depends="dist">
@@ -98,13 +112,7 @@
 	</target>
 
 	<target name="clean">
-		<delete dir="${dir.build}"/>
-	</target>
-
-	<target name="clean-all" depends="clean">
-		<delete dir="${dir.dist}"/>
-		<delete dir="${dir.test.reports}"/>
-		<delete dir="${dir.javadoc}"/>
+		<delete dir="${dir.clean}"/>
 	</target>
 
 	<!-- testing targets -->

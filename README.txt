@@ -133,7 +133,7 @@ Initial release
 #Sources#
 #########
 
-If anyone is interested or paranoid enough, sources are freely available. However they are no masterpiece I am afraid ;-) It's a netbeans free form project, so you just need to adjust properties in build.xml if JAVA_HOME is not set and then use ant.
+If anyone is interested or paranoid enough, sources are freely available. However they are no masterpiece I am afraid ;-) It's a netbeans free form project, so you just need to adjust properties in build.xml if JAVA_HOME is not set and then use ant. Gradle build script is available too.
 Check the repository PreXident/Replayer at Bitbucket.
 
 ##############

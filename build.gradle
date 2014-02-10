@@ -1,0 +1,88 @@
+apply from: 'version.properties'
+apply from: 'javafx.plugin'
+apply plugin: 'java'
+apply plugin: 'fatjar'
+compileJava.options.encoding = 'UTF-8'
+
+defaultTasks 'run'
+ext.mainClassName = 'com.paradoxplaza.eu4.replayer.Replayer'
+archivesBaseName = 'replayer'
+version= ext.projectVersion //property from file version.properties
+
+sourceCompatibility=1.7
+
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+
+	dependencies {
+		classpath 'eu.appsatori:gradle-fatjar-plugin:0.2'
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile 'org.apache.commons:commons-compress:1.5', {
+		ext {
+			fatJarExclude = false
+		}
+	}
+}
+
+//include only explicitly not exluded dependencies to fatJar
+project.configurations.each {
+	it.copyRecursive {
+			it.ext.fatJarExclude = !it.ext.has('fatJarExclude') || it.ext.get('fatJarExclude')
+	}
+}
+
+cssToBin {
+	enabled = false
+}
+
+javafx {
+	mainClass = project.mainClassName
+}
+
+task runCopy(type: Copy) {
+	from 'dist/replayer.properties'
+	into 'build'
+}
+
+run {
+	it.dependsOn runCopy
+	workingDir = 'build'
+}
+
+debug {
+	workingDir = 'build'
+}
+
+fatJar {
+	archiveName "${archivesBaseName}.jar"
+	manifest {
+		attributes 'Main-Class': project.mainClassName
+		attributes 'Implementation-Title': 'EU4 Replayer'
+		attributes 'Implementation-Version': version
+		attributes 'Implementation-Vendor': 'PreXident'
+		attributes 'JavaFX-Feature-Proxy': 'None'
+	}
+	exclude 'org/tukaani*' //not needed
+}
+
+task distCopy(dependsOn: fatJar, type: Copy) {
+	from "build/libs/${archivesBaseName}.jar"
+	from 'dist'
+	from 'README.txt'
+	into 'build/dist'
+}
+
+task dist(dependsOn: distCopy, type: Zip) {
+	from file('build/dist')
+	exclude '*.zip'
+	destinationDir file('build/dist')
+}
