@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1373,7 +1374,7 @@ public class ReplayerController implements Initializable {
      */
     private void loadCultures() {
         System.out.printf("Loading cultures...\n");
-        religions.clear();
+        cultures.clear();
         for(final InputStream cultureStream : fileManager.listFiles("common/cultures")) {
             try (final InputStream is = cultureStream) {
                 final CulturesParser parser = new CulturesParser(new Pair<>(countries, cultures), Long.MAX_VALUE, is);
@@ -1525,7 +1526,7 @@ public class ReplayerController implements Initializable {
         provinces.clear();
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(fileManager.getInputStream("map/definition.csv")));
+            reader = new BufferedReader(new InputStreamReader(fileManager.getInputStream("map/definition.csv"), StandardCharsets.ISO_8859_1));
             //skip first line
             String line = reader.readLine();
             line = reader.readLine();

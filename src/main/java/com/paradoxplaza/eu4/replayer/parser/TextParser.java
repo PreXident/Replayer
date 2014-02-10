@@ -30,6 +30,7 @@ public class TextParser<Context> extends Task<Context> {
      * Only contructor for the TextParser class.
      * @param context output context
      * @param start starting stare
+     * @param size size of parsed file
      * @param input input stream to parse
      */
     public TextParser(final Context context, final StartAdapter<Context> start, final long size, final InputStream input) {

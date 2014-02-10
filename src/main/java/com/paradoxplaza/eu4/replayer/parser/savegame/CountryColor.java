@@ -49,7 +49,7 @@ public class CountryColor extends CompoundState<SaveGame> {
 
     @Override
     public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
-        colors[colorIndex++] = (int) (Double.parseDouble(word) * 255);
+        colors[colorIndex++] = Integer.parseInt(word);
         return this;
     }
 }

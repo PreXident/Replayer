@@ -3,7 +3,9 @@ package com.paradoxplaza.eu4.replayer.parser;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StreamTokenizer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Default implementation of {@link Start} providing a {@link StreamTokenizer}
@@ -13,13 +15,13 @@ public class StartAdapter<Context> extends Start<Context> {
 
     /**
      * Creates default tokenizer for EU4 save games, used by TextParser.
-     *
+     * Default implementation uses {@link #inputStream2Reader(InputStream)}.
      * @param input InputStream to parse
      * @return new StreamTokenizer
      */
     @Override
     protected StreamTokenizer createTokenizer(final InputStream input) {
-        final StreamTokenizer t = new StreamTokenizer(new BufferedReader(new InputStreamReader(input)));
+        final StreamTokenizer t = new StreamTokenizer(inputStream2Reader(input));
         t.resetSyntax();
         t.commentChar('#');
         t.eolIsSignificant(false);
@@ -38,5 +40,15 @@ public class StartAdapter<Context> extends Start<Context> {
         t.quoteChar('"');
 
         return t;
+    }
+
+    /**
+     * Converts InputStream to Reader.
+     * Used in default {@link #createTokenizer(InputStream)}.
+     * @param input
+     * @return
+     */
+    protected Reader inputStream2Reader(final InputStream input) {
+        return new BufferedReader(new InputStreamReader(input, StandardCharsets.ISO_8859_1));
     }
 }

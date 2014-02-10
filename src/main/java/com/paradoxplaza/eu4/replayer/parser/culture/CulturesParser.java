@@ -13,7 +13,7 @@ public class CulturesParser extends TextParser<Pair<Map<String, CountryInfo>, Ma
 
     /**
      * Only constructor.
-     * @param context seas to fill
+     * @param context contain input information about countries and output cultures' colors
      * @param size input size
      * @param input input stream to parse
      */
