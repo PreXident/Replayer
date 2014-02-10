@@ -49,7 +49,10 @@ javafx {
 }
 
 task runCopy(type: Copy) {
-	from 'dist/replayer.properties'
+	def props = file('dist/replayer.properties')
+	if (!props.exists()) {
+		from props
+	}
 	into 'build'
 }
 
