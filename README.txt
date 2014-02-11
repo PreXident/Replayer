@@ -31,7 +31,6 @@ common/cultures/*
 ############
 
 In province history there's sometimes missing record of regaining province control from rebels. So in the end there are more rebel controlled provinces than there should be. If you have any idea why this is happening or how to detect this, please share!
-Due to non optimal handling of colonial nations in history files and save games, colonial nations on game start (ie non 1444 starts) displayed as part of motherland
 
 ##################
 #Planned features#
@@ -45,6 +44,11 @@ Due to non optimal handling of colonial nations in history files and save games,
 ############
 #Change log#
 ############
+
+1.4
+Colonial nations existing on game start should be displayed correctly
+Encoding of input files changed to LATIN-1, so Osel etc should be displayed correctly
+Province information is reset on loading a save
 
 1.3
 Fixed replaced_path, so games converted from CK2 actually work
