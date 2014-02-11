@@ -41,6 +41,9 @@ public class ProvinceInfo {
     /** Events that happened to this province. */
     List<Pair<Date,Event>> events = new ArrayList<>();
 
+    /** Colonial region the province belongs to, if any. */
+    public ColRegionInfo colRegion = null;
+
     /**
      * Only constructor.
      * @param id province id

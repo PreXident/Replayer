@@ -282,7 +282,7 @@ public class EventProcessor {
      * @param date date of events
      * @param events list of events
      */
-    public final void processEvents(final Date date, final Iterable<Event> events) {
+    public final void processEvents(final Date date, final Iterable<? extends Event> events) {
         if (events == null) {
             System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
             return;

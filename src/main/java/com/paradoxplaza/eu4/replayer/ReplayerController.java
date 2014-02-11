@@ -1,9 +1,14 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
+import com.paradoxplaza.eu4.replayer.events.Owner;
+import com.paradoxplaza.eu4.replayer.events.SimpleProvinceEvent;
+import com.paradoxplaza.eu4.replayer.parser.colregion.ColRegionParser;
 import com.paradoxplaza.eu4.replayer.parser.country.CountryParser;
 import com.paradoxplaza.eu4.replayer.parser.culture.CulturesParser;
 import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
+import com.paradoxplaza.eu4.replayer.parser.defines.DefinesParser;
 import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.GifSequenceWriter;
@@ -23,6 +28,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -311,6 +317,9 @@ public class ReplayerController implements Initializable {
     /** Culture name -> color mapping. */
     Map<String, Integer> cultures = new HashMap<>();
 
+    /** Colonial region name -> colonial name mapping. */
+    Map<String, ColRegionInfo> colRegions = new HashMap<>();
+
     /** Loaded save game to be replayed. */
     SaveGame saveGame;
 
@@ -406,6 +415,9 @@ public class ReplayerController implements Initializable {
 
     /** Height of gif subimage. */
     int gifSubImageHeight;
+
+    /** Holds information from defines.lua. */
+    final DefinesInfo defines = new DefinesInfo();
 
     /**
      * Flag indicating whether {@link #focusTag} is be used.
@@ -798,6 +810,51 @@ public class ReplayerController implements Initializable {
                         bufferChangeOnlyProcessor.processEvents(date, events);
                         updateProgress(++day, distance);
                         date = date.next();
+                    }
+                    //fix colonial nations
+                    if (settings.getProperty("fix.colonials", "true").equals("true")) {
+                        updateTitle("Fixing colonial nations...");
+                        int colRegCounter = 0;
+                        final Date magicalDate = new Date(settings.getProperty("fix.colonials.date", "1444.11.11"));
+                        for (ColRegionInfo colreg : colRegions.values()) {
+                            updateProgress(colRegCounter++, colRegions.size());
+                            //count colonies for countries
+                            final Map<String, List<ProvinceInfo>> colonies = new HashMap<>();
+                            for (String id : colreg.provinces) {
+                                final ProvinceInfo province = provinces.get(id);
+                                if (province.owner == null) {
+                                    continue;
+                                }
+                                List<ProvinceInfo> list = colonies.get(province.owner);
+                                if (list == null) {
+                                    list = new ArrayList<>();
+                                    colonies.put(province.owner, list);
+                                }
+                                list.add(province);
+                            }
+                            //set owner and controller for colonial nations' provinces
+                            for (List<ProvinceInfo> provs : colonies.values()) {
+                                if (provs.size() > defines.MAX_CROWN_COLONIES) {
+                                    for (ProvinceInfo prov : provs) {
+                                        List<Pair<Date, Event>> events = new ArrayList<>(prov.events);
+                                        for (Pair<Date, Event> p : events) {
+                                            if (magicalDate.equals(p.getFirst())
+                                                    && (p.getSecond() instanceof Owner
+                                                        || (p.getSecond() instanceof Controller && prov.owner.equals(prov.controller)))) {
+                                                SimpleProvinceEvent e = (SimpleProvinceEvent) p.getSecond();
+                                                if (e.value.matches("C..")) {
+                                                    bufferChangeOnlyProcessor.processEvents(p.getFirst(), Arrays.asList(e));
+                                                }
+                                            }
+                                            if (magicalDate.compareTo(p.getFirst()) < 0) {
+                                                break;
+                                            }
+                                        }
+                                        prov.events = events; //processor added the reprocessed events to the list, so we need to restore backup
+                                    }
+                                }
+                            }
+                        }
                     }
                     return null;
                 }
@@ -1345,6 +1402,21 @@ public class ReplayerController implements Initializable {
         }
     }
 
+
+    /**
+     * Loads colonial regions from files inside /common/colonial_regions.
+     */
+    private void loadColRegions() {
+        System.out.printf("Loading colonial regions...\n");
+        colRegions.clear();
+        for(final InputStream cultureStream : fileManager.listFiles("common/colonial_regions")) {
+            try (final InputStream is = cultureStream) {
+                final ColRegionParser parser = new ColRegionParser(colRegions, Long.MAX_VALUE, is);
+                parser.run();
+            } catch(Exception e) { e.printStackTrace(); }
+        }
+    }
+
     /**
      * Loads countries from files inside /common/country_tags directory
      * and files mentioned in them.
@@ -1396,12 +1468,22 @@ public class ReplayerController implements Initializable {
         System.out.printf("Loading data:\n");
         titleProperty.set(TITLE);
         fileManager.loadMods();
+        loadDefines();
         loadProvinces();
+        loadColRegions();
         loadMap();
         loadSeas();
         loadCountries();
         loadCultures();
         loadReligions();
+    }
+
+    private void loadDefines() {
+        System.out.printf("Loading defines...\n");
+        try (final InputStream is = fileManager.getInputStream("common/defines.lua")) {
+            final DefinesParser parser = new DefinesParser(defines, Long.MAX_VALUE, is);
+            parser.run();
+        } catch(Exception e) { e.printStackTrace(); }
     }
 
     /**

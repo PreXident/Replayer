@@ -26,6 +26,9 @@ public class TextParser<Context> extends Task<Context> {
     /** Tokenizer used for parsing. */
     final StreamTokenizer tokenizer;
 
+    /** Flag indicating the parser encountered eof.  */
+    boolean eof = false;
+
     /**
      * Only contructor for the TextParser class.
      * @param context output context
@@ -58,28 +61,25 @@ public class TextParser<Context> extends Task<Context> {
     protected final Context call() throws IOException {
         int counter = 0;
         try {
-            boolean eof = false;
             do {
                 updateProgress(stream.getPosition(), size);
                 int token = tokenizer.nextToken();
                 switch (token) {
                     case StreamTokenizer.TT_EOF:
-                        eof = true;
+                        encounterTT_EOF(token);
                         break;
                     case StreamTokenizer.TT_EOL:
+                        encounterTT_EOL(token);
                         break;
                     case StreamTokenizer.TT_NUMBER:
-                        state = state.processNumber(context, tokenizer.nval);
+                        encounterTT_NUMBER(token);
                         break;
                     case StreamTokenizer.TT_WORD:
-                        state = state.processWord(context, tokenizer.sval);
+                        encounterTT_WORD(token);
                         break;
                     default:
-                        if (token == '"') {
-                            state = state.processWord(context, tokenizer.sval);
-                        } else {
-                            state = state.processChar(context, (char) token);
-                        }
+                        encounterDEFAULT(token);
+                        break;
                 }
                 ++counter;
             } while (!eof && !isCancelled());
@@ -96,5 +96,49 @@ public class TextParser<Context> extends Task<Context> {
             throw newEx;
         }
         return context;
+    }
+
+    /**
+     * Called when TT_EOF is encountered during parsing.
+     * @param token encountered token
+     */
+    protected void encounterTT_EOF(int token) {
+        eof = true;
+    }
+
+    /**
+     * Called when TT_EOL is encountered during parsing.
+     * @param token encountered token
+     */
+    protected void encounterTT_EOL(int token) {
+        //nothing special
+    }
+
+    /**
+     * Called when TT_NUMBER is encountered during parsing.
+     * @param token encountered token
+     */
+    protected void encounterTT_NUMBER(int token) {
+        state = state.processNumber(context, tokenizer.nval);
+    }
+
+    /**
+     * Called when TT_WORD is encountered during parsing.
+     * @param token encountered token
+     */
+    protected void encounterTT_WORD(int token) {
+        state = state.processWord(context, tokenizer.sval);
+    }
+
+    /**
+     * Called when TT_WORD is encountered during parsing.
+     * @param token encountered token
+     */
+    protected void encounterDEFAULT(int token) {
+        if (token == '"') {
+            state = state.processWord(context, tokenizer.sval);
+        } else {
+            state = state.processChar(context, (char) token);
+        }
     }
 }

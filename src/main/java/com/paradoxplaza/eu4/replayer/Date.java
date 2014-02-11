@@ -145,10 +145,7 @@ public class Date implements Comparable<Date> {
         if (this.month != other.month) {
             return false;
         }
-        if (this.day != other.day) {
-            return false;
-        }
-        return true;
+        return this.day == other.day;
     }
 
     @Override

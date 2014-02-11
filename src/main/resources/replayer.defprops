@@ -34,3 +34,7 @@ gif.date.size=12
 gif.date.x=60
 #y-coord of the gif date
 gif.date.y=60
+#should fix for colonial nations be applied?
+fix.colonials=true
+#magical date that owner/controller change
+fix.colonials.date=1444.11.11

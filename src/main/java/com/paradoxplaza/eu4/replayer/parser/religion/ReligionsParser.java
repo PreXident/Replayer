@@ -11,7 +11,7 @@ public class ReligionsParser extends TextParser<Map<String,Integer>> {
 
     /**
      * Only constructor.
-     * @param context seas to fill
+     * @param context religions to fill
      * @param size input size
      * @param input input stream to parse
      */
