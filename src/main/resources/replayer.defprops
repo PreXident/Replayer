@@ -38,3 +38,5 @@ gif.date.y=60
 fix.colonials=true
 #magical date that owner/controller change
 fix.colonials.date=1444.11.11
+#flag indicating whether subjugated nations should be displayed in overlord's color
+subjects.as.overlord=false

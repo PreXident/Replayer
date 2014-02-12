@@ -425,6 +425,9 @@ public class ReplayerController implements Initializable {
      */
     boolean focusing = false;
 
+    /** Flag indicating that subject nations should be rendered as part of their overlords. */
+    boolean subjectsAsOverlords = false;
+
     /** Jumper that fast forwards/rewinds the save. */
     Jumper finalizer;
 
@@ -734,16 +737,10 @@ public class ReplayerController implements Initializable {
         titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
         saveGame = new SaveGame();
         for (CountryInfo ci : countries.values()) {
-            ci.controls.clear();
-            ci.owns.clear();
-            ci.expectingTagChange = null;
+            ci.reset();
         }
         for (ProvinceInfo pi : provinces.values()) {
-            pi.controller = null;
-            pi.owner = null;
-            pi.culture = null;
-            pi.religion = null;
-            pi.events.clear();
+            pi.reset();
         }
         focusTag = settings.getProperty("focus", ""); //this needs to be reset as tag changes are followed during replaying
         focusing = !focusTag.equals("");
@@ -1354,6 +1351,8 @@ public class ReplayerController implements Initializable {
             gifSubImageHeight = Integer.parseInt(settings.getProperty("gif.subimage.height",
                     settings.getProperty("gif.height", "0")));
         }
+
+        subjectsAsOverlords = settings.getProperty("subjects.as.overlord", "false").equals("true");
 
         eu4Directory = new File(settings.getProperty("eu4.dir"));
         try {

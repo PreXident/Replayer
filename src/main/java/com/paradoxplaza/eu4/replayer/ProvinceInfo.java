@@ -119,6 +119,17 @@ public class ProvinceInfo {
         }
     }
 
+    /**
+     * Resets the province for new replay.
+     */
+    public void reset() {
+        controller = null;
+        owner = null;
+        culture = null;
+        religion = null;
+        events.clear();
+    }
+
     @Override
     public String toString() {
         return String.format(

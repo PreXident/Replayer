@@ -6,6 +6,7 @@ import com.paradoxplaza.eu4.replayer.EventProcessor;
 /**
  * Represents country tag change.
  */
+@AlwaysNotable
 public class TagChange extends Event {
 
     /** Target tag. */

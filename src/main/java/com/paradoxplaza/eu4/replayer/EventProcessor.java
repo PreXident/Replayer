@@ -1,10 +1,12 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.events.AlwaysNotable;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Culture;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.Religion;
+import com.paradoxplaza.eu4.replayer.events.Subject;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
 import java.util.LinkedList;
 
@@ -46,15 +48,24 @@ public class EventProcessor {
         }
         province.controller = newControllerTag;
         int color = replayerController.landColor;
-        if (newController != null
-                && (!replayerController.focusing
-                    || newController.tag.equals(replayerController.focusTag))) {
-            newController.controls.add(province.id);
-            color = newController.color;
+        if (newController != null) {
+            if (newController.overlord != null
+                    && replayerController.subjectsAsOverlords
+                    && (!replayerController.focusing
+                        || newController.overlord.equals(replayerController.focusTag)
+                        || newController.tag.equals(replayerController.focusTag))) {
+                newController.controls.add(province.id);
+                color = replayerController.countries.get(newController.overlord).color;
+            } else if (!replayerController.focusing
+                    || newController.tag.equals(replayerController.focusTag)) {
+                newController.controls.add(province.id);
+                color = newController.color;
+            }
         }
         if (replayerController.focusing
                 && !replayerController.focusTag.equals(newControllerTag)
-                && !replayerController.focusTag.equals(prevControllerTag)) {
+                && !replayerController.focusTag.equals(prevControllerTag)
+                && !replayerController.focusTag.equals(newController.overlord)) {
             return false;
         }
         for(int p : province.points) {
@@ -80,6 +91,42 @@ public class EventProcessor {
         int color = Color == null ? replayerController.landColor : Color;
         for(int p : province.points) {
             setColor(replayerController.culturalBuffer, p, color);
+        }
+        return true;
+    }
+
+    public boolean changeOverlord(final Date date,
+            final String subjectTag, final String newOverlordTag) {
+        final CountryInfo subject = replayerController.countries.get(subjectTag);
+        final CountryInfo overlord = replayerController.countries.get(newOverlordTag);
+        subject.overlord = newOverlordTag;
+        if (overlord != null) {
+            overlord.subjects.add(subjectTag);
+        }
+        if (replayerController.subjectsAsOverlords) {
+            int color = replayerController.landColor;
+            if (overlord != null
+                    && (!replayerController.focusing
+                        || replayerController.focusTag.equals(newOverlordTag))) {
+                color = overlord.color;
+            }
+            for (String id : subject.controls) {
+                final ProvinceInfo province = replayerController.provinces.get(id);
+                for(int p : province.points) {
+                    if ( p / replayerController.bufferWidth % 2 == 0) {
+                        setColor(replayerController.politicalBuffer, p, color);
+                    }
+                }
+            }
+            for (String id : subject.owns) {
+                final ProvinceInfo province = replayerController.provinces.get(id);
+                for(int p : province.points) {
+                    if ( p / replayerController.bufferWidth % 2 == 1
+                            || !replayerController.notableEvents.contains("Controller")) {
+                        setColor(replayerController.politicalBuffer, p, color);
+                    }
+                }
+            }
         }
         return true;
     }
@@ -117,18 +164,34 @@ public class EventProcessor {
             return false;
         }
         int ownerColor = replayerController.landColor;
-        if (newOwner != null
-                && (!replayerController.focusing
-                    || newOwner.tag.equals(replayerController.focusTag))) {
-            newOwner.owns.add(province.id);
-            ownerColor = newOwner.color;
+        if (newOwner != null) {
+            if (newOwner.overlord != null
+                    && replayerController.subjectsAsOverlords
+                    && (!replayerController.focusing
+                        || newOwner.overlord.equals(replayerController.focusTag)
+                        || newOwner.tag.equals(replayerController.focusTag))) {
+                newOwner.owns.add(province.id);
+                ownerColor = replayerController.countries.get(newOwner.overlord).color;
+            } else if (!replayerController.focusing
+                    || newOwner.tag.equals(replayerController.focusTag)) {
+                newOwner.owns.add(province.id);
+                ownerColor = newOwner.color;
+            }
         }
         int controllerColor = replayerController.landColor;
-        if (newController != null
-                && (!replayerController.focusing
-                    || newController.tag.equals(replayerController.focusTag))) {
-            newController.controls.add(province.id);
-            controllerColor = newController.color;
+        if (newController != null) {
+            if (newController.overlord != null
+                    && replayerController.subjectsAsOverlords
+                    && (!replayerController.focusing
+                        || newController.overlord.equals(replayerController.focusTag)
+                        || newController.tag.equals(replayerController.focusTag))) {
+                newController.controls.add(province.id);
+                controllerColor = replayerController.countries.get(newController.overlord).color;
+            } else if (!replayerController.focusing
+                    || newController.tag.equals(replayerController.focusTag)) {
+                newController.controls.add(province.id);
+                controllerColor = newController.color;
+            }
         }
         for(int p : province.points) {
             if (replayerController.notableEvents.contains("Controller")
@@ -173,6 +236,8 @@ public class EventProcessor {
         final CountryInfo to = replayerController.countries.get(newTag);
         to.controls.addAll(from.controls);
         to.owns.addAll(from.owns);
+        to.subjects.addAll(from.subjects);
+        to.overlord = from.overlord;
         if (replayerController.focusing) {
             if (replayerController.focusTag.equals(oldTag)) {
                 replayerController.focusTag = newTag;
@@ -180,12 +245,13 @@ public class EventProcessor {
                 return false;
             }
         }
+        final int color = to.overlord == null || !replayerController.subjectsAsOverlords ? to.color : replayerController.countries.get(to.overlord).color;
         for (String id : to.controls) {
             final ProvinceInfo province = replayerController.provinces.get(id);
             province.controller = to.tag;
             for(int p : province.points) {
                 if ( p / replayerController.bufferWidth % 2 == 0) {
-                    setColor(replayerController.politicalBuffer, p, to.color);
+                    setColor(replayerController.politicalBuffer, p, color);
                 }
             }
         }
@@ -195,7 +261,30 @@ public class EventProcessor {
             for(int p : province.points) {
                 if ( p / replayerController.bufferWidth % 2 == 1
                         || !replayerController.notableEvents.contains("Controller")) {
-                    setColor(replayerController.politicalBuffer, p, to.color);
+                    setColor(replayerController.politicalBuffer, p, color);
+                }
+            }
+        }
+        if (replayerController.subjectsAsOverlords) {
+            for (String subjectTag : to.subjects) {
+                final CountryInfo subject = replayerController.countries.get(subjectTag);
+                subject.overlord = newTag;
+                for (String id : subject.controls) {
+                    final ProvinceInfo province = replayerController.provinces.get(id);
+                    for(int p : province.points) {
+                        if ( p / replayerController.bufferWidth % 2 == 0) {
+                            setColor(replayerController.politicalBuffer, p, color);
+                        }
+                    }
+                }
+                for (String id : to.owns) {
+                    final ProvinceInfo province = replayerController.provinces.get(id);
+                    for(int p : province.points) {
+                        if ( p / replayerController.bufferWidth % 2 == 1
+                                || !replayerController.notableEvents.contains("Controller")) {
+                            setColor(replayerController.politicalBuffer, p, color);
+                        }
+                    }
                 }
             }
         }
@@ -266,6 +355,22 @@ public class EventProcessor {
     }
 
     /**
+     * Processes become subject event.
+     * @param date date of the event
+     * @param subject become subject event
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean process(final Date date, final Subject subject) {
+        final CountryInfo subjectCountry = replayerController.countries.get(subject.tag);
+        subject.oldOverlord = subjectCountry.overlord;
+        final CountryInfo oldOverlord = replayerController.countries.get(subject.oldOverlord);
+        if (oldOverlord != null) {
+            oldOverlord.subjects.remove(subject.tag);
+        }
+        return changeOverlord(date, subject.tag, subject.newOverlord);
+    }
+
+    /**
      * Processes tag change event.
      * @param date date of the event
      * @param tagChange tag change event
@@ -289,7 +394,7 @@ public class EventProcessor {
         }
         boolean logChange = false;
         for(Event event : events) {
-            if (!replayerController.notableEvents.contains(event.getClass().getSimpleName()) && !(event instanceof TagChange)) {
+            if (!replayerController.notableEvents.contains(event.getClass().getSimpleName()) && !(event.getClass().isAnnotationPresent(AlwaysNotable.class))) {
                 continue;
             }
             final boolean appendToLog = event.beProcessed(date, this);
@@ -362,6 +467,20 @@ public class EventProcessor {
         final ProvinceInfo province = replayerController.provinces.get(religion.id);
         province.remove(religion);
         return changeReligion(date, religion.id, religion.previousValue);
+    }
+
+    /**
+     * Unprocesses become subject event.
+     * @param date date of the event
+     * @param subject become subject event
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean unprocess(final Date date, final Subject subject) {
+        final CountryInfo newOverlord = replayerController.countries.get(subject.newOverlord);
+        if (newOverlord != null) {
+            newOverlord.subjects.remove(subject.tag);
+        }
+        return changeOverlord(date, subject.tag, subject.oldOverlord);
     }
 
     /**

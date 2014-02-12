@@ -49,6 +49,7 @@ In province history there's sometimes missing record of regaining province contr
 Colonial nations existing on game start should be displayed correctly
 Encoding of input files changed to LATIN-1, so Osel etc should be displayed correctly
 Province information is reset on loading a save
+Added feature to display subjects (colonials, protectorates, vassals) as part of their overlords; set property subjects.as.overlord=true (thx to Toa Kraka for suggestion)
 
 1.3
 Fixed replaced_path, so games converted from CK2 actually work
@@ -56,7 +57,7 @@ Fixed replaced_path, so games converted from CK2 actually work
 1.2
 Updated to CoP
 Unfortunately no support for Randomized New World and problems with colonial nations (displayed on game start (ie non 1444 starts) as part of motherland)
-Add a bunch of new gif related properties:
+Add a bunch of new gif related properties (thx to ferluciCZ for suggesting this feature):
 gif.subimage as a flag that only section of the map should be exported to gif; other properties specify the exported part
 gif.subimage.x
 gif.subimage.y

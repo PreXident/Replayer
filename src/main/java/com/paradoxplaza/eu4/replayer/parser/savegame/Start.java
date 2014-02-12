@@ -34,6 +34,9 @@ class Start extends StartAdapter<SaveGame> {
     /** State processing countries. */
     final Countries countries = new Countries(this);
 
+    /** State processing diplomacy. */
+    final Diplomacy diplomacy = new Diplomacy(this);
+
     /** Current date in save game. */
     final Ref<Date> currentDate = new Ref<>();
 
@@ -77,6 +80,8 @@ class Start extends StartAdapter<SaveGame> {
                 return provinces;
             case "countries":
                 return countries;
+            case "diplomacy":
+                return diplomacy;
             default:
                 return ignore;
         }

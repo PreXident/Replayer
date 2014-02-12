@@ -14,6 +14,9 @@ public class CountryInfo {
     /** Country color. */
     public final int color;
 
+    /** Country's overlord. */
+    public String overlord = null;
+
     /** Set of provinces controlled by this country. */
     public final Set<String> controls = new HashSet<>();
 
@@ -23,6 +26,9 @@ public class CountryInfo {
     /** Date the country will be created by tag change. */
     public Date expectingTagChange = null;
 
+    /** Set of subject nations' tags. */
+    public final Set<String> subjects = new HashSet<>();
+
     /**
      * Only contructor.
      * @param tag country tag
@@ -31,5 +37,16 @@ public class CountryInfo {
     public CountryInfo(final String tag, final int color) {
         this.tag = tag;
         this.color = color;
+    }
+
+    /**
+     * Resets the country for new replay.
+     */
+    public void reset() {
+        controls.clear();
+        owns.clear();
+        expectingTagChange = null;
+        overlord = null;
+        subjects.clear();
     }
 }
