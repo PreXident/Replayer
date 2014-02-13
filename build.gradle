@@ -48,17 +48,17 @@ javafx {
 	mainClass = project.mainClassName
 }
 
-task runCopy(type: Copy) {
-	def props = file('dist/replayer.properties')
-	if (!props.exists()) {
-		from props
-	}
-	into 'build'
+run {
+	workingDir = 'build'
 }
 
-run {
-	it.dependsOn runCopy
-	workingDir = 'build'
+run.doFirst {
+	if (!file('build/replayer.properties').exists()) {
+		copy {
+			from 'dist/replayer.properties'
+			into 'build'
+		}
+	}
 }
 
 debug {
