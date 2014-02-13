@@ -76,9 +76,9 @@
 						<CustomMenuItem hideOnClick="false" text="Days Per Tick">
 							<content>
 								<HBox alignment="CENTER_LEFT" >
-									<Label text="Per Tick"/>
-									<ComboBox fx:id="daysCombo" editable="true"/>
-									<ComboBox fx:id="periodCombo" editable="true">
+									<Label styleClass="menu-label" text="Per Tick: " />
+									<ComboBox fx:id="daysCombo" editable="true" prefWidth="60" />
+									<ComboBox fx:id="periodCombo" editable="true" prefWidth="75">
 										<items>
 											<FXCollections fx:factory="observableArrayList">
 												<String fx:value="Days" />
@@ -96,8 +96,8 @@
 						<CustomMenuItem hideOnClick="false" text="Days Per Tick">
 							<content>
 								<HBox alignment="CENTER_LEFT" >
-									<Label text="Focus"/>
-									<TextField fx:id="focusEdit"/>
+									<Label styleClass="menu-label" text="Focus: "/>
+									<TextField fx:id="focusEdit" prefWidth="145"/>
 								</HBox>
 							</content>
 						</CustomMenuItem>
@@ -108,124 +108,124 @@
 						</MenuItem>
 						<SeparatorMenuItem/>
 						<Menu fx:id="eventMenu" text="Events">
-							<CustomMenuItem hideOnClick="false" text="Tax">
+							<CustomMenuItem text="Tax">
 								<content>
-									<CheckBox text="Base tax" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Base tax" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Building">
 								<content>
-									<CheckBox text="Building" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Building" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Capital">
 								<content>
-									<CheckBox text="Capital" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Capital" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="City">
 								<content>
-									<CheckBox text="City" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="City" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Claim">
 								<content>
-									<CheckBox text="Claim" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Claim" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="ColonySize">
 								<content>
-									<CheckBox text="Colony size" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Colony size" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Controller">
 								<content>
-									<CheckBox text="Controller" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Controller" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Core">
 								<content>
-									<CheckBox text="Core" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Core" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Culture">
 								<content>
-									<CheckBox text="Culture" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Culture" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Defender">
 								<content>
-									<CheckBox text="Defender" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Defender" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="EnableReligion">
 								<content>
-									<CheckBox text="Enable religion" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Enable religion" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Flag">
 								<content>
-									<CheckBox text="Flag" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Flag" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Garrison">
 								<content>
-									<CheckBox text="Garrison" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Garrison" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Goods">
 								<content>
-									<CheckBox text="Trade goods" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Trade goods" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Hre">
 								<content>
-									<CheckBox text="HRE" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="HRE" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Manpower">
 								<content>
-									<CheckBox text="Manpower" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Manpower" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Name">
 								<content>
-									<CheckBox text="Province name" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Province name" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="NativeFerocity">
 								<content>
-									<CheckBox text="Native ferocity" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Native ferocity" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="NativeHostileness">
 								<content>
-									<CheckBox text="Native hostileness" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Native hostileness" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="NativeSize">
 								<content>
-									<CheckBox text="Native size" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Native size" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="NewEmperor">
 								<content>
-									<CheckBox text="New emperor" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="New emperor" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Owner">
 								<content>
-									<CheckBox text="Owner" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Owner" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Religion">
 								<content>
-									<CheckBox text="Religion" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Religion" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="RevoltRisk">
 								<content>
-									<CheckBox text="Revolt risk" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="Revolt risk" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 						</Menu>
