@@ -49,23 +49,22 @@ public class EventProcessor {
         province.controller = newControllerTag;
         int color = replayerController.landColor;
         if (newController != null) {
+            newController.controls.add(province.id);
             if (newController.overlord != null
                     && replayerController.subjectsAsOverlords
                     && (!replayerController.focusing
                         || newController.overlord.equals(replayerController.focusTag)
                         || newController.tag.equals(replayerController.focusTag))) {
-                newController.controls.add(province.id);
                 color = replayerController.countries.get(newController.overlord).color;
             } else if (!replayerController.focusing
                     || newController.tag.equals(replayerController.focusTag)) {
-                newController.controls.add(province.id);
                 color = newController.color;
             }
         }
         if (replayerController.focusing
                 && !replayerController.focusTag.equals(newControllerTag)
                 && !replayerController.focusTag.equals(prevControllerTag)
-                && !replayerController.focusTag.equals(newController.overlord)) {
+                && (newController == null || !replayerController.focusTag.equals(newController.overlord))) {
             return false;
         }
         for(int p : province.points) {
@@ -104,7 +103,7 @@ public class EventProcessor {
             overlord.subjects.add(subjectTag);
         }
         if (replayerController.subjectsAsOverlords) {
-            int color = replayerController.landColor;
+            int color = replayerController.focusing ? replayerController.landColor : subject.color;
             if (overlord != null
                     && (!replayerController.focusing
                         || replayerController.focusTag.equals(newOverlordTag))) {
@@ -158,38 +157,37 @@ public class EventProcessor {
         }
         province.owner = newOwnerTag;
         province.controller = newControllerTag;
-        if (replayerController.focusing
-                && !replayerController.focusTag.equals(newOwnerTag)
-                && !replayerController.focusTag.equals(previousOwnerTag)) {
-            return false;
-        }
         int ownerColor = replayerController.landColor;
         if (newOwner != null) {
+            newOwner.owns.add(province.id);
             if (newOwner.overlord != null
                     && replayerController.subjectsAsOverlords
                     && (!replayerController.focusing
                         || newOwner.overlord.equals(replayerController.focusTag)
                         || newOwner.tag.equals(replayerController.focusTag))) {
-                newOwner.owns.add(province.id);
                 ownerColor = replayerController.countries.get(newOwner.overlord).color;
             } else if (!replayerController.focusing
                     || newOwner.tag.equals(replayerController.focusTag)) {
-                newOwner.owns.add(province.id);
                 ownerColor = newOwner.color;
             }
         }
+        if (replayerController.focusing
+                && !replayerController.focusTag.equals(newControllerTag)
+                && !replayerController.focusTag.equals(previousOwnerTag)
+                && (newController == null || !replayerController.focusTag.equals(newController.overlord))) {
+            return false;
+        }
         int controllerColor = replayerController.landColor;
         if (newController != null) {
+            newController.controls.add(province.id);
             if (newController.overlord != null
                     && replayerController.subjectsAsOverlords
                     && (!replayerController.focusing
                         || newController.overlord.equals(replayerController.focusTag)
                         || newController.tag.equals(replayerController.focusTag))) {
-                newController.controls.add(province.id);
                 controllerColor = replayerController.countries.get(newController.overlord).color;
             } else if (!replayerController.focusing
                     || newController.tag.equals(replayerController.focusTag)) {
-                newController.controls.add(province.id);
                 controllerColor = newController.color;
             }
         }
