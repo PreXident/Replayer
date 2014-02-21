@@ -96,6 +96,7 @@ public class Replayer extends Application {
             if (dir == null) {
                 System.out.println("No dir specified! Exiting...");
                 Platform.exit();
+                return;
             } else {
                 settings.put("eu4.dir", dir.getPath());
             }
@@ -149,7 +150,9 @@ public class Replayer extends Application {
     @Override
     public void stop() {
         System.out.println("Closing...\n");
-        controller.stop();
+        if (controller != null) {
+            controller.stop();
+        }
         if (!propertyFile.equals("-")) {
             try (final OutputStream os = new FileOutputStream(propertyFile)) {
                 settings.store(os, null);
