@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.events.Event;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.awt.Point;
 import java.util.ArrayList;
@@ -67,6 +68,7 @@ public class ProvinceInfo {
 
     /**
      * Computes the center of the province as a mean of pixel coordinates.
+     * @param mapWidth width of the map
      */
     public void calculateCenter(final int mapWidth) {
         if (points.isEmpty()) {
@@ -99,10 +101,11 @@ public class ProvinceInfo {
      */
     public String getLog() {
         return String.format(
-                "<html><body" +
-                    "<p>id=%1$s<br>name=%2$s<br>controller=%3$s<br>owner=%4$s<br>religion=%5$s<br>culture=%6$s</p>" +
-                    "<p>%7$s</p>" +
-                "<body></html>",
+                    String.format(
+                        "<html><body>" +
+                            "<p>%1$s</p>" +
+                            "<p>%%7$s</p>" +
+                        "</body></html>", l10n("province.log")),
                 id, name, controller, owner, religion, culture, eventLog());
     }
 
@@ -133,7 +136,7 @@ public class ProvinceInfo {
     @Override
     public String toString() {
         return String.format(
-                "id=%1$s\nname=%2$s\ncontroller=%3$s\nowner=%4$s\nreligion=%5$s\nculture=%6$s",
+                l10n("province.string"),
                 id, name, controller, owner, religion, culture);
     }
 }

@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+
 /**
  * Represents one date.
  */
@@ -32,7 +34,7 @@ public class Date implements Comparable<Date> {
      */
     static void checkDate(short year, byte month, byte day) {
         if (year < 1 || month < 1 || month > 12 || day < 1 || day > monthsDays[month-1]) {
-            throw new IllegalArgumentException(String.format("Invalid date: %1$s.%2$s.%3$s", year, month, day));
+            throw new IllegalArgumentException(String.format(l10n("date.invalid.3"), year, month, day));
         }
     }
 
@@ -101,14 +103,14 @@ public class Date implements Comparable<Date> {
         //this.setDate(date);
         final String[] s = date.split("\\.");
         if (s.length != 3) {
-            throw new IllegalArgumentException(String.format("Invalid date: %1$s", date));
+            throw new IllegalArgumentException(String.format(l10n("date.invalid.1"), date));
         }
         try {
             year = Short.parseShort(s[0]);
             month = Byte.parseByte(s[1]);
             day = Byte.parseByte(s[2]);
         } catch(NumberFormatException e) {
-            throw new IllegalArgumentException(String.format("Invalid date: %1$s", date), e);
+            throw new IllegalArgumentException(String.format(l10n("date.invalid.1"), date), e);
         }
         checkDate(year, month, day);
     }

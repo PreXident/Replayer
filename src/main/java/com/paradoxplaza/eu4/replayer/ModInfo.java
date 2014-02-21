@@ -26,6 +26,7 @@ public class ModInfo {
      * @param name mod name
      * @param dir path to mod directory
      * @param archive  mod zip archive
+     * @param replacePath replaced directories
      */
     public ModInfo(final String name, final String dir, final String archive,
             final Set<String> replacePath) {

@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.mod.ModParser;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -60,7 +61,7 @@ class FileManager {
                     return new ByteArrayInputStream(buffer);
                 }
             } else {
-                System.err.printf("Mod '%s' has no path nor archive!\n", mod.name);
+                System.err.printf(l10n("mod.error"), mod.name);
             }
         }
         final String filePath = controller.eu4Directory + "/" + path;
@@ -112,7 +113,7 @@ class FileManager {
             } else if (mod.archive != null) {
                 listZip(mod.zip, directory, streams, files);
             } else {
-                System.err.printf("Mod '%s' has no path nor archive!\n", mod.name);
+                System.err.printf(l10n("mod.error"), mod.name);
             }
         }
         if (!replaced) {

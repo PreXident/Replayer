@@ -4,6 +4,7 @@ import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.SimpleProvinceEvent;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.colregion.ColRegionParser;
 import com.paradoxplaza.eu4.replayer.parser.country.CountryParser;
 import com.paradoxplaza.eu4.replayer.parser.culture.CulturesParser;
@@ -505,7 +506,7 @@ public class ReplayerController implements Initializable {
         }
         pause();
         final DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Select EU4 directory");
+        directoryChooser.setTitle(l10n("app.eu4dir.select"));
         if (eu4Directory != null && eu4Directory.exists() && eu4Directory.isDirectory()) {
             directoryChooser.setInitialDirectory(eu4Directory);
         }
@@ -546,8 +547,8 @@ public class ReplayerController implements Initializable {
             Date gifTarget;
 
             {
-                updateInitFormat = "Finishing gameplay...";
-                updateDoneFormat = "Fast forward done!";
+                updateInitFormat = l10n("replay.finishing");
+                updateDoneFormat = l10n("replay.fastforward.done");
                 gifTarget = dateGenerator.dateProperty().get().skip(period, deltaPerTick);
             }
 
@@ -615,7 +616,7 @@ public class ReplayerController implements Initializable {
             final Date target = new Date(dateLabel.getText());
             direction = null;
             if (target.compareTo(dateGenerator.min) < 0 || target.compareTo(dateGenerator.max) > 0) {
-                statusLabel.setText("Date outside save game!");
+                statusLabel.setText(l10n("replay.jump.outside"));
                 lock.release();
                 return;
             }
@@ -706,7 +707,7 @@ public class ReplayerController implements Initializable {
             progressBar.progressProperty().bind(finalizer.progressProperty());
             new Thread(finalizer, "Jumper").start();
         } catch (Exception e) {
-            statusLabel.setText("Cannot parse date!");
+            statusLabel.setText(l10n("replay.jump.parse.error"));
             lock.release();
         }
     }
@@ -719,10 +720,10 @@ public class ReplayerController implements Initializable {
         pause();
         final FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(saveDirectory);
-        fileChooser.setTitle("Select EU4 save to replay");
+        fileChooser.setTitle(l10n("replay.eu4save.select"));
 
         //Set extension filter
-        final FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("EU4 saves (*.eu4)", "*.eu4");
+        final FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(l10n("replay.eu4save.ext"), "*.eu4");
         fileChooser.getExtensionFilters().add(extFilter);
 
         //Show open file dialog
@@ -754,7 +755,7 @@ public class ReplayerController implements Initializable {
             final Task<Void> mapInitializer = new Task<Void>() {
                 @Override
                 protected Void call() throws Exception {
-                    updateTitle("Initializing map...");
+                    updateTitle("replay.map.init");
                     final int width = (int) map.getWidth();
                     final int height = (int) map.getHeight();
 
@@ -786,7 +787,7 @@ public class ReplayerController implements Initializable {
                     output.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), buffer, 0, width);
                     statusLabel.textProperty().bind(parser.titleProperty());
                     progressBar.progressProperty().bind(parser.progressProperty());
-                    new Thread(parser, "parser").start();
+                    new Thread(parser, "Parser").start();
                 }
             });
 
@@ -794,10 +795,10 @@ public class ReplayerController implements Initializable {
                 @Override
                 protected Void call() throws Exception {
                     dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
-                    updateTitle("Initializing world...");
+                    updateTitle("replay.world.init");
                     notLogUpdatingProcessor.processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)));
                     //
-                    updateTitle("Progressing to starting date...");
+                    updateTitle(l10n("replay.progressing"));
                     final Date maxDate = saveGame.startDate;
                     Date date = new Date(settings.getProperty("init.start", "1300.1.1"));
                     int day = 0;
@@ -810,7 +811,7 @@ public class ReplayerController implements Initializable {
                     }
                     //fix colonial nations
                     if (settings.getProperty("fix.colonials", "true").equals("true")) {
-                        updateTitle("Fixing colonial nations...");
+                        updateTitle(l10n("replay.colonials.fix"));
                         int colRegCounter = 0;
                         final Date magicalDate = new Date(settings.getProperty("fix.colonials.date", "1444.11.11"));
                         for (ColRegionInfo colreg : colRegions.values()) {
@@ -875,7 +876,7 @@ public class ReplayerController implements Initializable {
                     imageView.setImage(output);
                     new JavascriptBridge().prov(settings.getProperty("center.id", "1"));
                     statusLabel.textProperty().unbind();
-                    statusLabel.setText("Save game loaded");
+                    statusLabel.setText(l10n("replay.save.loaded"));
                     lock.release();
                 }
             });
@@ -904,10 +905,10 @@ public class ReplayerController implements Initializable {
                         if (country != null) {
                             country.expectingTagChange = change.getValue();
                         } else {
-                            System.err.printf("Unknown tag '%s' in tag changes!\n", tag);
+                            System.err.printf(l10n("replay.tagchange.unknowntag"), tag);
                         }
                     }
-                    new Thread(starter, "starter").start();
+                    new Thread(starter, "Starter").start();
                 }
             });
 
@@ -923,7 +924,7 @@ public class ReplayerController implements Initializable {
 
             statusLabel.textProperty().bind(mapInitializer.titleProperty());
             progressBar.progressProperty().bind(mapInitializer.progressProperty());
-            new Thread(mapInitializer, "mapInitializer").start();
+            new Thread(mapInitializer, "MapInitializer").start();
         } catch (Exception e) { e.printStackTrace(); }
     }
 
@@ -1076,7 +1077,7 @@ public class ReplayerController implements Initializable {
 
     @Override
     public void initialize(final URL url, final ResourceBundle rb) {
-        System.out.printf("Initializing...\n");
+        System.out.printf(l10n("replay.initializating"));
         log.prefWidthProperty().bind(logContainer.widthProperty());
         provinceLog.prefWidthProperty().bind(provinceContainer.widthProperty());
         progressBar.prefWidthProperty().bind(bottom.widthProperty());
@@ -1248,7 +1249,7 @@ public class ReplayerController implements Initializable {
 
         log.setContextMenuEnabled(false); //throws exception when in fxml
         final ContextMenu cm = new ContextMenu();
-        final MenuItem clearLog = new MenuItem("Clear log");
+        final MenuItem clearLog = new MenuItem(l10n("replay.log.clear"));
         clearLog.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
@@ -1406,7 +1407,7 @@ public class ReplayerController implements Initializable {
      * Loads colonial regions from files inside /common/colonial_regions.
      */
     private void loadColRegions() {
-        System.out.printf("Loading colonial regions...\n");
+        System.out.printf(l10n("replay.load.colonials"));
         colRegions.clear();
         for(final InputStream cultureStream : fileManager.listFiles("common/colonial_regions")) {
             try (final InputStream is = cultureStream) {
@@ -1421,7 +1422,7 @@ public class ReplayerController implements Initializable {
      * and files mentioned in them.
      */
     private void loadCountries() {
-        System.out.printf("Loading countries...\n");
+        System.out.printf(l10n("replay.load.countries"));
         countries.clear();
 
         for (final InputStream is : fileManager.listFiles("common/country_tags")) {
@@ -1450,7 +1451,7 @@ public class ReplayerController implements Initializable {
      * Loads religion colors from common/religions/*.
      */
     private void loadCultures() {
-        System.out.printf("Loading cultures...\n");
+        System.out.printf(l10n("replay.load.cultures"));
         cultures.clear();
         for(final InputStream cultureStream : fileManager.listFiles("common/cultures")) {
             try (final InputStream is = cultureStream) {
@@ -1464,7 +1465,7 @@ public class ReplayerController implements Initializable {
      * Loads data in proper order.
      */
     private void loadData() {
-        System.out.printf("Loading data:\n");
+        System.out.printf(l10n("replay.load.data"));
         titleProperty.set(TITLE);
         fileManager.loadMods();
         loadDefines();
@@ -1478,7 +1479,7 @@ public class ReplayerController implements Initializable {
     }
 
     private void loadDefines() {
-        System.out.printf("Loading defines...\n");
+        System.out.printf(l10n("replay.load.defines"));
         try (final InputStream is = fileManager.getInputStream("common/defines.lua")) {
             final DefinesParser parser = new DefinesParser(defines, Long.MAX_VALUE, is);
             parser.run();
@@ -1489,18 +1490,18 @@ public class ReplayerController implements Initializable {
      * Starts loading the map from map/provinces.bmp.
      */
     private void loadMap() {
-        System.out.println("Loading map...");
+        System.out.printf(l10n("replay.map.load"));
         final Task<Void> mapLoader = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                updateTitle("Loading map...");
+                updateTitle(l10n("replay.map.load"));
                 try {
                     InputStream is = null;
                     try {
                         is = fileManager.getInputStream("map/provinces.bmp");
                         map = new Image(is);
                     } catch (FileNotFoundException e) {
-                        System.err.println("File map/provinces.bmp not found!");
+                        System.err.printf(l10n("replay.map.notfound"));
                         map = new WritableImage(1,1);
                     } finally {
                         if (is != null) {
@@ -1560,7 +1561,7 @@ public class ReplayerController implements Initializable {
                                 if (id != null) {
                                     provinces.get(id).points.add(y * width + x);
                                 } else {
-                                    System.err.printf("[%s,%s] Unknown color: 0x%x\n", x, y, color);
+                                    System.err.printf(l10n("replay.map.unknowncolor"), x, y, color);
                                 }
                             }
                             politicalBuffer[y * width + x] = color;
@@ -1588,11 +1589,11 @@ public class ReplayerController implements Initializable {
         mapLoader.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent t) {
-                System.out.println("Map loaded");
+                System.out.printf(l10n("replay.map.loaded"));
                 progressBar.progressProperty().unbind();
                 progressBar.setProgress(0);
                 statusLabel.textProperty().unbind();
-                statusLabel.setText("Map loaded");
+                statusLabel.setText(l10n("replay.map.loaded"));
                 scrollPane.setContent(null);
                 imageView.setImage(output);
                 scrollPane.setContent(imageView);
@@ -1602,14 +1603,14 @@ public class ReplayerController implements Initializable {
                 imageView.setFitWidth(fitWidth);
             }
         });
-        new Thread(mapLoader, "mapLoader").start();
+        new Thread(mapLoader, "MapLoader").start();
     }
 
     /**
      * Loads provinces from map/definition.csv.
      */
     private void loadProvinces() {
-        System.out.printf("Loading provinces...\n");
+        System.out.printf(l10n("replay.provinces.load"));
         provinces.clear();
         BufferedReader reader = null;
         try {
@@ -1626,12 +1627,12 @@ public class ReplayerController implements Initializable {
                 provinces.put(parts[0], new ProvinceInfo(parts[0], parts[4], color));
                 final String original = colors.put(color, parts[0]);
                 if (original != null) {
-                    throw new RuntimeException(String.format("Provinces %1$s and %2$s share a color!", parts[0], original));
+                    throw new RuntimeException(String.format(l10n("replay.provinces.error"), parts[0], original));
                 }
                 line = reader.readLine();
             }
         } catch (FileNotFoundException e) {
-            System.err.println("File map/definition.csv not found!");
+            System.err.printf(l10n("replay.provinces.notfound"));
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
@@ -1648,7 +1649,7 @@ public class ReplayerController implements Initializable {
      * Loads religion colors from common/religions/*.
      */
     private void loadReligions() {
-        System.out.printf("Loading religions...\n");
+        System.out.printf(l10n("replay.load.religions"));
         religions.clear();
         for(final InputStream religionStream : fileManager.listFiles("common/religions")) {
             try (final InputStream is = religionStream) {
@@ -1662,7 +1663,7 @@ public class ReplayerController implements Initializable {
      * Loads sea provinces from map/default.map.
      */
     private void loadSeas() {
-        System.out.printf("Loading seas...\n");
+        System.out.printf(l10n("replay.load.seas"));
         seas.clear();
         try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/default.map")) {
             final DefaultMapParser parser = new DefaultMapParser(new Pair<>(seas, provinces), Long.MAX_VALUE, is);
@@ -1759,7 +1760,7 @@ public class ReplayerController implements Initializable {
                     eventProcessor.unprocessEvents(newVal.next(), events);
                     break;
                 default:
-                    assert false : "invalid replay direction";
+                    assert false : l10n("replay.direction.unknown");
             }
         }
     }
@@ -1795,10 +1796,10 @@ public class ReplayerController implements Initializable {
     abstract class Jumper extends Task<Void> {
 
         /** Title when jumping. */
-        protected String updateInitFormat = "Jumping to %s";
+        protected String updateInitFormat = l10n("replay.jumping");
 
         /** Title when jumped. */
-        protected String updateDoneFormat = "Jumped to %s";
+        protected String updateDoneFormat = l10n("replay.jumped");
 
         /** Last date that was processed. */
         protected Date currentDate;
@@ -1872,7 +1873,7 @@ public class ReplayerController implements Initializable {
             if (!isCancelled()) {
                 updateTitle(String.format(updateDoneFormat, target));
             } else {
-                updateTitle("Cancelled!");
+                updateTitle(l10n("replay.cancel"));
             }
             return null;
         }

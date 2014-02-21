@@ -40,3 +40,5 @@ fix.colonials=true
 fix.colonials.date=1444.11.11
 #flag indicating whether subjugated nations should be displayed in overlord's color
 subjects.as.overlord=false
+#localization
+locale.language=en

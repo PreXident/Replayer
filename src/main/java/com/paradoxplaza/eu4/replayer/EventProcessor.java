@@ -8,6 +8,7 @@ import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.Religion;
 import com.paradoxplaza.eu4.replayer.events.Subject;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import java.util.LinkedList;
 
 /**
@@ -135,6 +136,7 @@ public class EventProcessor {
      * @param date date of change
      * @param provinceID province id
      * @param newOwnerTag new owner
+     * @param newControllerTag new controller
      * @return true if event should be logged, false otherwise
      */
     public boolean changeOwner(final Date date,
@@ -142,7 +144,6 @@ public class EventProcessor {
         final ProvinceInfo province = replayerController.provinces.get(provinceID);
         final CountryInfo previousOwner = replayerController.countries.get(province.owner);
         final String previousOwnerTag = province.owner;
-        final String previousControllerTag = province.controller;
         final CountryInfo previousController = replayerController.countries.get(province.controller);
         final CountryInfo newOwner = replayerController.countries.get(newOwnerTag);
         final CountryInfo newController = replayerController.countries.get(newControllerTag);
@@ -387,7 +388,7 @@ public class EventProcessor {
      */
     public final void processEvents(final Date date, final Iterable<? extends Event> events) {
         if (events == null) {
-            System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
+            System.out.printf("[%1$s]: %2$s\n", date, l10n("event.nothing"));
             return;
         }
         boolean logChange = false;
@@ -398,14 +399,14 @@ public class EventProcessor {
             final boolean appendToLog = event.beProcessed(date, this);
             if (appendToLog) {
                 logChange = true;
-                System.out.println(String.format("[%1$s]: %2$s", date, event));
+                System.out.printf("[%1$s]: %2$s\n", date, event);
                 replayerController.logContent.append(String.format("[%1$s]: %2$#s<br>", date, event));
             }
         }
         if (logChange) {
             updateLog();
         } else {
-            System.out.println(String.format("[%1$s]: %2$s", date, "nothing happened"));
+            System.out.printf("[%1$s]: %2$s\n", date, l10n("event.nothing"));
         }
     }
 
@@ -500,7 +501,7 @@ public class EventProcessor {
      */
     public final void unprocessEvents(final Date date, final Iterable<Event> events) {
         if (events == null) {
-            System.out.println(String.format("![%1$s]: %2$s", date, "nothing happened"));
+            System.out.printf("![%1$s]: %2$s\n", date, l10n("event.nothing"));
             return;
         }
         boolean logChange = false;
@@ -516,14 +517,14 @@ public class EventProcessor {
             final boolean appendToLog = event.beUnprocessed(date, this);
             if (appendToLog) {
                 logChange = true;
-                System.out.println(String.format("![%1$s]: %2$s", date, event));
+                System.out.printf("![%1$s]: %2$s\n", date, event);
                 replayerController.logContent.append(String.format("<i>![%1$s]: %2$#s<i><br>", date, event));
             }
         }
         if (logChange) {
             updateLog();
         } else {
-            System.out.println(String.format("![%1$s]: %2$s", date, "nothing happened"));
+            System.out.printf("![%1$s]: %2$s", date, l10n("event.nothing"));
         }
     }
 
@@ -531,6 +532,7 @@ public class EventProcessor {
      * Sets ownerColor of the map.
      * Intented to be overridden by descendants if only
      * buffer/output image/nothing should be updated.
+     * @param buffer contains the map
      * @param pos index into buffer
      * @param color color to paint with
      */

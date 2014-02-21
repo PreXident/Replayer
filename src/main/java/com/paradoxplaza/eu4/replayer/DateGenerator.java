@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import java.util.Iterator;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -82,7 +83,7 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
 
     @Override
     public Date next() {
-        assert hasNext(): "No next date!";
+        assert hasNext(): l10n("generator.next.error");
         date.set(date.get().next());
         progress.set(++day/distance);
         return date.get();
@@ -93,7 +94,7 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
      * @return new date one day back
      */
     public Date prev() {
-        assert hasPrev() : "No previous date!";
+        assert hasPrev() : l10n("generator.prev.error");
         date.set(date.get().prev());
         progress.set(--day/distance);
         return date.get();
@@ -105,7 +106,7 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
      */
     public void skipTo(final Date date) {
         if (min.compareTo(date) > 0 || max.compareTo(date) < 0) {
-            throw new IllegalArgumentException("Cannot skip to Date outside the period!");
+            throw new IllegalArgumentException(l10n("generator.period.error"));
         }
         this.date.set(date);
         day = Date.calculateDistance(min, date);

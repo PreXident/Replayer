@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.localization.Localizator;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.utils.UnclosableStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,9 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -52,49 +54,48 @@ public class Replayer extends Application {
 
     @Override
     public void start(final Stage stage) throws Exception {
-        System.out.printf("Starting...\n");
+        System.out.printf(l10n("app.starting"));
         //load default properties
         settings = new Properties(loadDefaultJarProperties());
+        resetDefaultLocale(settings.getProperty("locale.language"));
 
         //parse arguments from command line, ie. load property file
         final List<String> args = getParameters().getRaw();
         if (helpNeeded(args)) {
-            //TODO
-            System.out.printf("USAGE: java -jar replayer.jar [property_file]\n");
-            System.out.printf("If property_file argument is not provided, default property file \"%s\" will be used\n", DEFAULT_PROPERTIES);
-            System.out.printf("If property_file argument is '-', standard input will be read\n");
+            System.out.printf(l10n("app.usage"), DEFAULT_PROPERTIES);
             System.exit(0);
         }
         if (args.size() == 1) {
-            System.out.printf("Loading property file\n");
             propertyFile = args.get(0);
+            System.out.printf(l10n("app.properties.loading"), propertyFile);
             try (final InputStream is =
                     propertyFile.equals("-") ? new UnclosableStream(System.in)
                         : new FileInputStream(propertyFile)) {
             	 settings.load(is);
             } catch(Exception e) {
-                System.err.printf("Error with specified property file\n");
+                System.err.printf(l10n("app.properties.error"), propertyFile);
                 e.printStackTrace();
             }
         } else /*if (args.length == 0)*/ { //no property file provided
-            System.out.printf("No property file specified, using default path.\n");
             propertyFile = DEFAULT_PROPERTIES;
+            System.out.printf(l10n("app.properties.default"), propertyFile);
             try (final InputStream is = new FileInputStream(DEFAULT_PROPERTIES)) {
                 settings.load(is);
             } catch(Exception e) {
-                System.err.printf(String.format("Error with default property file \"%s\"\n", DEFAULT_PROPERTIES));
+                System.err.printf(l10n("app.properties.error"), propertyFile);
                 e.printStackTrace();
             }
         }
+        resetDefaultLocale(settings.getProperty("locale.language"));
 
         //ask for eu4 directory if property is not valid
         final String eu4dir = settings.getProperty("eu4.dir");
         if (eu4dir == null || !new File(eu4dir).exists()) {
             final DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle("Select EU4 directory");
+            directoryChooser.setTitle(l10n("app.eu4dir.select"));
             final File dir = directoryChooser.showDialog(null);
-            if (dir == null) {
-                System.out.println("No dir specified! Exiting...");
+            if (dir == null || !dir.exists()) {
+                System.out.printf(l10n("app.eu4dir.error"));
                 System.exit(-1);
             } else {
                 settings.put("eu4.dir", dir.getPath());
@@ -102,7 +103,7 @@ public class Replayer extends Application {
         }
 
         //create javafx controls
-        final FXMLLoader loader = new FXMLLoader(getClass().getResource("Replayer.fxml"));
+        final FXMLLoader loader = new FXMLLoader(getClass().getResource("Replayer.fxml"), Localizator.getInstance().getResourceBundle());
         final Parent root = (Parent) loader.load();
         controller = loader.getController();
         controller.setSettings(settings);
@@ -135,7 +136,7 @@ public class Replayer extends Application {
      * @return default properties
      */
     private Properties loadDefaultJarProperties() {
-        System.out.printf("Loading default properties.\n");
+        System.out.printf(l10n("app.properties.jar"));
         final Properties res = new Properties();
         try {
             res.load(getClass().getClassLoader().getResourceAsStream(DEFAULT_JAR_PROPERTIES));
@@ -146,15 +147,27 @@ public class Replayer extends Application {
         return res;
     }
 
+    /**
+     * Resets default locale and {@link Localizer} if langCode is not null.
+     * @param langCode new default locale language code
+     */
+    private void resetDefaultLocale(final String langCode) {
+        if (langCode != null) {
+            Locale.setDefault(new Locale(langCode));
+            Localizator.getInstance().reloadResourceBundle();
+        }
+    }
+
     @Override
     public void stop() {
-        System.out.println("Closing...\n");
+        System.out.printf(l10n("app.closing"));
         controller.stop();
         if (!propertyFile.equals("-")) {
+            System.out.printf(l10n("app.properties.store"), propertyFile);
             try (final OutputStream os = new FileOutputStream(propertyFile)) {
                 settings.store(os, null);
             } catch(IOException e) {
-                System.err.printf("Error while storing settings to \"%1$s\"", propertyFile);
+                System.err.printf(l10n("app.properties.store.error"), propertyFile);
                 e.printStackTrace();
             }
         }
