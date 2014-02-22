@@ -755,7 +755,7 @@ public class ReplayerController implements Initializable {
             final Task<Void> mapInitializer = new Task<Void>() {
                 @Override
                 protected Void call() throws Exception {
-                    updateTitle("replay.map.init");
+                    updateTitle(l10n("replay.map.init"));
                     final int width = (int) map.getWidth();
                     final int height = (int) map.getHeight();
 
@@ -795,7 +795,7 @@ public class ReplayerController implements Initializable {
                 @Override
                 protected Void call() throws Exception {
                     dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
-                    updateTitle("replay.world.init");
+                    updateTitle(l10n("replay.world.init"));
                     notLogUpdatingProcessor.processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)));
                     //
                     updateTitle(l10n("replay.progressing"));

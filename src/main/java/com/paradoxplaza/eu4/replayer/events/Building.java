@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import static java.util.FormattableFlags.ALTERNATE;
 import java.util.Formatter;
 
@@ -9,7 +10,19 @@ import java.util.Formatter;
 public class Building extends ProvinceEvent {
 
     /** Possible types of building event. */
-    enum Type { BUILT, DESTROYED;
+    enum Type {
+        BUILT {
+            @Override
+            public String toString() {
+                return l10n("building.built");
+            }
+        },
+        DESTROYED {
+            @Override
+            public String toString() {
+                return l10n("building.destroyed");
+            }
+        };
         static Type fromString(final String string) {
             switch (string) {
                 case "yes":
@@ -17,7 +30,7 @@ public class Building extends ProvinceEvent {
                 case "no":
                     return DESTROYED;
                 default:
-                    throw new IllegalArgumentException(String.format("Unknown building type %1$s", string));
+                    throw new IllegalArgumentException(String.format(l10n("building.unknown"), string));
             }
         }
     }
@@ -46,12 +59,12 @@ public class Building extends ProvinceEvent {
         if ((flags & ALTERNATE) != ALTERNATE) {
             formatter.format(toString());
         } else {
-            formatter.format("Building %1$s %2$s in province <a href=\"#\" onclick=\"return java.prov(this.textContent)\">%3$s</a> (%4$s)", building, type, id, name);
+            formatter.format(l10n("building.log"), building, type, "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name);
         }
     }
 
     @Override
     public String toString() {
-        return String.format("Building %1$s %2$s in province %3$s (%4$s)", building, type, id, name);
+        return String.format(l10n("building.log"), building, type, id, name);
     }
 }
