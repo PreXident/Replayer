@@ -1,5 +1,8 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import com.paradoxplaza.eu4.replayer.Date;
+import com.paradoxplaza.eu4.replayer.EventProcessor;
+
 /**
  * Event associated with province.
  */
@@ -19,5 +22,15 @@ public abstract class ProvinceEvent extends Event {
     public ProvinceEvent(final String id, final String name) {
         this.id = id;
         this.name = name;
+    }
+
+    @Override
+    public boolean beProcessed(final Date date, final EventProcessor processor) {
+        return processor.process(date, this);
+    }
+
+    @Override
+    public boolean beUnprocessed(final Date date, final EventProcessor processor) {
+        return processor.unprocess(date, this);
     }
 }
