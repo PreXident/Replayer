@@ -11,7 +11,7 @@ class EmptyResourceBundle extends ResourceBundle {
 
     @Override
     protected Object handleGetObject(final String key) {
-        return key;
+        return "${" + key + "}";
     }
 
     @Override

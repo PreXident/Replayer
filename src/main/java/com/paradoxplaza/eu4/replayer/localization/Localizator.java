@@ -78,7 +78,7 @@ public class Localizator {
             } else {
                 System.err.printf(localize(KEY_NOT_FOUND), key);
             }
-            return key;
+            return "${" + key + "}";
         }
     }
 

@@ -101,12 +101,14 @@ public class ProvinceInfo {
      */
     public String getLog() {
         return String.format(
-                    String.format(
-                        "<html><body>" +
-                            "<p>%1$s</p>" +
-                            "<p>%%7$s</p>" +
-                        "</body></html>", l10n("province.log")),
-                id, name, controller, owner, religion, culture, eventLog());
+                "<html><body>" +
+                    "<p>%8$s=%1$s<br>%9$s=%2$s<br>%10$s=%3$s<br>%11$s=%4$s<br>%12$s=%5$s<br>%13$s=%6$s</p>" +
+                    "<p>%7$s</p>" +
+                "</body></html>",
+                id, name, controller, owner, religion, culture, eventLog(),
+                l10n("province.log.id"), l10n("province.log.name"),
+                l10n("province.log.controller"), l10n("province.log.owner"),
+                l10n("province.log.religion"), l10n("province.log.culture"));
     }
 
     /**
@@ -136,7 +138,10 @@ public class ProvinceInfo {
     @Override
     public String toString() {
         return String.format(
-                l10n("province.string"),
-                id, name, controller, owner, religion, culture);
+                "%7$s=%1$s\n%8$s=%2$s\n%9$s=%3$s\n%10$s=%4$s\n%11$s=%5$s\n%12$s=%6$s",
+                id, name, controller, owner, religion, culture,
+                l10n("province.log.id"), l10n("province.log.name"),
+                l10n("province.log.controller"), l10n("province.log.owner"),
+                l10n("province.log.religion"), l10n("province.log.culture"));
     }
 }
