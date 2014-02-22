@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+
 /**
  * Country becomes a vassal.
  */
@@ -16,6 +18,6 @@ public class Vassal extends Subject {
 
     @Override
     public String toString() {
-        return String.format("Country %1$s becomes vassal of %2$s", tag, newOverlord);
+        return String.format(l10n("event.vassal"), tag, newOverlord);
     }
 }

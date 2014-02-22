@@ -103,6 +103,8 @@
 	<target name="run" depends="dist">
 		<java fork="true" jar="${dir.dist}/${file.dist}" dir="${dir.dist}">
 			<jvmarg line="-Djavafx.autoproxy.disable=true"/>
+			<jvmarg line="-Xms1024m"/>
+			<jvmarg line="-Xmx1024m"/>
 		</java>
 	</target>
 

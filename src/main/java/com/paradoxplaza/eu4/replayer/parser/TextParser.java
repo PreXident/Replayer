@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.utils.PositionInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,14 +85,9 @@ public class TextParser<Context> extends Task<Context> {
                 ++counter;
             } while (!eof && !isCancelled());
             state.end(context);
-        } catch (IOException e) {
-            final IOException newEx = new IOException(
-                    String.format("Encountered IOException on line %1$d when processing token number %2$d:\n", tokenizer.lineno(), counter), e);
-            newEx.printStackTrace();
-            throw newEx;
         } catch (Exception e) {
             final RuntimeException newEx = new RuntimeException(
-                    String.format("Encountered exception on line %1$d when processing token number %2$d:\n", tokenizer.lineno(), counter), e);
+                    String.format(l10n("parser.exception"), tokenizer.lineno(), counter), e);
             newEx.printStackTrace();
             throw newEx;
         }

@@ -41,7 +41,7 @@ public abstract class SimpleProvinceEvent extends ProvinceEvent {
         } else {
             formatter.format(
                     l10n("event.province." + type),
-                    "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "/a>", name, value);
+                    "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name, value);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.defines;
 
 import com.paradoxplaza.eu4.replayer.DefinesInfo;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.StartAdapter;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import java.util.Map;
@@ -20,7 +21,7 @@ class Start extends StartAdapter<DefinesInfo> {
 
     @Override
     public State<DefinesInfo> processChar(final DefinesInfo context, final char token) {
-        throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_VALUE, token, "NDefines"));
+        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_VALUE), token, "NDefines"));
     }
 
     @Override
@@ -28,6 +29,6 @@ class Start extends StartAdapter<DefinesInfo> {
         if (word.equals("NDefines")) {
             return defines;
         }
-        throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_VALUE, word, "NDefines"));
+        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_VALUE), word, "NDefines"));
     }
 }

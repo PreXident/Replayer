@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.mod;
 
 import com.paradoxplaza.eu4.replayer.ModInfo;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.parser.RepeatableValueState;
 import com.paradoxplaza.eu4.replayer.parser.StartAdapter;
@@ -41,7 +42,7 @@ public class Start extends StartAdapter<List<ModInfo>> {
 
     @Override
     public State<List<ModInfo>> processChar(final List<ModInfo>  context, final char token) {
-        throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, "name|path|archive|replace_path"));
+        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, "name|path|archive|replace_path"));
     }
 
     @Override

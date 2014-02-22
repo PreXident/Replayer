@@ -20,212 +20,222 @@
 		<VBox>
 			<MenuBar fx:id="menuBar" >
 				<menus>
-					<Menu text="File" >
-						<MenuItem text="Load" onAction="#load">
+					<Menu text="%fxml.file" >
+						<MenuItem text="%fxml.file.load" onAction="#load">
 							<accelerator>
 								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP"  code="L"/>
 							</accelerator>
 						</MenuItem>
 						<SeparatorMenuItem />
-						<MenuItem text="Close" onAction="#close">
+						<MenuItem text="%fxml.file.close" onAction="#close">
 							<accelerator>
 								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="X"/>
 							</accelerator>
 						</MenuItem>
 					</Menu>
-					<Menu text="Display">
-						<MenuItem text="Zoom In" onAction="#zoomIn">
+					<Menu text="%fxml.display">
+						<MenuItem text="%fxml.display.zoom.in" onAction="#zoomIn">
 							<accelerator>
 								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="ADD"/>
 							</accelerator>
 						</MenuItem>
-						<MenuItem text="Zoom Out" onAction="#zoomOut">
+						<MenuItem text="%fxml.display.zoom.out" onAction="#zoomOut">
 							<accelerator>
 								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="SUBTRACT"/>
 							</accelerator>
 						</MenuItem>
-						<MenuItem text="Reset Zoom" onAction="#resetZoom">
+						<MenuItem text="%fxml.display.zoom.reset" onAction="#resetZoom">
 							<accelerator>
 								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="NUMPAD0"/>
 							</accelerator>
 						</MenuItem>
 					</Menu>
-					<Menu text="Map Modes">
-						<MenuItem text="Political" onAction="#politicalMapMode">
+					<Menu text="%fxml.mapmodes">
+						<MenuItem text="%fxml.mapmodes.political" onAction="#politicalMapMode">
 							<accelerator>
 								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="P"/>
 							</accelerator>
 						</MenuItem>
-						<MenuItem text="Religious" onAction="#religiousMapMode">
+						<MenuItem text="%fxml.mapmodes.religious" onAction="#religiousMapMode">
 							<accelerator>
 								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="R"/>
 							</accelerator>
 						</MenuItem>
-						<MenuItem text="Cultural" onAction="#culturalMapMode">
+						<MenuItem text="%fxml.mapmodes.cultural" onAction="#culturalMapMode">
 							<accelerator>
 								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="C"/>
 							</accelerator>
 						</MenuItem>
 					</Menu>
-					<Menu text="Settings">
-						<MenuItem text="Change EU4 Directory" onAction="#changeEU4Directory" >
+					<Menu text="%fxml.settings">
+						<MenuItem text="%fxml.settings.eu4dir" onAction="#changeEU4Directory" >
 							<accelerator>
 								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP" code="D"/>
 							</accelerator>
 						</MenuItem>
-						<CustomMenuItem hideOnClick="false" text="Days Per Tick">
+						<CustomMenuItem hideOnClick="false">
 							<content>
 								<HBox alignment="CENTER_LEFT" >
-									<Label styleClass="menu-label" text="Per Tick: " />
+									<Label styleClass="menu-label" text="%fxml.settings.pertick" />
 									<ComboBox fx:id="daysCombo" editable="true" prefWidth="60" />
-									<ComboBox fx:id="periodCombo" editable="true" prefWidth="75">
-										<items>
-											<FXCollections fx:factory="observableArrayList">
-												<String fx:value="Days" />
-												<String fx:value="Months" />
-												<String fx:value="Years" />
-											</FXCollections>
-										</items>
-										<value>
-											<String fx:value="Days" />
-										</value>
-									</ComboBox>
+									<ComboBox fx:id="periodCombo" prefWidth="75"/>
 								</HBox>
 							</content>
 						</CustomMenuItem>
-						<CustomMenuItem hideOnClick="false" text="Days Per Tick">
+						<CustomMenuItem hideOnClick="false">
 							<content>
 								<HBox alignment="CENTER_LEFT" >
-									<Label styleClass="menu-label" text="Focus: "/>
+									<Label styleClass="menu-label" text="%fxml.settings.focus"/>
 									<TextField fx:id="focusEdit" prefWidth="145"/>
 								</HBox>
 							</content>
 						</CustomMenuItem>
-						<MenuItem text="Emergency refresh" onAction="#refresh">
+						<CustomMenuItem hideOnClick="false">
+							<content>
+								<HBox alignment="CENTER_LEFT" >
+									<Label styleClass="menu-label" text="%fxml.settings.lang"/>
+									<ComboBox fx:id="langCombo" editable="true" prefWidth="75">
+										<tooltip>
+											<Tooltip text="%fxml.settings.lang.hint" />
+										</tooltip>
+										<items>
+											<FXCollections fx:factory="observableArrayList">
+												<String fx:value="en" />
+												<String fx:value="cs" />
+											</FXCollections>
+										</items>
+										<value>
+											<String fx:value="en" />
+                                                                                </value>
+                                                                        </ComboBox>
+								</HBox>
+							</content>
+						</CustomMenuItem>
+						<MenuItem text="%fxml.settings.emergency" onAction="#refresh">
 							<accelerator>
 								<KeyCodeCombination alt="UP" control="UP" meta="UP" shift="UP" shortcut="UP" code="F5"/>
 							</accelerator>
 						</MenuItem>
 						<SeparatorMenuItem/>
-						<Menu fx:id="eventMenu" text="Events">
+						<Menu fx:id="eventMenu" text="%fxml.settings.events">
 							<CustomMenuItem text="Tax">
 								<content>
-									<CheckBox styleClass="menu-label" text="Base tax" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.tax" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Building">
 								<content>
-									<CheckBox styleClass="menu-label" text="Building" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.building" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Capital">
 								<content>
-									<CheckBox styleClass="menu-label" text="Capital" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.capital" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="City">
 								<content>
-									<CheckBox styleClass="menu-label" text="City" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.city" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Claim">
 								<content>
-									<CheckBox styleClass="menu-label" text="Claim" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.claim" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="ColonySize">
 								<content>
-									<CheckBox styleClass="menu-label" text="Colony size" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.colonysize" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Controller">
 								<content>
-									<CheckBox styleClass="menu-label" text="Controller" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.controller" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Core">
 								<content>
-									<CheckBox styleClass="menu-label" text="Core" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.core" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Culture">
 								<content>
-									<CheckBox styleClass="menu-label" text="Culture" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.culture" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Defender">
 								<content>
-									<CheckBox styleClass="menu-label" text="Defender" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.defender" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="EnableReligion">
 								<content>
-									<CheckBox styleClass="menu-label" text="Enable religion" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.enablereligion" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Flag">
 								<content>
-									<CheckBox styleClass="menu-label" text="Flag" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.flag" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Garrison">
 								<content>
-									<CheckBox styleClass="menu-label" text="Garrison" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.garrison" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Goods">
 								<content>
-									<CheckBox styleClass="menu-label" text="Trade goods" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.goods" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Hre">
 								<content>
-									<CheckBox styleClass="menu-label" text="HRE" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.hre" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Manpower">
 								<content>
-									<CheckBox styleClass="menu-label" text="Manpower" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.manpower" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Name">
 								<content>
-									<CheckBox styleClass="menu-label" text="Province name" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.name" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="NativeFerocity">
 								<content>
-									<CheckBox styleClass="menu-label" text="Native ferocity" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.native.ferocity" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="NativeHostileness">
 								<content>
-									<CheckBox styleClass="menu-label" text="Native hostileness" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.native.hostileness" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="NativeSize">
 								<content>
-									<CheckBox styleClass="menu-label" text="Native size" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.native.size" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="NewEmperor">
 								<content>
-									<CheckBox styleClass="menu-label" text="New emperor" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.newemperor" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Owner">
 								<content>
-									<CheckBox styleClass="menu-label" text="Owner" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.owner" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="Religion">
 								<content>
-									<CheckBox styleClass="menu-label" text="Religion" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.religion" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 							<CustomMenuItem hideOnClick="false" text="RevoltRisk">
 								<content>
-									<CheckBox styleClass="menu-label" text="Revolt risk" prefHeight="15"/>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.revoltrisk" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 						</Menu>
@@ -235,33 +245,33 @@
 			<HBox alignment="CENTER_LEFT">
 				<Button text="&lt;&lt;" onAction="#toStart">
 					<tooltip>
-						<Tooltip text="Fast rewind to start of save game" />
+						<Tooltip text="%fxml.hint.fastrewind" />
 					</tooltip>
 				</Button>
 				<Button text="&lt;" onAction="#backPlay">
 					<tooltip>
-						<Tooltip text="Backplay" />
+						<Tooltip text="%fxml.hint.back" />
 					</tooltip>
 				</Button>
 				<Button text="||" onAction="#pause">
 					<tooltip>
-						<Tooltip text="Pause" />
+						<Tooltip text="%fxml.hint.pause" />
 					</tooltip>
 				</Button>
 				<Button text=">" onAction="#play">
 					<tooltip>
-						<Tooltip text="Play" />
+						<Tooltip text="%fxml.hint.play" />
 					</tooltip>
 				</Button>
 				<Button text=">>" onAction="#finish">
 					<tooltip>
-						<Tooltip text="Finish savegame (with potential gif output)" />
+						<Tooltip text="%fxml.hint.finish" />
 					</tooltip>
 				</Button>
 				<TextField fx:id="dateLabel" prefWidth="75" />
 				<Button fx:id="jumpButton" text="->" onAction="#jump" visible="false">
 					<tooltip>
-						<Tooltip text="Jump to specified date" />
+						<Tooltip text="%fxml.hint.jump" />
 					</tooltip>
 				</Button>
 			</HBox>
@@ -275,19 +285,19 @@
 						<ImageView fx:id="imageView" preserveRatio="true" />
 					</content>
 					<tooltip>
-						<Tooltip text="nothing" />
+						<Tooltip text="%fxml.hint.map" />
 					</tooltip>
 				</ScrollPane>
 				<VBox fx:id="bottom" >
 					<Label fx:id="statusLabel" text="" />
 					<ProgressBar fx:id="progressBar" progress="0"/>
 					<TabPane tabClosingPolicy="UNAVAILABLE" side="TOP">
-						<Tab text="Log" >
+						<Tab text="%fxml.log.log" >
 							<HBox styleClass="web-view-container" fx:id="logContainer" >
 								<WebView fx:id="log"/>
 							</HBox>
 						</Tab>
-						<Tab text="Province">
+						<Tab text="%fxml.log.province">
 							<HBox styleClass="web-view-container" fx:id="provinceContainer" >
 								<WebView fx:id="provinceLog"/>
 							</HBox>

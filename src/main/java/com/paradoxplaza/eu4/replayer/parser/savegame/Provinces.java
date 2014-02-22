@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.SaveGame;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import java.util.regex.Pattern;
@@ -27,7 +28,7 @@ class Provinces extends CompoundState<SaveGame> {
     @Override
     public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         if (!NUMBER.matcher(word).matches()) {
-            throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_VALUE, word, "-NUMBER"));
+            throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_VALUE), word, "-NUMBER"));
         }
         return province.withID(word.substring(1));
     }

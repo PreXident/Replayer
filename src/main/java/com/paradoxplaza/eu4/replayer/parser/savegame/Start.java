@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.DateState;
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.parser.StartAdapter;
@@ -46,10 +47,10 @@ class Start extends StartAdapter<SaveGame> {
     @Override
     public State<SaveGame> end(final SaveGame saveGame) {
         if (currentDate.val == null) {
-            throw new RuntimeException("Current date was not set!");
+            throw new RuntimeException(l10n("parser.savegame.error.currdate"));
         }
         if (startDate.val == null) {
-            throw new RuntimeException("Starting date was not set!");
+            throw new RuntimeException(l10n("parser.savegame.error.startdate"));
         }
         saveGame.date = currentDate.val;
         saveGame.startDate = startDate.val;
@@ -58,7 +59,7 @@ class Start extends StartAdapter<SaveGame> {
 
     @Override
     public State<SaveGame> processChar(final SaveGame saveGame, final char token) {
-        throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, "date|start_date|flags|old_emperor|religions|provinces"));
+        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, "date|start_date|flags|old_emperor|religions|provinces"));
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
@@ -91,7 +92,7 @@ class Controller extends CompoundState<SaveGame> {
             case "rebel":
                 return inner.withOutput(rebel);
             default:
-                throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, "controller|reber"));
+                throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), word, "controller|rebel"));
         }
     }
 }

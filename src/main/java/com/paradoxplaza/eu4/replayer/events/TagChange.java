@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.EventProcessor;
 
@@ -37,6 +38,6 @@ public class TagChange extends Event {
 
     @Override
     public String toString() {
-        return String.format("Country %2$s changed tag to %1$s", toTag, fromTag);
+        return String.format(l10n("event.tagchange"), toTag, fromTag);
     }
 }

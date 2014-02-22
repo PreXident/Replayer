@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -245,6 +246,9 @@ public class ReplayerController implements Initializable {
 
     @FXML
     ComboBox<String> periodCombo;
+    
+    @FXML
+    ComboBox<String> langCombo;
 
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
@@ -1161,27 +1165,33 @@ public class ReplayerController implements Initializable {
         });
 
         periodCombo.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
-        periodCombo.valueProperty().addListener(new ChangeListener<String>() {
+        periodCombo.getItems().addAll(
+                l10n("fxml.settings.period.days"), 
+                l10n("fxml.settings.period.months"), 
+                l10n("fxml.settings.period.years")
+        );
+        periodCombo.getSelectionModel().selectFirst();
+        periodCombo.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
             @Override
-            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+            public void changed(ObservableValue<? extends Number> ov, Number oldVal, Number newVal) {
                 if (newVal == null) {
                     return;
                 }
-                switch (newVal) {
-                    case "Days":
+                switch (newVal.intValue()) {
+                    case 0:
                         period = Date.DAY;
                         break;
-                    case "Months":
+                    case 1:
                         period = Date.MONTH;
                         break;
-                    case "Years":
+                    case 2:
                         period = Date.YEAR;
                         break;
                     default:
-                        periodCombo.setValue(oldVal);
+                        periodCombo.getSelectionModel().select(oldVal.intValue());
                         return;
                 }
-                settings.setProperty("period.per.tick", newVal);
+                settings.setProperty("period.per.tick", newVal.toString());
             }
         });
 
@@ -1195,6 +1205,21 @@ public class ReplayerController implements Initializable {
             }
         });
 
+        langCombo.valueProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                if (newVal == null) {
+                    return;
+                }
+                try {
+                    Locale.setDefault(new Locale(newVal));
+                    settings.setProperty("locale.language", newVal);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        
         imageView.setOnMouseMoved(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent t) {
@@ -1307,6 +1332,8 @@ public class ReplayerController implements Initializable {
         daysCombo.getItems().addAll(settings.getProperty("list.delta.per.tick", "1;30;365").split(";"));
         daysCombo.getSelectionModel().select(settings.getProperty("delta.per.tick", "1"));
         periodCombo.getSelectionModel().select(settings.getProperty("period.per.tick", "Days"));
+
+        langCombo.getSelectionModel().select(settings.getProperty("locale.language", "en"));
 
         gifStep = Integer.parseInt(settings.getProperty("gif.step", "100"));
         gifBreak = Integer.parseInt(settings.getProperty("gif.new.file", "0"));

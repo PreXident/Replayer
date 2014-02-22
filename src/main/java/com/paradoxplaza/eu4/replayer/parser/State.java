@@ -1,15 +1,17 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+
 /**
  * Represents state of the TextParser.
  */
 public class State<Context> {
 
     /** Error message. */
-    static protected final String INVALID_TOKEN_EXPECTED_VALUE = "Invalid token \"%1$s\", expected %2$s";
+    static protected final String INVALID_TOKEN_EXPECTED_VALUE = "parser.token.invalid.expected.value";
 
     /** Error message. */
-    static protected final String INVALID_TOKEN_EXPECTED_KEYWORD = "Invalid token \"%1$s\", expected \"%2$s\"";
+    static protected final String INVALID_TOKEN_EXPECTED_KEYWORD = "parser.token.invalid.expected.keyword";
 
     /** Intented for subclasses. Parent state to which the control should return. */
     final protected State<Context> parent;
@@ -30,7 +32,7 @@ public class State<Context> {
      * @throws RuntimeException if end of file was unexpected or some info is missing
      */
     public State<Context> end(final Context context) {
-        throw new RuntimeException("Unexpected end of file!");
+        throw new RuntimeException(l10n("parser.eof.unexpected"));
     }
 
     /** Processes character and changes context.

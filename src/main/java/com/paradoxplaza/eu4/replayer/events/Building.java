@@ -14,13 +14,13 @@ public class Building extends ProvinceEvent {
         BUILT {
             @Override
             public String toString() {
-                return l10n("building.built");
+                return l10n("event.province.Building.built");
             }
         },
         DESTROYED {
             @Override
             public String toString() {
-                return l10n("building.destroyed");
+                return l10n("event.province.Building.destroyed");
             }
         };
         static Type fromString(final String string) {
@@ -30,7 +30,7 @@ public class Building extends ProvinceEvent {
                 case "no":
                     return DESTROYED;
                 default:
-                    throw new IllegalArgumentException(String.format(l10n("building.unknown"), string));
+                    throw new IllegalArgumentException(String.format(l10n("event.province.Building.unknown"), string));
             }
         }
     }
@@ -59,12 +59,12 @@ public class Building extends ProvinceEvent {
         if ((flags & ALTERNATE) != ALTERNATE) {
             formatter.format(toString());
         } else {
-            formatter.format(l10n("building.log"), building, type, "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name);
+            formatter.format(l10n("event.province.Building"), building, type, "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name);
         }
     }
 
     @Override
     public String toString() {
-        return String.format(l10n("building.log"), building, type, id, name);
+        return String.format(l10n("event.province.Building"), building, type, id, name);
     }
 }

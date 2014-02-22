@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+
 /**
  * Ignores value, both ={...} and =VALUE.
  */
@@ -25,13 +27,13 @@ public class Ignore<Context> extends State<Context> {
         switch (expecting) {
             case EQUALS:
                 if (token != '=') {
-                    throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, "="));
+                    throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, "="));
                 }
                 expecting = Expecting.SWITCH;
                 return this;
             case SWITCH:
                 if (token != '{') {
-                    throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, "{"));
+                    throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, "{"));
                 }
                 expecting = Expecting.CLOSING;
                 return this;
@@ -51,7 +53,7 @@ public class Ignore<Context> extends State<Context> {
                         return this;
                 }
             default:
-                assert false : "Expecting unknown token.";
+                assert false : l10n("parser.token.expect.unknown");
                 return this;
         }
     }
@@ -60,14 +62,14 @@ public class Ignore<Context> extends State<Context> {
     public State<Context> processNumber(final Context context, final double number) {
         switch (expecting) {
             case EQUALS:
-                throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, number, '='));
+                throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), number, '='));
             case SWITCH:
                 reset();
                 return parent;
             case CLOSING:
                 return this;
             default:
-                assert false : "Expecting unknown token.";
+                assert false : l10n("parser.token.expect.unknown");
                 return this;
         }
     }
@@ -76,14 +78,14 @@ public class Ignore<Context> extends State<Context> {
     public State<Context> processWord(final Context context, final String word) {
         switch (expecting) {
             case EQUALS:
-                throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, '='));
+                throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), word, '='));
             case SWITCH:
                 reset();
                 return parent;
             case CLOSING:
                 return this;
             default:
-                assert false : "Expecting unknown token.";
+                assert false : l10n("parser.token.expect.unknown");
                 return this;
         }
     }

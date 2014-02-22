@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+
 /**
  * Country becomes a protectorate.
  */
@@ -16,6 +18,6 @@ public class Protectorate extends Subject {
 
     @Override
     public String toString() {
-        return String.format("Country %1$s becomes protectorate of %2$s", tag, newOverlord);
+        return String.format(l10n("event.protectorate"), tag, newOverlord);
     }
 }

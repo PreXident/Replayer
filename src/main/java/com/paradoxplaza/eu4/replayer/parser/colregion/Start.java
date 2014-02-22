@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.colregion;
 
 import com.paradoxplaza.eu4.replayer.ColRegionInfo;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.StartAdapter;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import java.util.Map;
@@ -20,7 +21,7 @@ class Start extends StartAdapter<Map<String, ColRegionInfo>> {
 
     @Override
     public State<Map<String, ColRegionInfo>> processChar(final Map<String, ColRegionInfo> context, final char token) {
-        throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_VALUE, token, "COLONIAL_REGION_NAME"));
+        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_VALUE), token, "COLONIAL_REGION_NAME"));
     }
 
     @Override

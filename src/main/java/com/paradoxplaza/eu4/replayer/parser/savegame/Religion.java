@@ -4,6 +4,7 @@ import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.Defender;
 import com.paradoxplaza.eu4.replayer.events.EnableReligion;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.DateState;
 import com.paradoxplaza.eu4.replayer.parser.State;
@@ -85,7 +86,7 @@ class Religion extends CompoundState<SaveGame> {
             case "enable":
                 return dateState.withOutput(enable);
             default:
-                throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, "defender|defender_date|enable"));
+                throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), word, "defender|defender_date|enable"));
         }
     }
 }

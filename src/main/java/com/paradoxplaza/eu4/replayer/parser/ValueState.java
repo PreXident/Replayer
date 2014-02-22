@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import javafx.beans.value.WritableValue;
 
 /**
@@ -52,12 +53,12 @@ public abstract class ValueState<Context, T> extends State<Context> {
                     expecting = Expecting.VALUE;
                     return this;
                 } else {
-                    throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, "="));
+                    throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, "="));
                 }
             case VALUE:
-                throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_VALUE, token, "VALUE"));
+                throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_VALUE), token, "VALUE"));
             default:
-                assert false : "Expecting unknown token";
+                assert false : l10n("parser.token.expect.unknown");
                 return this;
         }
     }
@@ -66,13 +67,13 @@ public abstract class ValueState<Context, T> extends State<Context> {
     public final State<Context> processWord(final Context context, final String word) {
         switch (expecting) {
             case EQUALS:
-                throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, "="));
+                throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), word, "="));
             case VALUE:
                 output.setValue(createOutput(word));
                 reset();
                 return parent;
             default:
-                assert false : "Expecting unknown token";
+                assert false : l10n("parser.token.expect.unknown");
                 return this;
         }
     }

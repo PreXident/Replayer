@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+
 /**
  * Processes compound values in format xxx = { COMPOUND }.
  */
@@ -84,7 +86,7 @@ public abstract class CompoundState<Context> extends State<Context> {
     @Override
     public State<Context> processChar(final Context context, final char token) {
         if (token != expecting.toChar()) {
-            throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, expecting));
+            throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, expecting));
         }
         switch (expecting) {
             case OPENING:
@@ -98,7 +100,7 @@ public abstract class CompoundState<Context> extends State<Context> {
                 reset();
                 return parent;
             default:
-                assert false : "Expecting unknown token";
+                assert false : l10n("parser.token.expect.unknown");
                 return this;
         }
     }

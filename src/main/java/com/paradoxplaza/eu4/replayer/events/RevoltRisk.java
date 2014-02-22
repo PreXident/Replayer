@@ -12,6 +12,6 @@ public class RevoltRisk extends SimpleProvinceEvent {
      * @param revoltRisk new revolt risk
      */
     public RevoltRisk(final String id, final String name, final String revoltRisk) {
-        super(id, name, "Revolt risk", revoltRisk);
+        super(id, name, "RevoltRisk", revoltRisk);
     }
 }

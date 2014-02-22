@@ -1,10 +1,8 @@
 package com.paradoxplaza.eu4.replayer.parser.colregion;
 
 import com.paradoxplaza.eu4.replayer.ColRegionInfo;
-import com.paradoxplaza.eu4.replayer.ProvinceInfo;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.State;
-import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;

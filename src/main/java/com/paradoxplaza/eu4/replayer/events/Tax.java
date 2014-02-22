@@ -12,6 +12,6 @@ public class Tax extends SimpleProvinceEvent {
      * @param tax new base tax
      */
     public Tax(final String id, final String name, final String tax) {
-        super(id, name, "Native size", tax);
+        super(id, name, "Tax", tax);
     }
 }

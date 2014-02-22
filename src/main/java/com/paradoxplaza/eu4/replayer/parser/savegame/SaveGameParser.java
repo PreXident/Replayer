@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.parser.TextParser;
 import java.io.InputStream;
@@ -17,6 +18,6 @@ public class SaveGameParser extends TextParser<SaveGame> {
      */
     public SaveGameParser(final SaveGame saveGame, final long size, final InputStream input) {
         super(saveGame, new Start(), size, input);
-        updateTitle("Parsing save game...");
+        updateTitle(l10n("parser.savegame"));
     }
 }

@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+
 /**
  * Represents new emperor in Holy Roman Empire.
  */
@@ -15,6 +17,6 @@ public class NewEmperor extends Event {
 
     @Override
     public String toString() {
-        return String.format("HRE got new emeperor %1$s (%2$s)", id, tag);
+        return String.format(l10n("event.newemperor"), id, tag);
     }
 }

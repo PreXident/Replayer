@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.defaultmap;
 
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.parser.StartAdapter;
 import com.paradoxplaza.eu4.replayer.parser.State;
@@ -26,7 +27,7 @@ public class Start extends StartAdapter<Pair<Set<Integer>, Map<String, ProvinceI
 
     @Override
     public State<Pair<Set<Integer>, Map<String, ProvinceInfo>>> processChar(final Pair<Set<Integer>, Map<String, ProvinceInfo>> context, final char token) {
-        throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, token, "sea_starts"));
+        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, "sea_starts"));
     }
 
     @Override

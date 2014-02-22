@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser.country;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.parser.StartAdapter;
 import com.paradoxplaza.eu4.replayer.parser.State;
@@ -23,7 +24,7 @@ class Start extends StartAdapter<Ref<Integer>> {
 
     @Override
     public State<Ref<Integer>> processChar(final Ref<Integer> context, final char token) {
-        throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_VALUE, token, "color"));
+        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_VALUE), token, "color"));
     }
 
     @Override

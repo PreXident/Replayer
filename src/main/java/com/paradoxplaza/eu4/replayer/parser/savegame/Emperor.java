@@ -3,6 +3,7 @@ package com.paradoxplaza.eu4.replayer.parser.savegame;
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.NewEmperor;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.DateState;
 import com.paradoxplaza.eu4.replayer.parser.State;
@@ -60,14 +61,14 @@ class Emperor extends CompoundState<SaveGame> {
         if (id.val != null && tag.val != null && date.val != null) {
             saveGame.addEvent(date.val, new NewEmperor(id.val, tag.val));
         } else {
-            throw new RuntimeException("Incomplete old_emperor!");
+            throw new RuntimeException(l10n("parser.emperor.incomplete"));
         }
     }
 
     @Override
     public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         if (expecting != Expecting.CLOSING) {
-            throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, expecting));
+            throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), word, expecting));
         }
         switch (word) {
             case "id":
@@ -77,7 +78,7 @@ class Emperor extends CompoundState<SaveGame> {
             case "date":
                 return dateState.withOutput(date);
             default:
-                throw new RuntimeException(String.format(INVALID_TOKEN_EXPECTED_KEYWORD, word, "id|country|date"));
+                throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), word, "id|country|date"));
         }
     }
 }
