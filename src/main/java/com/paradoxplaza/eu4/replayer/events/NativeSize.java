@@ -12,6 +12,6 @@ public class NativeSize extends SimpleProvinceEvent {
      * @param size new size
      */
     public NativeSize(final String id, final String name, final String size) {
-        super(id, name, "Native size", size);
+        super(id, name, "NativeSize", size);
     }
 }

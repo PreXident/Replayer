@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import java.util.Formattable;
 import static java.util.FormattableFlags.ALTERNATE;
 import java.util.Formatter;
@@ -17,7 +18,7 @@ public class Core extends ProvinceEvent {
                 if ((flags & ALTERNATE) != ALTERNATE) {
                     formatter.format(toString());
                 } else {
-                    formatter.format("added to");
+                    formatter.format(l10n("event.province.Core.added"));
                 }
             }
         }, REMOVED {
@@ -26,7 +27,7 @@ public class Core extends ProvinceEvent {
                 if ((flags & ALTERNATE) != ALTERNATE) {
                     formatter.format(toString());
                 } else {
-                    formatter.format("removed from");
+                    formatter.format(l10n("event.province.Core.removed"));
                 }
             }
         };
@@ -62,12 +63,14 @@ public class Core extends ProvinceEvent {
         if ((flags & ALTERNATE) != ALTERNATE) {
             formatter.format(toString());
         } else {
-            formatter.format("Core to province <a href=\"#\" onclick=\"return java.prov(this.textContent)\">%2$s</a> (%3$s) %4$#s country %1$s", tag, id, name, type);
+            formatter.format(
+                    l10n("event.province.Core"),
+                    tag, "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name, type);
         }
     }
 
     @Override
     public String toString() {
-        return String.format("Core to province %2$s (%3$s) %4$#s country %1$s", tag, id, name, type);
+        return String.format(l10n("event.province.Claim"), tag, id, name, type);
     }
 }

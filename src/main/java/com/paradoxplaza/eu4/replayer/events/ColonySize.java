@@ -12,6 +12,6 @@ public class ColonySize extends SimpleProvinceEvent {
      * @param size new size
      */
     public ColonySize(final String id, final String name, final String size) {
-        super(id, name, "Colony size", size);
+        super(id, name, "ColonySize", size);
     }
 }

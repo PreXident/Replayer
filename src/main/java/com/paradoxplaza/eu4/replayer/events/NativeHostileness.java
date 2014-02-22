@@ -12,6 +12,6 @@ public class NativeHostileness extends SimpleProvinceEvent {
      * @param hostileness new hostileness
      */
     public NativeHostileness(final String id, final String name, final String hostileness) {
-        super(id, name, "Native hostileness", hostileness);
+        super(id, name, "NativeHostileness", hostileness);
     }
 }

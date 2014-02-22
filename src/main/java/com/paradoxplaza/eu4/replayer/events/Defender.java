@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+
 /**
  * New Defender of the Faith was proclaimed.
  */
@@ -23,6 +25,6 @@ public class Defender extends Event {
 
     @Override
     public String toString() {
-        return String.format("Religion %1$s got new defender %2$s", religion, tag);
+        return String.format(l10n("event.defender"), religion, tag);
     }
 }

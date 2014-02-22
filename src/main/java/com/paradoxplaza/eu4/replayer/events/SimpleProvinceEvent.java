@@ -1,7 +1,8 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import static java.util.FormattableFlags.ALTERNATE;
 import java.util.Formatter;
-import static java.util.FormattableFlags.*;
 
 /**
  * Ancestor of simple province event.
@@ -38,12 +39,14 @@ public abstract class SimpleProvinceEvent extends ProvinceEvent {
         if ((flags & ALTERNATE) != ALTERNATE) {
             formatter.format(toString());
         } else {
-            formatter.format("%1$s of province <a href=\"#\" onclick=\"return java.prov(this.textContent)\">%2$s</a> (%3$s) changed to %4$s", type, id, name, value);
+            formatter.format(
+                    l10n("event.province." + type),
+                    "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "/a>", name, value);
         }
     }
 
     @Override
     public String toString() {
-        return String.format("%1$s of province %2$s (%3$s) changed to %4$s", type, id, name, value);
+        return String.format(l10n("event.province." + type), id, name, value);
     }
 }

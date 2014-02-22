@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import static java.util.FormattableFlags.ALTERNATE;
 import java.util.Formatter;
 
@@ -23,12 +24,12 @@ public class City extends ProvinceEvent {
         if ((flags & ALTERNATE) != ALTERNATE) {
             formatter.format(toString());
         } else {
-            formatter.format("Colony in province <a href=\"#\" onclick=\"return java.prov(this.textContent)\">%1$s</a> (%2$s) grew to a city", id, name);
+            formatter.format(l10n("event.province.City"), "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name);
         }
     }
 
     @Override
     public String toString() {
-        return String.format("Colony in province %1$s (%2$s) grew to a city", id, name);
+        return String.format(l10n("event.province.City"), id, name);
     }
 }

@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+
 /**
  * New religion was enabled.
  */
@@ -18,6 +20,6 @@ public class EnableReligion extends Event {
 
     @Override
     public String toString() {
-        return String.format("Religion %1$s enabled", name);
+        return String.format(l10n("event.enablereligion"), name);
     }
 }

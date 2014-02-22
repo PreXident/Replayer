@@ -12,6 +12,6 @@ public class NativeFerocity extends SimpleProvinceEvent {
      * @param ferocity new ferocity
      */
     public NativeFerocity(final String id, final String name, final String ferocity) {
-        super(id, name, "Native ferocity", ferocity);
+        super(id, name, "NativeFerocity", ferocity);
     }
 }
