@@ -10,7 +10,7 @@ import java.util.ResourceBundle;
 public class Localizator {
 
     /** Name of the resource bundle for localization. */
-    static private final String RESOURCE_BUNDLE = "replayer";
+    static private final String RESOURCE_BUNDLE = "l10n";
 
     /** Key for missing localization. */
     static private final String KEY_NOT_FOUND = "locale.key.notfound";
