@@ -93,7 +93,11 @@
 						<CustomMenuItem hideOnClick="false">
 							<content>
 								<HBox alignment="CENTER_LEFT" >
-									<Label styleClass="menu-label" text="%fxml.settings.lang"/>
+									<Label styleClass="menu-label" text="%fxml.settings.lang">
+										<tooltip>
+											<Tooltip text="%fxml.settings.lang.hint" />
+                                                                                </tooltip>
+                                                                        </Label>
 									<ComboBox fx:id="langCombo" editable="true" prefWidth="75">
 										<tooltip>
 											<Tooltip text="%fxml.settings.lang.hint" />
