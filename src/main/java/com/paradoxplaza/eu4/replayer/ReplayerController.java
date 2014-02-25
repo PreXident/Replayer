@@ -1646,6 +1646,10 @@ public class ReplayerController implements Initializable {
             String line = reader.readLine();
             line = reader.readLine();
             while (line != null) {
+                if (line.isEmpty()) {
+                    line = reader.readLine();
+                    continue;
+                }
                 final String[] parts = line.split(";");
                 final int color = toColor(
                         Integer.parseInt(parts[1]),
