@@ -246,7 +246,7 @@ public class ReplayerController implements Initializable {
 
     @FXML
     ComboBox<String> periodCombo;
-    
+
     @FXML
     ComboBox<String> langCombo;
 
@@ -1166,8 +1166,8 @@ public class ReplayerController implements Initializable {
 
         periodCombo.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
         periodCombo.getItems().addAll(
-                l10n("fxml.settings.period.days"), 
-                l10n("fxml.settings.period.months"), 
+                l10n("fxml.settings.period.days"),
+                l10n("fxml.settings.period.months"),
                 l10n("fxml.settings.period.years")
         );
         periodCombo.getSelectionModel().selectFirst();
@@ -1219,7 +1219,7 @@ public class ReplayerController implements Initializable {
                 }
             }
         });
-        
+
         imageView.setOnMouseMoved(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent t) {
@@ -1331,7 +1331,12 @@ public class ReplayerController implements Initializable {
 
         daysCombo.getItems().addAll(settings.getProperty("list.delta.per.tick", "1;30;365").split(";"));
         daysCombo.getSelectionModel().select(settings.getProperty("delta.per.tick", "1"));
-        periodCombo.getSelectionModel().select(settings.getProperty("period.per.tick", "Days"));
+        try {
+            periodCombo.getSelectionModel().select(Integer.parseInt(settings.getProperty("period.per.tick", "0")));
+        } catch (NumberFormatException e) {
+            periodCombo.getSelectionModel().selectFirst();
+            settings.setProperty("period.per.tick", "0");
+        }
 
         langCombo.getSelectionModel().select(settings.getProperty("locale.language", "en"));
 

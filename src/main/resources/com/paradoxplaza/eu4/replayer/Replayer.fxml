@@ -78,7 +78,7 @@
 								<HBox alignment="CENTER_LEFT" >
 									<Label styleClass="menu-label" text="%fxml.settings.pertick" />
 									<ComboBox fx:id="daysCombo" editable="true" prefWidth="60" />
-									<ComboBox fx:id="periodCombo" prefWidth="75"/>
+									<ComboBox fx:id="periodCombo" prefWidth="85"/>
 								</HBox>
 							</content>
 						</CustomMenuItem>
