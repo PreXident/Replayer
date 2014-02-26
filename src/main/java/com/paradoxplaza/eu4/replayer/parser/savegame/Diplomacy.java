@@ -19,6 +19,9 @@ public class Diplomacy extends CompoundState<SaveGame> {
     /** State processing colonial nations. */
     final Colonial colonial = new Colonial(this);
 
+    /** State processing personal unions. */
+    final Union union = new Union(this);
+
     /** State ignoring uninteresting diplomacy. */
     final Ignore<SaveGame> ignore = new Ignore<>(this);
 
@@ -39,6 +42,8 @@ public class Diplomacy extends CompoundState<SaveGame> {
                 return protectorate;
             case "is_colonial":
                 return colonial;
+            case "union":
+                return union;
             default:
                 return ignore;
         }
