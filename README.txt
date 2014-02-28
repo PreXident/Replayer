@@ -51,7 +51,7 @@ Feature subjects.as.overlord is not perfect, as it can display only relations th
 ############
 
 1.4b
-Added mouse coordinates to province hover hint
+Added mouse coordinates to province hover hint (thx to sinkingmist for suggestion)
 
 1.4
 Colonial nations existing on game start should be displayed correctly
