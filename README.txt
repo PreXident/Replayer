@@ -5,7 +5,7 @@
 This is a fan WiP project coded in free time and originally intended for my personal use only as JavaFX exercise, so there's no warranty, use only on your own risk! You will probably need at least jre7. Some forumites reported problems with using 32b Java on 64b computer that were fixed by installing 64b Java.
 
 There's a bug in javafx which sometimes prevents the map from refreshing. If this is your case and Settings->Emergency Refresh does not help you, download jre7 update 40 or newer; or backup provinces.bmp and experiment with its size (for me the width has to be 4096 pixels or less, it likely depends on your graphic card).
-If you mess with (un)checking controller or owner events during replaying, you may get weird results.
+If you mess with (un)checking notable events during replaying, you may get weird results.
 
 Naturally the more event types you want to track, the slower the replaying is.
 
@@ -33,13 +33,15 @@ common/defines.lua
 ############
 
 In province history there's sometimes missing record of regaining province control from rebels. So in the end there are more rebel controlled provinces than there should be. If you have any idea why this is happening or how to detect this, please share!
+Feature subjects.as.overlord is not perfect, as it can display only relations that exist at save game end because others are not stored in saves. It means that a vassal who broke free later on is not displayed as part of his temporary overlord.
 
 ##################
 #Planned features#
 ##################
 
+- replaying batches of saves
 - monarchs, wars, ...
-- nation focus to display PUs
+- nation focus to display PUs (properly, not only)
 - randomized new world
 - binary saves
 
@@ -51,8 +53,10 @@ In province history there's sometimes missing record of regaining province contr
 Colonial nations existing on game start should be displayed correctly
 Encoding of input files changed to LATIN-1, so Osel etc should be displayed correctly
 Province information is reset on loading a save
-Added feature to display subjects (colonials, protectorates, vassals) as part of their overlords; set property subjects.as.overlord=true (thx to Toa Kraka for suggestion)
+Added feature to display subjects (colonials, protectorates, vassals, PUs) as part of their overlords; set property subjects.as.overlord=true (thx to Toa Kraka for suggestion)
 Fixed appearence for Java8 release candidate
+Added localization support (for now en and cs)
+Empty lines in file map/definition.csv are now skipped
 
 1.3
 Fixed replaced_path, so games converted from CK2 actually work
@@ -141,7 +145,7 @@ Initial release
 #Sources#
 #########
 
-If anyone is interested or paranoid enough, sources are freely available. However they are no masterpiece I am afraid ;-) It's a netbeans free form project, so you just need to adjust properties in build.xml if JAVA_HOME is not set and then use ant. Gradle build script is available too.
+If anyone is interested or paranoid enough, sources are freely available. However they are no masterpiece I am afraid ;-) It's a netbeans free form project, so you just need to adjust properties in build.xml if JAVA_HOME is not set and then use ant. Gradle build script is available too (Unfortunately task dist is not yet perfect).
 Check the repository PreXident/Replayer at Bitbucket.
 
 ##############
