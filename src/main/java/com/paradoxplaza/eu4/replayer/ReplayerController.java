@@ -1226,7 +1226,8 @@ public class ReplayerController implements Initializable {
                 final Bounds imageBounds = imageView.getBoundsInParent();
                 int x = (int) (t.getX() * bufferWidth / imageBounds.getWidth());
                 int y = (int) (t.getY() * bufferHeight / imageBounds.getHeight());
-                final String provinceHint = provinces.get(colors.get(reader.getArgb(x, y))).toString();
+                final String coords = "[" + x + "," + y + "]\n";
+                final String provinceHint = coords + provinces.get(colors.get(reader.getArgb(x, y))).toString();
                 if (!scrollPane.getTooltip().getText().equals(provinceHint)) {
                     scrollPane.setTooltip(new Tooltip(provinceHint));
                 }
