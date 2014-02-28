@@ -43,11 +43,15 @@ Feature subjects.as.overlord is not perfect, as it can display only relations th
 - randomized new world
 - monarchs, wars, ...
 - nation focus to display PUs (properly, not only from active_relations)
+- display battles 
 - binary saves
 
 ############
 #Change log#
 ############
+
+1.4b
+Added mouse coordinates to province hover hint
 
 1.4
 Colonial nations existing on game start should be displayed correctly
