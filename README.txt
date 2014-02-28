@@ -40,9 +40,9 @@ Feature subjects.as.overlord is not perfect, as it can display only relations th
 ##################
 
 - replaying batches of saves
-- monarchs, wars, ...
-- nation focus to display PUs (properly, not only)
 - randomized new world
+- monarchs, wars, ...
+- nation focus to display PUs (properly, not only from active_relations)
 - binary saves
 
 ############
