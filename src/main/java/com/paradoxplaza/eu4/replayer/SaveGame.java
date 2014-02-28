@@ -49,6 +49,19 @@ public class SaveGame {
     }
 
     /**
+     * Adds content of the saveGame to this save game.
+     * @param saveGame other save game
+     */
+    public void concatenate(final SaveGame saveGame) {
+        tagChanges.putAll(saveGame.tagChanges);
+        dynamicCountriesColors.putAll(saveGame.dynamicCountriesColors);
+        for (Date d : new DateGenerator(date, saveGame.date)) {
+            timeline.put(d, saveGame.timeline.get(d));
+        }
+        date = saveGame.date;
+    }
+
+    /**
      * Returns list of events associated with the given date.
      * If there's no such list, it is created and inserted into timeline.
      * @param date date associated to the list

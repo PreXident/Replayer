@@ -11,7 +11,7 @@ import com.paradoxplaza.eu4.replayer.parser.culture.CulturesParser;
 import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.parser.defines.DefinesParser;
 import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
-import com.paradoxplaza.eu4.replayer.parser.savegame.SaveGameParser;
+import com.paradoxplaza.eu4.replayer.parser.savegame.BatchSaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.GifSequenceWriter;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
@@ -31,6 +31,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -731,15 +732,22 @@ public class ReplayerController implements Initializable {
         fileChooser.getExtensionFilters().add(extFilter);
 
         //Show open file dialog
-        final File file = fileChooser.showOpenDialog(getWindow());
-        if (file == null) {
+        final List<File> files = fileChooser.showOpenMultipleDialog(getWindow());
+        if (files == null || files.isEmpty()) {
             lock.release();
             return;
         }
+        final File[] fileArr = files.toArray(new File[files.size()]);
+        Arrays.sort(fileArr, new Comparator<File>() {
+            @Override
+            public int compare(File f1, File f2) {
+                return f1.getName().compareToIgnoreCase(f2.getName());
+            }
+        });
 
-        saveDirectory = file.getParentFile();
+        saveDirectory = fileArr[fileArr.length-1].getParentFile();
         settings.setProperty("save.dir", saveDirectory.getPath());
-        titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
+        titleProperty.setValue(String.format(TITLE_SAVEGAME, fileArr[fileArr.length-1].getName()));
         saveGame = new SaveGame();
         for (CountryInfo ci : countries.values()) {
             ci.reset();
@@ -751,8 +759,7 @@ public class ReplayerController implements Initializable {
         focusing = !focusTag.equals("");
 
         try {
-            final InputStream is = new FileInputStream(file);
-            final SaveGameParser parser = new SaveGameParser(saveGame, file.length(), is);
+            final BatchSaveGameParser parser = new BatchSaveGameParser(saveGame, fileArr);
             final int width = (int) map.getWidth();
             final int height = (int) map.getHeight();
             imageView.setImage(null);
@@ -867,8 +874,8 @@ public class ReplayerController implements Initializable {
                 public void handle(WorkerStateEvent t) {
                     if ("true".equals(settings.getProperty("gif"))) {
                         final String extension = gifBreak == 0 ? "" : ".1";
-                        saveFileName = file.getAbsolutePath();
-                        initGif(file.getAbsolutePath() + extension);
+                        saveFileName = fileArr[fileArr.length-1].getAbsolutePath();
+                        initGif(fileArr[fileArr.length-1].getAbsolutePath() + extension);
                         updateGif(saveGame.startDate);
                     }
                     output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
