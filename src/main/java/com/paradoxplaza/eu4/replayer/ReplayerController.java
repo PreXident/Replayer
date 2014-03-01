@@ -1793,15 +1793,16 @@ public class ReplayerController implements Initializable {
             if (direction == null) {
                 return;
             }
-            final List<Event> events = saveGame.timeline.get(newVal);
             statusLabel.textProperty().unbind();
             statusLabel.setText("");
             switch (direction) {
                 case FORWARD:
-                    eventProcessor.processEvents(newVal, events);
+                    final List<Event> forwardsEvents = saveGame.timeline.get(newVal);
+                    eventProcessor.processEvents(newVal, forwardsEvents);
                     break;
                 case BACKWARD:
-                    eventProcessor.unprocessEvents(newVal.next(), events);
+                    final List<Event> backwardEvents = saveGame.timeline.get(newVal.next());
+                    eventProcessor.unprocessEvents(newVal, backwardEvents);
                     break;
                 default:
                     assert false : l10n("replay.direction.unknown");
