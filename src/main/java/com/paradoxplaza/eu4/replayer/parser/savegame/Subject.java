@@ -65,6 +65,7 @@ public abstract class Subject extends CompoundState<SaveGame> {
     @Override
     protected void endCompound(final SaveGame saveGame) {
         saveGame.addEvent(date.val, createSubjectEvent());
+        saveGame.addSubject(subject.val);
     }
 
     @Override

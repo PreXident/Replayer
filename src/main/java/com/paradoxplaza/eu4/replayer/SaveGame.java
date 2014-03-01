@@ -1,11 +1,14 @@
 package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.events.Event;
+import com.paradoxplaza.eu4.replayer.events.FreeSubject;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents parsed save game.
@@ -26,6 +29,13 @@ public class SaveGame {
 
     /** Colors of dynamic countries. */
     public final Map<String, Integer> dynamicCountriesColors = new HashMap<>();
+
+    /**
+     * Countries that are subject at the save game end.
+     * Used during concatenation to detect subjects that broke
+     * free/got annexed etc, so "free" event could be generated.
+     */
+    public final Set<String> subjects = new HashSet<>();
 
     /**
      * Adds event on given date to timeline at the end of the list.
@@ -49,16 +59,31 @@ public class SaveGame {
     }
 
     /**
-     * Adds content of the saveGame to this save game.
-     * @param saveGame other save game
+     * Adds subject tag to the list of subjects.
+     * @param subject subject tag to add
      */
-    public void concatenate(final SaveGame saveGame) {
-        tagChanges.putAll(saveGame.tagChanges);
-        dynamicCountriesColors.putAll(saveGame.dynamicCountriesColors);
-        for (Date d : new DateGenerator(date, saveGame.date)) {
-            timeline.put(d, saveGame.timeline.get(d));
+    public void addSubject(final String subject) {
+        subjects.add(subject);
+    }
+
+    /**
+     * Adds content of the other save to this save game.
+     * @param other the other save game
+     */
+    public void concatenate(final SaveGame other) {
+        tagChanges.putAll(other.tagChanges);
+        dynamicCountriesColors.putAll(other.dynamicCountriesColors);
+        for (Date d : new DateGenerator(date, other.date)) {
+            timeline.put(d, other.timeline.get(d));
         }
-        date = saveGame.date;
+        final Set<String> subjectsCopy = new HashSet<>(subjects);
+        for (String subject : subjectsCopy) {
+            if (!other.subjects.contains(subject)) {
+                addEvent(other.date, new FreeSubject(subject));
+                subjects.remove(subject);
+            }
+        }
+        date = other.date;
     }
 
     /**
