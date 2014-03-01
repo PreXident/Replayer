@@ -59,7 +59,7 @@ class Start extends StartAdapter<SaveGame> {
 
     @Override
     public State<SaveGame> processChar(final SaveGame saveGame, final char token) {
-        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, "date|start_date|flags|old_emperor|religions|provinces"));
+        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, "date|start_date|flags|old_emperor|religions|provinces|countries|diplomacy"));
     }
 
     @Override
@@ -80,7 +80,7 @@ class Start extends StartAdapter<SaveGame> {
             case "provinces":
                 return provinces;
             case "countries":
-                return countries;
+                return countries.withDate(currentDate.val);
             case "diplomacy":
                 return diplomacy;
             default:

@@ -66,6 +66,11 @@
 								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="C"/>
 							</accelerator>
 						</MenuItem>
+						<MenuItem text="%fxml.mapmodes.technology" onAction="#technologyMapMode">
+							<accelerator>
+								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="T"/>
+							</accelerator>
+						</MenuItem>
 					</Menu>
 					<Menu text="%fxml.settings">
 						<MenuItem text="%fxml.settings.eu4dir" onAction="#changeEU4Directory" >
@@ -240,6 +245,11 @@
 							<CustomMenuItem hideOnClick="false" text="RevoltRisk">
 								<content>
 									<CheckBox styleClass="menu-label" text="%fxml.settings.events.revoltrisk" prefHeight="15"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false" text="Technology">
+								<content>
+									<CheckBox styleClass="menu-label" text="%fxml.settings.events.technology" prefHeight="15"/>
 								</content>
 							</CustomMenuItem>
 						</Menu>

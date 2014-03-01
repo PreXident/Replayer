@@ -29,6 +29,15 @@ public class CountryInfo {
     /** Set of subject nations' tags. */
     public final Set<String> subjects = new HashSet<>();
 
+    /** Administration technology level. */
+    public int adm = 0;
+
+    /** Diplomatic technology level. */
+    public int dip = 0;
+
+    /** Military technology level. */
+    public int mil = 0;
+
     /**
      * Only contructor.
      * @param tag country tag
@@ -48,5 +57,8 @@ public class CountryInfo {
         expectingTagChange = null;
         overlord = null;
         subjects.clear();
+        adm = 0;
+        dip = 0;
+        mil = 0;
     }
 }

@@ -287,6 +287,9 @@ public class ReplayerController implements Initializable {
     /** Buffer with cultural map. */
     int[] culturalBuffer;
 
+    /** Buffer with technology map. */
+    int[] technologyBuffer;
+
     /** How many pixels are added to width and height when zooming in/out. */
     int zoomStep;
 
@@ -786,6 +789,7 @@ public class ReplayerController implements Initializable {
                             politicalBuffer[pos] = finalColor;
                             religiousBuffer[pos] = finalColor;
                             culturalBuffer[pos] = finalColor;
+                            technologyBuffer[pos] = finalColor;
                             updateProgress(pos, size);
                         }
                     }
@@ -1032,6 +1036,12 @@ public class ReplayerController implements Initializable {
         //again if needed
         scrollPane.setContent(null);
         scrollPane.setContent(imageView);
+    }
+
+    @FXML
+    private void technologyMapMode() {
+        buffer = technologyBuffer;
+        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
     }
 
     @FXML
@@ -1573,6 +1583,7 @@ public class ReplayerController implements Initializable {
                     politicalBuffer = new int[width*height];
                     religiousBuffer = new int[width*height];
                     culturalBuffer = new int[width*height];
+                    technologyBuffer = new int[width*height];
                     buffer = politicalBuffer;
                     bufferWidth = width;
                     bufferHeight = height;
@@ -1607,6 +1618,7 @@ public class ReplayerController implements Initializable {
                             politicalBuffer[y * width + x] = color;
                             religiousBuffer[y * width + x] = color;
                             culturalBuffer[y * width + x] = color;
+                            technologyBuffer[y * width + x] = color;
                             writer.setArgb(x, y, color);
                             updateProgress(y*width+x, height*width);
                         }

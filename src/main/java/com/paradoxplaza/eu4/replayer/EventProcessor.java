@@ -9,6 +9,7 @@ import com.paradoxplaza.eu4.replayer.events.ProvinceEvent;
 import com.paradoxplaza.eu4.replayer.events.Religion;
 import com.paradoxplaza.eu4.replayer.events.Subject;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
+import com.paradoxplaza.eu4.replayer.events.Technology;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -19,6 +20,13 @@ import java.util.List;
  * Updates log and writes to output image and buffer too.
  */
 public class EventProcessor {
+
+    static int getTechColor(final int adm, final int dip, final int mil) {
+        return ReplayerController.toColor(mil * 7, adm * 7, dip * 7);
+//        final int val = adm + dip + mil;
+//        final int round = (int) (val * 8.0/3.0);
+//        return ReplayerController.toColor(0, round, 0);
+    }
 
     /** Controller whose controls will be updated. */
     final ReplayerController replayerController;
@@ -213,6 +221,7 @@ public class EventProcessor {
                 && (previousOwner == null || !replayerController.focusTag.equals(topOverlord(previousOwner).tag))) {
             return false;
         }
+        final int techColor = newOwner == null ? replayerController.landColor : getTechColor(newOwner.adm, newOwner.dip, newOwner.mil);
         for(int p : province.points) {
             if (replayerController.notableEvents.contains("Controller")
                     && p / replayerController.bufferWidth % 2 == 0) {
@@ -220,6 +229,7 @@ public class EventProcessor {
             } else {
                 setColor(replayerController.politicalBuffer, p, ownerColor);
             }
+            setColor(replayerController.technologyBuffer, p, techColor);
         }
         return true;
     }
@@ -261,6 +271,11 @@ public class EventProcessor {
         to.subjects.clear();
         to.subjects.addAll(from.subjects);
         to.overlord = from.overlord;
+        from.owns.clear();
+        from.controls.clear();
+        to.adm = from.adm;
+        to.dip = from.dip;
+        to.mil = from.mil;
         if (replayerController.focusing) {
             if (replayerController.focusTag.equals(oldTag)) {
                 replayerController.focusTag = newTag;
@@ -316,6 +331,25 @@ public class EventProcessor {
                         || !replayerController.notableEvents.contains("Controller")) {
                     setColor(replayerController.politicalBuffer, p, color);
                 }
+            }
+        }
+        return true;
+    }
+
+    public boolean changeTech(final String tag,
+            final int adm, final int dip, final int mil) {
+        final CountryInfo country = replayerController.countries.get(tag);
+        if (country == null) {
+            return false;
+        }
+        country.adm = adm;
+        country.dip = dip;
+        country.mil = mil;
+        final int color = getTechColor(adm, dip, mil);
+        for (String id : country.owns) {
+            final ProvinceInfo province = replayerController.provinces.get(id);
+            for(int p : province.points) {
+                setColor(replayerController.technologyBuffer, p, color);
             }
         }
         return true;
@@ -422,6 +456,23 @@ public class EventProcessor {
         final CountryInfo to = replayerController.countries.get(tagChange.toTag);
         to.expectingTagChange = null;
         return changeTag(date, tagChange.toTag, tagChange.fromTag);
+    }
+
+    /**
+     * Processes technology event.
+     * @param date date of the event
+     * @param technology tag change event
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean process(final Date date, final Technology technology) {
+        final CountryInfo country = replayerController.countries.get(technology.tag);
+        if (country == null) {
+            return false;
+        }
+        technology.old_adm = country.adm;
+        technology.old_dip = country.dip;
+        technology.old_mil = country.mil;
+        return changeTech(technology.tag, technology.adm, technology.dip, technology.mil);
     }
 
     /**
@@ -563,6 +614,16 @@ public class EventProcessor {
         final CountryInfo to = replayerController.countries.get(tagChange.toTag);
         to.expectingTagChange = date;
         return changeTag(date, tagChange.fromTag, tagChange.toTag);
+    }
+
+    /**
+     * Unprocesses technology event.
+     * @param date date of the event
+     * @param technology technology event
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean unprocess(final Date date, final Technology technology) {
+        return changeTech(technology.tag, technology.old_adm, technology.old_dip, technology.old_mil);
     }
 
     /**

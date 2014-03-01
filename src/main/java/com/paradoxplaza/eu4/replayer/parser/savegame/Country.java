@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
+import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
@@ -13,6 +14,9 @@ class Country extends CompoundState<SaveGame> {
     /** Country tag. */
     String tag;
 
+    /** Current date in save game. */
+    Date currentDate;
+
     /** State processing country history. */
     CountryHistory history = new CountryHistory(this);
 
@@ -22,12 +26,25 @@ class Country extends CompoundState<SaveGame> {
     /** State processing dynamic countries' colors. */
     CountryColor countryColor = new CountryColor(this);
 
+    /** State processing technology levels. */
+    Technology technology = new Technology(this);
+
     /**
      * Only constructor
      * @param start parent state
      */
     public Country(final State<SaveGame> start) {
         super(start);
+    }
+
+    /**
+     * Sets current date.
+     * @param Date new date
+     * @return this
+     */
+    public Country withDate(final Date date) {
+        this.currentDate = date;
+        return this;
     }
 
     /**
@@ -52,6 +69,8 @@ class Country extends CompoundState<SaveGame> {
                 return history.withTag(tag);
             case "map_color":
                 return countryColor.withCountry(tag);
+            case "technology":
+                return technology.withCountry(tag).withDate(currentDate);
             default:
                 return ignore;
         }
