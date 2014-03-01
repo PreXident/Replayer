@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
@@ -65,16 +66,21 @@ public class BatchSaveGameParser extends Task<SaveGame> {
         final File currentFile = files[index];
         final InputStream is = new FileInputStream(currentFile);
         currentParser = new SaveGameParser(saveGame, currentFile.length(), is);
-        currentParser.titleProperty().addListener(new ChangeListener<String>() {
+        Platform.runLater(new Runnable() {
             @Override
-            public void changed(ObservableValue<? extends String> ov, String t, String t1) {
-                updateTitle(currentFile.getName() + " (" + index + "/" + files.length + ") - " + t1);
-            }
-        });
-        currentParser.progressProperty().addListener(new ChangeListener<Number>() {
-            @Override
-            public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
-                updateProgress(1, 1 / t1.doubleValue());
+            public void run() {
+                currentParser.titleProperty().addListener(new ChangeListener<String>() {
+                    @Override
+                    public void changed(ObservableValue<? extends String> ov, String t, String t1) {
+                        updateTitle(currentFile.getName() + " (" + (index + 1) + "/" + files.length + ") - " + t1);
+                    }
+                });
+                currentParser.progressProperty().addListener(new ChangeListener<Number>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
+                        updateProgress(1, 1 / t1.doubleValue());
+                    }
+                });
             }
         });
         currentParser.run();

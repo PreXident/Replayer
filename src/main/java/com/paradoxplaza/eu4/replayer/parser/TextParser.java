@@ -60,6 +60,7 @@ public class TextParser<Context> extends Task<Context> {
      */
     @Override
     protected final Context call() throws IOException {
+        init();
         int counter = 0;
         try {
             do {
@@ -136,5 +137,12 @@ public class TextParser<Context> extends Task<Context> {
         } else {
             state = state.processChar(context, (char) token);
         }
+    }
+
+    /**
+     * For descendants to initialize before parsing.
+     */
+    protected void init() {
+        //nothing
     }
 }
