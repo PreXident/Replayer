@@ -78,7 +78,10 @@ public class BatchSaveGameParser extends Task<SaveGame> {
                 currentParser.progressProperty().addListener(new ChangeListener<Number>() {
                     @Override
                     public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
-                        updateProgress(1, 1 / t1.doubleValue());
+                        final double max = 1 / t1.doubleValue();
+                        if (!Double.isInfinite(max) && !Double.isNaN(max)) {
+                            updateProgress(1, max);
+                        }
                     }
                 });
             }

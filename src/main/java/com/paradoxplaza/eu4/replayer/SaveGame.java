@@ -73,8 +73,8 @@ public class SaveGame {
     public void concatenate(final SaveGame other) {
         tagChanges.putAll(other.tagChanges);
         dynamicCountriesColors.putAll(other.dynamicCountriesColors);
-        for (Date d : new DateGenerator(date, other.date)) {
-            timeline.put(d, other.timeline.get(d));
+        for (Date d : new DateGenerator(date.prev(), other.date)) {
+            getEventList(d).addAll(other.getEventList(d));
         }
         final Set<String> subjectsCopy = new HashSet<>(subjects);
         for (String subject : subjectsCopy) {
