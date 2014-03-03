@@ -49,7 +49,7 @@ Feature subjects.as.overlord is not perfect, as it can display only relations th
 #Change log#
 ############
 
-1.5
+1.5 (based on tinholt's suggestions, thx!)
 Batch Saves - you can now select multiple saves to be replayed, they will be sorted alphabetically and information from every save above the first one will be added to the first one successively (this is necessary for technology mapmode and others that use information stored in save outside history)
 Technology mapmode in two versions (for both brighter is better):
 - combined where all tech branches are combined to green color
