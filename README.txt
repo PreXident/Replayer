@@ -33,13 +33,12 @@ common/defines.lua
 ############
 
 In province history there's sometimes missing record of regaining province control from rebels. So in the end there are more rebel controlled provinces than there should be. If you have any idea why this is happening or how to detect this, please share!
-Feature subjects.as.overlord is not perfect, as it can display only relations that exist at save game end because others are not stored in saves. It means that a vassal who broke free later on is not displayed as part of his temporary overlord.
+Feature subjects.as.overlord is not perfect, as it can display only relations that exist at save game end because others are not stored in saves. It means that a vassal who broke free later on is not displayed as part of his temporary overlord. The issue could be less serious if you replay batch of saves instead of only one file.
 
 ##################
 #Planned features#
 ##################
 
-- replaying batches of saves
 - randomized new world
 - monarchs, wars, ...
 - nation focus to display PUs (properly, not only from active_relations)
@@ -49,6 +48,12 @@ Feature subjects.as.overlord is not perfect, as it can display only relations th
 ############
 #Change log#
 ############
+
+1.5
+Batch Saves - you can now select multiple saves to be replayed, they will be sorted alphabetically and information from every save above the first one will be added to the first one successively (this is necessary for technology mapmode and others that use information stored in save outside history)
+Technology mapmode in two versions (for both brighter is better):
+- combined where all tech branches are combined to green color
+- separate where red part of country color is military, blue diplomatic and green administrative technology level
 
 1.4b
 Added mouse coordinates to province hover hint (thx to sinkingmist for suggestion)
