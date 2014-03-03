@@ -21,11 +21,28 @@ import java.util.List;
  */
 public class EventProcessor {
 
-    static int getTechColor(final int adm, final int dip, final int mil) {
+    /**
+     * Returns color representing the technology levels as separate color parts.
+     * @param adm adm level
+     * @param dip dip level
+     * @param mil mil level
+     * @return color representing the technology levels as separate color parts
+     */
+    static int getSeparateTechColor(final int adm, final int dip, final int mil) {
         return ReplayerController.toColor(mil * 7, adm * 7, dip * 7);
-//        final int val = adm + dip + mil;
-//        final int round = (int) (val * 8.0/3.0);
-//        return ReplayerController.toColor(0, round, 0);
+    }
+
+    /**
+     * Returns color representing the technology levels combined to green part.
+     * @param adm adm level
+     * @param dip dip level
+     * @param mil mil level
+     * @return color representing the technology levels combined to green part
+     */
+    static int getCombinedTechColor(final int adm, final int dip, final int mil) {
+        final int val = adm + dip + mil;
+        final int round = (int) (val * 8.0/3.0);
+        return ReplayerController.toColor(0, round, 0);
     }
 
     /** Controller whose controls will be updated. */
@@ -221,7 +238,8 @@ public class EventProcessor {
                 && (previousOwner == null || !replayerController.focusTag.equals(topOverlord(previousOwner).tag))) {
             return false;
         }
-        final int techColor = newOwner == null ? replayerController.landColor : getTechColor(newOwner.adm, newOwner.dip, newOwner.mil);
+        final int techCombinedColor = newOwner == null ? replayerController.landColor : getCombinedTechColor(newOwner.adm, newOwner.dip, newOwner.mil);
+        final int techSeparateColor = newOwner == null ? replayerController.landColor : getSeparateTechColor(newOwner.adm, newOwner.dip, newOwner.mil);
         for(int p : province.points) {
             if (replayerController.notableEvents.contains("Controller")
                     && p / replayerController.bufferWidth % 2 == 0) {
@@ -229,7 +247,8 @@ public class EventProcessor {
             } else {
                 setColor(replayerController.politicalBuffer, p, ownerColor);
             }
-            setColor(replayerController.technologyBuffer, p, techColor);
+            setColor(replayerController.technologyCombinedBuffer, p, techCombinedColor);
+            setColor(replayerController.technologySeparateBuffer, p, techSeparateColor);
         }
         return true;
     }
@@ -345,11 +364,13 @@ public class EventProcessor {
         country.adm = adm;
         country.dip = dip;
         country.mil = mil;
-        final int color = getTechColor(adm, dip, mil);
+        final int separateColor = getSeparateTechColor(adm, dip, mil);
+        final int combinedColor = getCombinedTechColor(adm, dip, mil);
         for (String id : country.owns) {
             final ProvinceInfo province = replayerController.provinces.get(id);
             for(int p : province.points) {
-                setColor(replayerController.technologyBuffer, p, color);
+                setColor(replayerController.technologySeparateBuffer, p, separateColor);
+                setColor(replayerController.technologyCombinedBuffer, p, combinedColor);
             }
         }
         return true;

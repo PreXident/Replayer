@@ -66,9 +66,14 @@
 								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="C"/>
 							</accelerator>
 						</MenuItem>
-						<MenuItem text="%fxml.mapmodes.technology" onAction="#technologyMapMode">
+						<MenuItem text="%fxml.mapmodes.technology.combined" onAction="#technologyCombinedMapMode">
 							<accelerator>
 								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="T"/>
+							</accelerator>
+						</MenuItem>
+						<MenuItem text="%fxml.mapmodes.technology.separate" onAction="#technologySeparateMapMode">
+							<accelerator>
+								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="U"/>
 							</accelerator>
 						</MenuItem>
 					</Menu>

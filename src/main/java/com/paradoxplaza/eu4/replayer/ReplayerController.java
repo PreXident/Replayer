@@ -287,8 +287,11 @@ public class ReplayerController implements Initializable {
     /** Buffer with cultural map. */
     int[] culturalBuffer;
 
-    /** Buffer with technology map. */
-    int[] technologyBuffer;
+    /** Buffer with technology map with separate color representation of tech branches. */
+    int[] technologySeparateBuffer;
+
+    /** Buffer with technology map with separate color representation of tech branches. */
+    int[] technologyCombinedBuffer;
 
     /** How many pixels are added to width and height when zooming in/out. */
     int zoomStep;
@@ -789,7 +792,8 @@ public class ReplayerController implements Initializable {
                             politicalBuffer[pos] = finalColor;
                             religiousBuffer[pos] = finalColor;
                             culturalBuffer[pos] = finalColor;
-                            technologyBuffer[pos] = finalColor;
+                            technologySeparateBuffer[pos] = finalColor;
+                            technologyCombinedBuffer[pos] = finalColor;
                             updateProgress(pos, size);
                         }
                     }
@@ -1039,8 +1043,14 @@ public class ReplayerController implements Initializable {
     }
 
     @FXML
-    private void technologyMapMode() {
-        buffer = technologyBuffer;
+    private void technologyCombinedMapMode() {
+        buffer = technologyCombinedBuffer;
+        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+    }
+
+    @FXML
+    private void technologySeparateMapMode() {
+        buffer = technologySeparateBuffer;
         output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
     }
 
@@ -1583,7 +1593,8 @@ public class ReplayerController implements Initializable {
                     politicalBuffer = new int[width*height];
                     religiousBuffer = new int[width*height];
                     culturalBuffer = new int[width*height];
-                    technologyBuffer = new int[width*height];
+                    technologySeparateBuffer = new int[width*height];
+                    technologyCombinedBuffer = new int[width*height];
                     buffer = politicalBuffer;
                     bufferWidth = width;
                     bufferHeight = height;
@@ -1618,7 +1629,8 @@ public class ReplayerController implements Initializable {
                             politicalBuffer[y * width + x] = color;
                             religiousBuffer[y * width + x] = color;
                             culturalBuffer[y * width + x] = color;
-                            technologyBuffer[y * width + x] = color;
+                            technologySeparateBuffer[y * width + x] = color;
+                            technologyCombinedBuffer[y * width + x] = color;
                             writer.setArgb(x, y, color);
                             updateProgress(y*width+x, height*width);
                         }
