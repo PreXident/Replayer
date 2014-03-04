@@ -1,4 +1,4 @@
-package com.paradoxplaza.eu4.replayer.parser.defaultmap;
+package com.paradoxplaza.eu4.replayer.parser.climate;
 
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Processes seas_start={...}.
+ * Processes impassable={...}.
  */
-class Seas extends CompoundState<Map<String, ProvinceInfo>> {
+class Impassable extends CompoundState<Map<String, ProvinceInfo>> {
 
     static final Pattern NUMBER = Pattern.compile("\\d+");
 
@@ -18,7 +18,7 @@ class Seas extends CompoundState<Map<String, ProvinceInfo>> {
      * Only constructor.
      * @param parent parent state
      */
-    public Seas(final State<Map<String, ProvinceInfo>> parent) {
+    public Impassable(final State<Map<String, ProvinceInfo>> parent) {
         super(parent);
     }
 
@@ -29,7 +29,7 @@ class Seas extends CompoundState<Map<String, ProvinceInfo>> {
         }
         final ProvinceInfo province = context.get(word);
         if (province != null) {
-            province.isSea = true;
+            province.isWasteland = true;
         } else {
             System.out.printf(l10n("parser.unknown.province"), word);
         }

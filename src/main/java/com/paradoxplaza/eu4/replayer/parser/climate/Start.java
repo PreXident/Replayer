@@ -1,4 +1,4 @@
-package com.paradoxplaza.eu4.replayer.parser.defaultmap;
+package com.paradoxplaza.eu4.replayer.parser.climate;
 
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
@@ -16,7 +16,7 @@ public class Start extends StartAdapter<Map<String, ProvinceInfo>> {
     final Ignore<Map<String, ProvinceInfo>> ignore = new Ignore<>(this);
 
     /** Processes seas_start. */
-    final Seas seas = new Seas(this);
+    final Impassable impassable = new Impassable(this);
 
     @Override
     public Start end(final Map<String, ProvinceInfo> context) {
@@ -25,16 +25,14 @@ public class Start extends StartAdapter<Map<String, ProvinceInfo>> {
 
     @Override
     public State<Map<String, ProvinceInfo>> processChar(final Map<String, ProvinceInfo> context, final char token) {
-        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, "sea_starts|lakes"));
+        throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), token, "impassable"));
     }
 
     @Override
     public State<Map<String, ProvinceInfo>> processWord(final Map<String, ProvinceInfo> context, final String word) {
         switch (word) {
-            case "sea_starts":
-                return seas;
-            case "lakes":
-                return seas;
+            case "impassable":
+                return impassable;
             default:
                 return ignore;
         }

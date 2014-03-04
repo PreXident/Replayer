@@ -4,7 +4,9 @@ import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.SimpleProvinceEvent;
+import com.paradoxplaza.eu4.replayer.generator.ModGenerator;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.parser.climate.ClimateParser;
 import com.paradoxplaza.eu4.replayer.parser.colregion.ColRegionParser;
 import com.paradoxplaza.eu4.replayer.parser.country.CountryParser;
 import com.paradoxplaza.eu4.replayer.parser.culture.CulturesParser;
@@ -314,11 +316,8 @@ public class ReplayerController implements Initializable {
     /** ID -> province mapping. */
     Map<String, ProvinceInfo> provinces = new HashMap<>();
 
-    /** Province color -> ID mapping. */
-    Map<Integer, String> colors = new HashMap<>();
-
-    /** Set of colors assigned to sea provinces. */
-    Set<Integer> seas = new HashSet<>();
+    /** Province color -> province mapping. */
+    Map<Integer, ProvinceInfo> colors = new HashMap<>();
 
     /** Set of points constituting borders. */
     Set<Integer> borders = new HashSet<>();
@@ -392,8 +391,8 @@ public class ReplayerController implements Initializable {
     /** Tag of state in focus. Never null. */
     String focusTag = "";
 
-    /** ID of selected province. */
-    String selectedProvince;
+    /** Selected province. */
+    ProvinceInfo selectedProvince;
 
     /** Content of selected province log. */
     String selectedProvinceLogContent;
@@ -762,7 +761,7 @@ public class ReplayerController implements Initializable {
             pi.reset();
         }
         focusTag = settings.getProperty("focus", ""); //this needs to be reset as tag changes are followed during replaying
-        focusing = !focusTag.equals("");
+        focusing = !focusTag.isEmpty();
 
         try {
             final BatchSaveGameParser parser = new BatchSaveGameParser(saveGame, fileArr);
@@ -782,7 +781,8 @@ public class ReplayerController implements Initializable {
                             final int pos = y * width + x;
                             final int color = reader.getArgb(x, y);
                             int finalColor;
-                            if (seas.contains(color)) {
+                            final ProvinceInfo province = colors.get(color);
+                            if (province != null && province.isSea) {
                                 finalColor = seaColor;
                             } else if (borders.contains(pos)) {
                                 finalColor = borderColor;
@@ -1254,7 +1254,7 @@ public class ReplayerController implements Initializable {
                 int x = (int) (t.getX() * bufferWidth / imageBounds.getWidth());
                 int y = (int) (t.getY() * bufferHeight / imageBounds.getHeight());
                 final String coords = "[" + x + "," + y + "]\n";
-                final String provinceHint = coords + provinces.get(colors.get(reader.getArgb(x, y))).toString();
+                final String provinceHint = coords + colors.get(reader.getArgb(x, y)).toString();
                 if (!scrollPane.getTooltip().getText().equals(provinceHint)) {
                     scrollPane.setTooltip(new Tooltip(provinceHint));
                 }
@@ -1268,9 +1268,8 @@ public class ReplayerController implements Initializable {
                 int x = (int) (t.getX() * bufferWidth / imageBounds.getWidth());
                 int y = (int) (t.getY() * bufferHeight / imageBounds.getHeight());
                 selectedProvince = colors.get(reader.getArgb(x, y));
-                final ProvinceInfo province = provinces.get(selectedProvince);
-                if (province != null) {
-                    final String provinceLogContent = province.getLog();
+                if (selectedProvince != null) {
+                    final String provinceLogContent = selectedProvince.getLog();
                     if (!provinceLogContent.equals(selectedProvinceLogContent)) {
                         provinceLog.getEngine().loadContent(provinceLogContent);
                         selectedProvinceLogContent = provinceLogContent;
@@ -1314,8 +1313,9 @@ public class ReplayerController implements Initializable {
             new EventHandler<MouseEvent>() {
                 @Override
                 public void handle(MouseEvent e) {
-                    if (e.getButton() == MouseButton.SECONDARY)
+                    if (e.getButton() == MouseButton.SECONDARY) {
                         cm.show(log, e.getScreenX(), e.getScreenY());
+                    }
                 }
         });
         final WebEngine webEngine = log.getEngine();
@@ -1386,7 +1386,7 @@ public class ReplayerController implements Initializable {
         drawBorders = "true".equals(settings.getProperty("borders", "false"));
 
         focusTag = settings.getProperty("focus", "");
-        focusing = !focusTag.equals("");
+        focusing = !focusTag.isEmpty();
         focusEdit.setText(focusTag);
 
         saveDirectory = new File(settings.getProperty("save.dir", ""));
@@ -1533,6 +1533,7 @@ public class ReplayerController implements Initializable {
         loadColRegions();
         loadMap();
         loadSeas();
+        loadWastelands();
         loadCountries();
         loadCultures();
         loadReligions();
@@ -1619,9 +1620,9 @@ public class ReplayerController implements Initializable {
                                 color = borderColor;
                                 borders.add(y * width + x);
                             } else {
-                                final String id = colors.get(color);
-                                if (id != null) {
-                                    provinces.get(id).points.add(y * width + x);
+                                final ProvinceInfo province = colors.get(color);
+                                if (province != null) {
+                                    province.points.add(y * width + x);
                                 } else {
                                     System.err.printf(l10n("replay.map.unknowncolor"), x, y, color);
                                 }
@@ -1680,8 +1681,8 @@ public class ReplayerController implements Initializable {
         try {
             reader = new BufferedReader(new InputStreamReader(fileManager.getInputStream("map/definition.csv"), StandardCharsets.ISO_8859_1));
             //skip first line
-            String line = reader.readLine();
-            line = reader.readLine();
+            reader.readLine();
+            String line = line = reader.readLine();
             while (line != null) {
                 if (line.isEmpty()) {
                     line = reader.readLine();
@@ -1692,8 +1693,9 @@ public class ReplayerController implements Initializable {
                         Integer.parseInt(parts[1]),
                         Integer.parseInt(parts[2]),
                         Integer.parseInt(parts[3]));
-                provinces.put(parts[0], new ProvinceInfo(parts[0], parts[4], color));
-                final String original = colors.put(color, parts[0]);
+                final ProvinceInfo province = new ProvinceInfo(parts[0], parts[4], color);
+                provinces.put(parts[0], province);
+                final ProvinceInfo original = colors.put(color, province);
                 if (original != null) {
                     throw new RuntimeException(String.format(l10n("replay.provinces.error"), parts[0], original));
                 }
@@ -1732,9 +1734,19 @@ public class ReplayerController implements Initializable {
      */
     private void loadSeas() {
         System.out.printf(l10n("replay.load.seas"));
-        seas.clear();
         try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/default.map")) {
-            final DefaultMapParser parser = new DefaultMapParser(new Pair<>(seas, provinces), Long.MAX_VALUE, is);
+            final DefaultMapParser parser = new DefaultMapParser(provinces, Long.MAX_VALUE, is);
+            parser.run();
+        } catch(Exception e) { e.printStackTrace(); }
+    }
+
+    /**
+     * Loads wasteland provinces from map/climate.txt.
+     */
+    private void loadWastelands() {
+        System.out.printf(l10n("replay.load.wastelands"));
+        try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/climate.txt")) {
+            final ClimateParser parser = new ClimateParser(provinces, Long.MAX_VALUE, is);
             parser.run();
         } catch(Exception e) { e.printStackTrace(); }
     }
@@ -1783,7 +1795,7 @@ public class ReplayerController implements Initializable {
         final WebEngine e = new WebEngine();
         e.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
             @Override
-            public void changed(ObservableValue ov, State oldState, State newState) {
+            public void changed(ObservableValue<? extends State> ov, State oldState, State newState) {
                 if (newState == State.SUCCEEDED) {
                     Node fragmentNode = e.getDocument().getElementById(LOG_ID);
                     fragmentNode = doc.importNode(fragmentNode, true);
@@ -1795,9 +1807,8 @@ public class ReplayerController implements Initializable {
         e.loadContent(logContent.toString());
         logContent.setLength(LOG_HEADER.length());
 
-        final ProvinceInfo province = provinces.get(selectedProvince);
-        if (province != null) {
-            final String provinceLogContent = province.getLog();
+        if (selectedProvince != null) {
+            final String provinceLogContent = selectedProvince.getLog();
             if (!provinceLogContent.equals(selectedProvinceLogContent)) {
                 provinceLog.getEngine().loadContent(provinceLogContent);
                 selectedProvinceLogContent = provinceLogContent;
@@ -1885,7 +1896,7 @@ public class ReplayerController implements Initializable {
                         final WebEngine e = log.getEngine();
                         e.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
                             @Override
-                            public void changed(ObservableValue ov, State oldState, State newState) {
+                            public void changed(ObservableValue<? extends State> ov, State oldState, State newState) {
                                 if (newState == State.SUCCEEDED) {
                                     log.getEngine().executeScript(SCROLL_DOWN);
                                     logContent.setLength(LOG_HEADER.length());

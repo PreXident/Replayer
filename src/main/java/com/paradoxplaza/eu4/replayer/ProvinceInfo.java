@@ -45,6 +45,12 @@ public class ProvinceInfo {
     /** Colonial region the province belongs to, if any. */
     public ColRegionInfo colRegion = null;
 
+    /** Flag indicating if this province is a sea/lake. */
+    public boolean isSea = false;
+
+    /** Flag indicating id this province is a wasteland. */
+    public boolean isWasteland = false;
+
     /**
      * Only constructor.
      * @param id province id
