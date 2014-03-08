@@ -259,6 +259,13 @@
 							</CustomMenuItem>
 						</Menu>
 					</Menu>
+					<Menu text="%fxml.generator">
+						<MenuItem text="%fxml.generator.generate" onAction="#generateMod">
+							<accelerator>
+								<KeyCodeCombination alt="ANY" control="DOWN" meta="ANY" shift="ANY" shortcut="ANY" code="G"/>
+							</accelerator>
+						</MenuItem>
+					</Menu>
 				</menus>
 			</MenuBar>
 			<HBox alignment="CENTER_LEFT">

@@ -12,6 +12,7 @@
 	<property name="dir.dist.res" value="dist" />
 	<property name="dir.javadoc" value="build/javadoc" />
 	<property name="dir.clean" value="build" />
+	<property name="dir.gen" value="com/paradoxplaza/eu4/replayer/generator" />
 	<property name="file.javadoc.overview" value="src/overview.html" />
 	<property name="file.dist" value="replayer.jar" />
 	<property name="file.dist.zip" value="replayer-${project.version}.zip" />
@@ -47,8 +48,12 @@
 			<compilerarg value="-Xlint:deprecation" />
 		</javac>
 		<copy todir="${dir.build}">
-			<fileset dir="${dir.res}" />
+			<fileset dir="${dir.res}">
+				<exclude name="**/generator/*"/>
+			</fileset>
 		</copy>
+		<zip destFile="${dir.build}/${dir.gen}/mod.zip"
+				basedir="${dir.res}/${dir.gen}"/>
 	</target>
 
 	<taskdef resource="com/sun/javafx/tools/ant/antlib.xml"

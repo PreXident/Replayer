@@ -78,7 +78,7 @@ class Start extends StartAdapter<SaveGame> {
             case "religions":
                 return religions;
             case "provinces":
-                return provinces;
+                return provinces.withDate(currentDate.val);
             case "countries":
                 return countries.withDate(currentDate.val);
             case "diplomacy":

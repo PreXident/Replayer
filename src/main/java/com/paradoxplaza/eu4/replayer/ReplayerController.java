@@ -135,7 +135,7 @@ public class ReplayerController implements Initializable {
     static final String LINUX_DIR = "/.paradoxinteractive/Europa Universalis IV";
 
     /** Default base direcotry containing settings, mods, saves, etc. */
-    static final String DEFAULT_BASE_DIR =
+    static public final String DEFAULT_BASE_DIR =
             System.getProperty("user.home", "") +
             (
                 //Windows
@@ -186,17 +186,6 @@ public class ReplayerController implements Initializable {
         final double unit = imageViewSize - 2 * zero; //size of scrollable area
         final double scroll = procent * unit + zero;
         return (int) (scroll / imageViewSize * mapSize);
-    }
-
-    /**
-     * R, G, B to argb.
-     * @param red
-     * @param green
-     * @param blue
-     * @return argb
-     */
-    static public int toColor(final int red, final int green, final int blue) {
-        return 255 << 24 | red << 16 | green << 8 | blue;
     }
 
     /** Possible directions of replaying. */
@@ -436,6 +425,9 @@ public class ReplayerController implements Initializable {
      */
     boolean focusing = false;
 
+    /** Random New World feature is on. */
+    boolean rnw = false;
+
     /** Flag indicating that subject nations should be rendered as part of their overlords. */
     boolean subjectsAsOverlords = false;
 
@@ -613,6 +605,20 @@ public class ReplayerController implements Initializable {
     }
 
     @FXML
+    private void generateMod() {
+        if (!lock.tryAcquire()) {
+           return;
+        }
+        if (rnw) {
+            statusLabel.setText(l10n("generator.rnw"));
+        } else {
+            new ModGenerator(settings).generate(provinces.values());
+            statusLabel.setText(l10n("generator.done"));
+        }
+        lock.release();
+    }
+
+    @FXML
     private void jump() {
         if (!lock.tryAcquire()) {
            return;
@@ -764,7 +770,7 @@ public class ReplayerController implements Initializable {
         focusing = !focusTag.isEmpty();
 
         try {
-            final BatchSaveGameParser parser = new BatchSaveGameParser(saveGame, fileArr);
+            final BatchSaveGameParser parser = new BatchSaveGameParser(rnw, saveGame, fileArr);
             final int width = (int) map.getWidth();
             final int height = (int) map.getHeight();
             imageView.setImage(null);
@@ -1371,15 +1377,15 @@ public class ReplayerController implements Initializable {
         gifStep = Integer.parseInt(settings.getProperty("gif.step", "100"));
         gifBreak = Integer.parseInt(settings.getProperty("gif.new.file", "0"));
 
-        seaColor = toColor(
+        seaColor = ColorUtils.toColor(
                 Integer.parseInt(settings.getProperty("sea.color.red", "0")),
                 Integer.parseInt(settings.getProperty("sea.color.green", "0")),
                 Integer.parseInt(settings.getProperty("sea.color.blue", "255")));
-        landColor = toColor(
+        landColor = ColorUtils.toColor(
                 Integer.parseInt(settings.getProperty("land.color.red", "150")),
                 Integer.parseInt(settings.getProperty("land.color.green", "150")),
                 Integer.parseInt(settings.getProperty("land.color.blue", "150")));
-        borderColor = toColor(
+        borderColor = ColorUtils.toColor(
                 Integer.parseInt(settings.getProperty("border.color.red", "0")),
                 Integer.parseInt(settings.getProperty("border.color.green", "0")),
                 Integer.parseInt(settings.getProperty("border.color.blue", "0")));
@@ -1414,6 +1420,9 @@ public class ReplayerController implements Initializable {
         }
 
         subjectsAsOverlords = settings.getProperty("subjects.as.overlord", "false").equals("true");
+
+        final String rnwMap = settings.getProperty("rnw.map");
+        rnw = rnwMap != null  && !rnwMap.isEmpty();
 
         eu4Directory = new File(settings.getProperty("eu4.dir"));
         try {
@@ -1587,10 +1596,7 @@ public class ReplayerController implements Initializable {
                             gifHeight = Integer.parseInt(settings.getProperty("gif.height"));
                         } catch (Exception e) { }
                         gifSizedImage = new BufferedImage(gifWidth, gifHeight, BufferedImage.TYPE_INT_ARGB);
-    //                    buffer = ((DataBufferInt)gifBufferedImage.getRaster().getDataBuffer()).getData();
-                    } /*else {
-                        buffer = new int[width*height];
-                    }*/
+                    }
                     politicalBuffer = new int[width*height];
                     religiousBuffer = new int[width*height];
                     culturalBuffer = new int[width*height];
@@ -1689,7 +1695,7 @@ public class ReplayerController implements Initializable {
                     continue;
                 }
                 final String[] parts = line.split(";");
-                final int color = toColor(
+                final int color = ColorUtils.toColor(
                         Integer.parseInt(parts[1]),
                         Integer.parseInt(parts[2]),
                         Integer.parseInt(parts[3]));
@@ -1712,6 +1718,16 @@ public class ReplayerController implements Initializable {
                     reader.close();
                 } catch (IOException e) { }
             }
+        }
+        if (rnw) {
+            final ProvinceInfo sea = new ProvinceInfo("SEA", "SEA", ColorUtils.SEA_COLOR);
+            sea.isSea = true;
+            provinces.put(sea.id, sea);
+            colors.put(sea.color, sea);
+            final ProvinceInfo wasteland = new ProvinceInfo("WASTELAND", "WASTELAND", ColorUtils.WASTELAND_COLOR);
+            wasteland.isWasteland = true;
+            provinces.put(wasteland.id, wasteland);
+            colors.put(wasteland.color, wasteland);
         }
     }
 

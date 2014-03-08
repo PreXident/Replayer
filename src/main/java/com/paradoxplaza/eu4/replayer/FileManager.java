@@ -38,6 +38,9 @@ class FileManager {
     }
 
     public InputStream getInputStream(final String path) throws IOException {
+        if (controller.rnw && path.equals("map/provinces.bmp")) {
+            return new FileInputStream(controller.settings.getProperty("rnw.map"));
+        }
         for (ModInfo mod : mods) {
             if (mod.dir != null) {
                 final String filePath = modDirPath + "/" + mod.dir + "/" + path;

@@ -25,9 +25,9 @@ class Countries extends CompoundState<SaveGame> {
     }
 
     /**
-     * Sets current datez
-     * @param date
-     * @return
+     * Sets current date.
+     * @param date new current date
+     * @return this
      */
     public Countries withDate(final Date date) {
         this.currentDate = date;

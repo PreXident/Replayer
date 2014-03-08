@@ -39,7 +39,7 @@ class Country extends CompoundState<SaveGame> {
 
     /**
      * Sets current date.
-     * @param Date new date
+     * @param date new date
      * @return this
      */
     public Country withDate(final Date date) {

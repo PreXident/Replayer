@@ -29,7 +29,7 @@ public class EventProcessor {
      * @return color representing the technology levels as separate color parts
      */
     static int getSeparateTechColor(final int adm, final int dip, final int mil) {
-        return ReplayerController.toColor(mil * 7, adm * 7, dip * 7);
+        return ColorUtils.toColor(mil * 7, adm * 7, dip * 7);
     }
 
     /**
@@ -42,7 +42,7 @@ public class EventProcessor {
     static int getCombinedTechColor(final int adm, final int dip, final int mil) {
         final int val = adm + dip + mil;
         final int round = (int) (val * 8.0/3.0);
-        return ReplayerController.toColor(0, round, 0);
+        return ColorUtils.toColor(0, round, 0);
     }
 
     /** Controller whose controls will be updated. */
@@ -54,6 +54,15 @@ public class EventProcessor {
      */
     public EventProcessor(final ReplayerController controller) {
         this.replayerController = controller;
+    }
+
+    /**
+     * Returns default color for province.
+     * @param province given province
+     * @return default color
+     */
+    private int getDefaultColor(final ProvinceInfo province) {
+        return province.isSea ? replayerController.seaColor : replayerController.landColor;
     }
 
     /**
@@ -76,7 +85,7 @@ public class EventProcessor {
             previousController.controls.remove(province.id);
         }
         province.controller = newControllerTag;
-        int color = replayerController.landColor;
+        int color = getDefaultColor(province);
         final CountryInfo overlord = topOverlord(newController);
         if (newController != null) {
             newController.controls.add(province.id);
@@ -118,7 +127,7 @@ public class EventProcessor {
         final ProvinceInfo province = replayerController.provinces.get(provinceID);
         province.culture = newCulture;
         final Integer Color = replayerController.cultures.get(newCulture);
-        int color = Color == null ? replayerController.landColor : Color;
+        int color = Color == null ? getDefaultColor(province) : Color;
         for(int p : province.points) {
             setColor(replayerController.culturalBuffer, p, color);
         }
@@ -201,7 +210,7 @@ public class EventProcessor {
         }
         province.owner = newOwnerTag;
         province.controller = newControllerTag;
-        int ownerColor = replayerController.landColor;
+        int ownerColor = getDefaultColor(province);
         if (newOwner != null) {
             newOwner.owns.add(province.id);
             final CountryInfo topOverlord = topOverlord(newOwner);
@@ -216,7 +225,7 @@ public class EventProcessor {
                 ownerColor = newOwner.color;
             }
         }
-        int controllerColor = replayerController.landColor;
+        int controllerColor = getDefaultColor(province);
         if (newController != null) {
             newController.controls.add(province.id);
             final CountryInfo topOverlord = topOverlord(newController);
@@ -265,7 +274,7 @@ public class EventProcessor {
         final ProvinceInfo province = replayerController.provinces.get(provinceID);
         province.religion = newReligion;
         final Integer Color = replayerController.religions.get(newReligion);
-        int color = Color == null ? replayerController.landColor : Color;
+        int color = Color == null ? getDefaultColor(province) : Color;
         for(int p : province.points) {
             setColor(replayerController.religiousBuffer, p, color);
         }

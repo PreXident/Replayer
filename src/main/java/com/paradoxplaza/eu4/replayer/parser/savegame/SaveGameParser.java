@@ -11,6 +11,12 @@ import java.io.InputStream;
 public class SaveGameParser extends TextParser<SaveGame> {
 
     /**
+     * Hack attribute to insert current province info into events.
+     * This is needed for RNW, as current info is not stored in history.
+     */
+    static boolean synchronizeProvinces = false;
+
+    /**
      * Only constructor.
      * @param saveGame SaveGame to fill
      * @param size size of parsed file

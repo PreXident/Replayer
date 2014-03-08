@@ -1,26 +1,34 @@
 package com.paradoxplaza.eu4.replayer.generator;
 
+import com.paradoxplaza.eu4.replayer.ColorUtils;
+import static com.paradoxplaza.eu4.replayer.ColorUtils.SEA_COLOR;
+import static com.paradoxplaza.eu4.replayer.ColorUtils.WASTELAND_COLOR;
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
+import com.paradoxplaza.eu4.replayer.ReplayerController;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Generates mod for supporting Random New World.
  */
 public class ModGenerator {
 
+    /** Application's settings. */
+    final Properties settings;
+
     /**
-     * Creates a string "red green blue" out of int color.
-     * @param color input color
-     * @param separator delimiter to use
-     * @return string "REDseparatorGREENseparator"
+     * Only constructor.
+     * @param settings application settings
      */
-    private static String colorToString(final int color, final String separator) {
-        //255 << 24 | red << 16 | green << 8 | blue;
-        final int red = (color & 0x00FF0000) >> 16;
-        final int green = (color & 0x0000FF00) >> 8;
-        final int blue = color & 0x000000FF;
-        return red + separator + green + separator + blue;
+    public ModGenerator(final Properties settings) {
+        this.settings = settings;
     }
 
     /**
@@ -28,21 +36,26 @@ public class ModGenerator {
      * @param provinces list of provinces
      */
     public void generate(Iterable<ProvinceInfo> provinces) {
-        try (BufferedWriter tagWriter = new BufferedWriter(new FileWriter("common/country_tags/RNW.txt"))) {
+        unzipStaticModPart();
+        final String baseDir = settings.getProperty("mod.basedir", ReplayerController.DEFAULT_BASE_DIR) + "/mod/RNW";
+        try (BufferedWriter tagWriter = new BufferedWriter(new FileWriter(baseDir + "/common/country_tags/RNW.txt"))) {
             final TagGenerator tagGenerator = new TagGenerator();
             for(ProvinceInfo province : provinces) {
                 if (province.isSea || province.isWasteland) {
                     continue;
                 }
+                if (province.color == SEA_COLOR  || province.color == WASTELAND_COLOR) {
+                    System.err.printf(l10n("generator.conflict"), province.id);
+                }
                 final String tag = tagGenerator.next();
-                final String color = colorToString(province.color, " ");
-                //try (BufferedWriter writer = new BufferedWriter(new FileWriter("history/provinces/" + parts[0] + " - " + parts[4] + ".txt"))) {
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter("history/provinces/" + province.id + " - dummy.txt"))) {
+                final String color = ColorUtils.colorToStringFloat(province.color, " ");
+                //generating itself
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(baseDir + "/history/provinces/" + province.id + " - dummy.txt"))) {
                     writer.append("owner = " + tag);
                     writer.newLine();
                     writer.append("controller = " + tag);
                 }
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter("common/countries/" + tag + ".txt"))) {
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(baseDir + "/common/countries/" + tag + ".txt"))) {
                     writer.append("graphical_culture = westerngfx");
                     writer.newLine();
                     writer.append("color = { " + color + " }");
@@ -53,23 +66,38 @@ public class ModGenerator {
                     writer.newLine();
                     writer.append("ship_names = { dummy }");
                 }
-//                try (BufferedWriter writer = new BufferedWriter(new FileWriter("common/country_colors/" + tag + ".txt"))) {
-//                    writer.append(tag + " = {");
-//                    writer.newLine();
-//                    writer.append("\t color1= { " + parts[1] + " " + parts[2] + " " + parts[3] + " }");
-//                    writer.newLine();
-//                    writer.append("\t color2= { " + parts[1] + " " + parts[2] + " " + parts[3] + " }");
-//                    writer.newLine();
-//                    writer.append("\t color3= { " + parts[1] + " " + parts[2] + " " + parts[3] + " }");
-//                    writer.append("}");
-//                }
-//                try (BufferedWriter writer = new BufferedWriter(new FileWriter("common/country_tags/" + tag + ".txt"))) {
-//                    writer.append(tag + " = \"countries/" + tag + ".txt\"");
-//                }
                 tagWriter.append(tag + " = \"countries/" + tag + ".txt\"");
                 tagWriter.newLine();
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void unzipStaticModPart() {
+        final String baseDir = settings.getProperty("mod.basedir", ReplayerController.DEFAULT_BASE_DIR) + "/mod";
+        try (ZipInputStream zip = new ZipInputStream(getClass().getResourceAsStream("mod.zip"))) {
+            ZipEntry z = zip.getNextEntry();
+            final byte[] buf = new byte[2048];
+            while (z != null) {
+                if (z.isDirectory()) {
+                    z = zip.getNextEntry();
+                    continue;
+                }
+                final String name = z.getName();
+                final File file = new File(baseDir + "/" + name);
+                file.getParentFile().mkdirs();
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                    int len;
+                    while ((len = zip.read(buf)) > 0) {
+                        fos.write(buf, 0, len);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                z = zip.getNextEntry();
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

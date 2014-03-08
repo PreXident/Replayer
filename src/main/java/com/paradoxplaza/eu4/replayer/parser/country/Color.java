@@ -1,6 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser.country;
 
-import com.paradoxplaza.eu4.replayer.ReplayerController;
+import com.paradoxplaza.eu4.replayer.ColorUtils;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
@@ -31,7 +31,7 @@ public class Color extends CompoundState<Ref<Integer>> {
 
     @Override
     protected void endCompound(final Ref<Integer> color) {
-        color.val = ReplayerController.toColor(colors[0], colors[1], colors[2]);
+        color.val = ColorUtils.toColor(colors[0], colors[1], colors[2]);
     }
 
     @Override

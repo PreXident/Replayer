@@ -36,8 +36,23 @@ dependencies {
 //include only explicitly not exluded dependencies to fatJar
 project.configurations.each {
 	it.copyRecursive {
-			it.ext.fatJarExclude = !it.ext.has('fatJarExclude') || it.ext.get('fatJarExclude')
+		it.ext.fatJarExclude = !it.ext.has('fatJarExclude') || it.ext.get('fatJarExclude')
 	}
+}
+
+processResources{
+	exclude '**/generator/*'
+}
+
+processResources.doLast {
+	zip.execute()
+}
+
+task zip(type: Zip) {
+	description = 'internal'
+	archiveName 'mod.zip'
+    from 'src/main/resources/com/paradoxplaza/eu4/replayer/generator'
+    destinationDir file('build/resources/main/com/paradoxplaza/eu4/replayer/generator')
 }
 
 cssToBin {
@@ -85,6 +100,8 @@ task distCopy(dependsOn: fatJar, type: Copy) {
 }
 
 task dist(dependsOn: distCopy, type: Zip) {
+	group = 'Distribution'
+	description = 'Creates the distribution of the Replayer'
 	from file('build/dist')
 	exclude '*.zip'
 	destinationDir file('build/dist')

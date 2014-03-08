@@ -22,23 +22,31 @@ public class BatchSaveGameParser extends Task<SaveGame> {
     /** Save game files to parse. */
     final File[] files;
 
+    /** Flag indicating whether the RNW is used. */
+    final boolean rnw;
+
     /** Currently running save game parser. */
     SaveGameParser currentParser;
 
     /**
      * Only constructor.
+     * @param rnw is RNW used?
      * @param saveGame SaveGame to fill
      * @param files sorted inputs to parse
      */
-    public BatchSaveGameParser(final SaveGame saveGame, final File[] files) {
+    public BatchSaveGameParser(final boolean rnw,
+            final SaveGame saveGame, final File[] files) {
         this.saveGame = saveGame;
         this.files = files;
+        this.rnw = rnw;
     }
 
     @Override
     protected SaveGame call() throws Exception {
         updateTitle(l10n("parser.batch.init"));
+        SaveGameParser.synchronizeProvinces = rnw;
         runParser(saveGame, 0);
+        SaveGameParser.synchronizeProvinces = false;
         for (int i = 1; i < files.length; ++i) {
             final SaveGame currentSaveGame = runParser(new SaveGame(), i);
             saveGame.concatenate(currentSaveGame);
