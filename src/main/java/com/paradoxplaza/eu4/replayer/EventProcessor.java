@@ -298,7 +298,12 @@ public class EventProcessor {
         to.owns.addAll(from.owns);
         to.subjects.clear();
         to.subjects.addAll(from.subjects);
-        to.overlord = from.overlord;
+        for (String subject : to.subjects) {
+            changeOverlord(date, subject, newTag);
+        }
+        if (from.overlord != null && !from.overlord.equals(newTag)) { //japanese fix
+            to.overlord = from.overlord;
+        }
         from.owns.clear();
         from.controls.clear();
         to.adm = from.adm;
