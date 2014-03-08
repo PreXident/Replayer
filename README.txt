@@ -13,7 +13,40 @@ Tested on only one machine and one complete vanilla save started in 1444.11.11, 
 Submit any bugs, problems and feature requests on Paradox forums or PM me (nick PreXident), maybe we can figure it out.
 http://forum.paradoxplaza.com/forum/showthread.php?722493-UTILITY-Java-Save-Game-Replayer
 
-If you want to replay ironman save, try this approach: backup, load, load other, load, save locally, restore your backup (tested pre 1.2)
+Video tutorial for version 1.1:
+http://www.youtube.com/watch?v=kPdwBscCszY
+
+###############
+#Creating gifs#
+###############
+
+As hinted in changelog, set gif=true in replayer.properties and use '>>' to fastforward to the end date. The gif is created in the folder with save game and its size is affected by properties gif.width and gif.height. The sampling period can be set in settings (Per Tick), I recommend 1 Year. If you save frames to gif too often (like every two days), it will take a long time, the file will be huge and few other applications will be able to handle it. To prevent this, you can set property gif.new.file to a positive integral value, and after that number of frames new gif file will be created. Property gif.step specifies number of ms between gif frames. See change log for version 1.1 for additional gif related properties.
+As of 1.2 you can also export only part of the map, using new properties (thx to ferluciCZ for suggesting this feature). For Europe it could look like this:
+gif=true
+gif.width=1100
+gif.height=900
+gif.subimage=true
+gif.subimage.x=2400
+gif.subimage.y=0
+gif.subimage.width=1100
+gif.subimage.height=900
+
+##################
+#Random New World#
+##################
+
+Random New World feature is supported however it is a bit clumsy and needs user to take part in the process. You also need at least two saves to display the RNW properly - first from the very start of your game and second the actual save to replay. This is needed as the randomizer does not log its actions to province histories, so they do not match the actual game situation. I am not sure if this works with mods, you have to try it.
+If you think you can handle it, follow this procedure:
+1. Start replayer (if you are using mods, specify them in mod.list property)
+2. Select Generator->Generate, which creates new mod RNW in your EU4 mod directory. Close the replayer.
+3. Start EU4 with the mods including RNW. It will take a long time as there is a tag for every colonizable province (1400+)
+4. Start a new game, select a nation to play (just to be sure from the old world), do NOT check Random New World!!!
+5. After the start do not unpause and immediately save the game
+6. Edit this new save (it will be circa 300MB, so not every editor can handle it, I use PSPad in hex mode), add random_world=XXX after mod section, replacing XXX for the value in saves you want to replay. Also in setgameplayoptions section change the 7th number to 1
+7. Load the modified save, do not unpause, change to political mapmode, hit F10 to save the mapmode screenshot
+8. Edit replayer.properties, change rnw.map to path to the mapmode screenshot, eg. c:/Users/System_Lord/Documents/Paradox Interactive/Europa Universalis IV/Screenshots/eu4_map_AHW_1444_11_11_1.png (do not forget to double \ or replace them with /)
+9. Start the replayer again and load the saves you want to replay (make sure their alphabetical order matches the logical one)
+10. PROFIT!
 
 ############
 #Used files#
@@ -22,6 +55,7 @@ If you want to replay ironman save, try this approach: backup, load, load other,
 map/default.map
 map/provinces.bmp
 map/definition.csv
+map/climate.txt
 common/country_tags/* + files mentioned in there (typically common/countries/*)
 common/religions/*
 common/cultures/*
@@ -39,7 +73,6 @@ Feature subjects.as.overlord is not perfect, as it can display only relations th
 #Planned features#
 ##################
 
-- randomized new world
 - monarchs, wars, ...
 - nation focus to display PUs (properly, not only from active_relations)
 - display battles 
@@ -49,11 +82,14 @@ Feature subjects.as.overlord is not perfect, as it can display only relations th
 #Change log#
 ############
 
-1.5 (based on tinholt's suggestions, thx!)
-Batch Saves - you can now select multiple saves to be replayed, they will be sorted alphabetically and information from every save above the first one will be added to the first one successively (this is necessary for technology mapmode and others that use information stored in save outside history)
+1.5
+Batch Saves (based on tinholt's suggestions, thx!) - you can now select multiple saves to be replayed, they will be sorted alphabetically and information from every save above the first one will be added to the first one successively (this is necessary for technology mapmode and others that use information stored in save outside history)
 Technology mapmode in two versions (for both brighter is better):
 - combined where all tech branches are combined to green color
 - separate where red part of country color is military, blue diplomatic and green administrative technology level
+Added support for subjects breaking free
+RNW support! See separate section
+Minor fixes
 
 1.4b
 Added mouse coordinates to province hover hint (thx to sinkingmist for suggestion)
