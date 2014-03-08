@@ -83,8 +83,8 @@ Feature subjects.as.overlord is not perfect, as it can display only relations th
 ############
 
 1.5
-Batch Saves (based on tinholt's suggestions, thx!) - you can now select multiple saves to be replayed, they will be sorted alphabetically and information from every save above the first one will be added to the first one successively (this is necessary for technology mapmode and others that use information stored in save outside history)
-Technology mapmode in two versions (for both brighter is better):
+Batch Saves (thx to Penguintopia) - you can now select multiple saves to be replayed, they will be sorted alphabetically and information from every save above the first one will be added to the first one successively (this is necessary for technology mapmode and others that use information stored in save outside history)
+Technology mapmode (thx to tinholt) in two versions (for both brighter is better):
 - combined where all tech branches are combined to green color
 - separate where red part of country color is military, blue diplomatic and green administrative technology level
 Added support for subjects breaking free
