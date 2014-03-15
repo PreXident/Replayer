@@ -1,4 +1,4 @@
-package com.paradoxplaza.eu4.replayer.utils;
+package com.paradoxplaza.eu4.replayer.gif;
 
 //
 //  GifSequenceWriter.java

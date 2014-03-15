@@ -14,14 +14,10 @@ import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.parser.defines.DefinesParser;
 import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.BatchSaveGameParser;
-import com.paradoxplaza.eu4.replayer.utils.GifSequenceWriter;
+import com.paradoxplaza.eu4.replayer.gif.Giffer;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
-import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Point;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -90,8 +86,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Duration;
-import javax.imageio.stream.FileImageOutputStream;
-import javax.imageio.stream.ImageOutputStream;
 import netscape.javascript.JSObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -242,6 +236,9 @@ public class ReplayerController implements Initializable {
     @FXML
     ComboBox<String> langCombo;
 
+    @FXML
+    Menu gifMenu;
+
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
 
@@ -360,22 +357,7 @@ public class ReplayerController implements Initializable {
     final Set<String> notableEvents = new HashSet<>();
 
     /** Writer of gif output. */
-    GifSequenceWriter gifWriter = null;
-
-    /** Outputstream of gif picture. */
-    ImageOutputStream gifOutput = null;
-
-    /** Buffered image representation of {@link #buffer}. */
-    BufferedImage gifBufferedImage = null;
-
-    /** Sized representation of {@link #gifBufferedImage}. */
-    BufferedImage gifSizedImage = null;
-
-    /** Period in ms between two frames in gif. */
-    int gifStep;
-
-    /** After this number of ticks new gif file is created. */
-    int gifBreak;
+    Giffer giffer = null;
 
     /** Tag of state in focus. Never null. */
     String focusTag = "";
@@ -386,38 +368,11 @@ public class ReplayerController implements Initializable {
     /** Content of selected province log. */
     String selectedProvinceLogContent;
 
-    /** Flag indicating whether the date should be drawn to gif. */
-    boolean gifDateDraw;
-
-    /** Font color of the gif date. */
-    Color gifDateColor;
-
-    /** Font size of the gif date. */
-    float gifDateSize;
-
-    /** X-coord of the gif date. */
-    int gifDateX;
-
-    /** Y-coord of the gif date. */
-    int gifDateY;
-
-    /** Flag if only part of map should be giffed. */
-    boolean gifSubImage;
-
-    /** X-coord of gif subimage. */
-    int gifSubImageX;
-
-    /** Y-coord of gif subimage. */
-    int gifSubImageY;
-
-    /** Width of gif subimage. */
-    int gifSubImageWidth;
-
-    /** Height of gif subimage. */
-    int gifSubImageHeight;
-
     /** Holds information from defines.lua. */
     final DefinesInfo defines = new DefinesInfo();
+
+    /** Save game file. */
+    File file;
 
     /**
      * Flag indicating whether {@link #focusTag} is be used.
@@ -544,19 +499,16 @@ public class ReplayerController implements Initializable {
         pause();
         direction = null;
         finalizer = new Jumper() {
-            int fileNum = 1;
-            int updateCounter = 0;
-            Date gifTarget;
-
+            Date bound;
             {
                 updateInitFormat = l10n("replay.finishing");
                 updateDoneFormat = l10n("replay.fastforward.done");
-                gifTarget = dateGenerator.dateProperty().get().skip(period, deltaPerTick);
             }
 
             @Override
             protected Date getBound() {
-                return saveGame.date.next();
+                bound = saveGame.date.next();
+                return bound;
             }
 
             @Override
@@ -576,15 +528,12 @@ public class ReplayerController implements Initializable {
 
             @Override
             protected Date iterNext(Date iter) {
-                if (iter.equals(gifTarget)) {
-                    updateGif(iter);
-                    gifTarget = iter.skip(period, deltaPerTick);
-                    if (gifBreak != 0 && ++updateCounter >= gifBreak) {
-                        endGif();
-                        initGif(saveFileName + "." + ++fileNum);
-                        updateGif(iter);
-                        updateCounter = 0;
-                    }
+                if (giffer != null) {
+                    giffer.updateGif(buffer, iter);
+                }
+                final Date next = iter.next();
+                if (next.equals(bound) && giffer != null) {
+                    giffer = null;
                 }
                 return iter.next();
             }
@@ -614,6 +563,32 @@ public class ReplayerController implements Initializable {
         } else {
             new ModGenerator(settings).generate(provinces.values());
             statusLabel.setText(l10n("generator.done"));
+        }
+        lock.release();
+    }
+
+    @FXML
+    private void gifEnd() {
+        if (!lock.tryAcquire()) {
+           return;
+        }
+        if (giffer != null) {
+            giffer.endGif();
+            giffer = null;
+        }
+        lock.release();
+    }
+
+    @FXML
+    private void gifStart() {
+        if (!lock.tryAcquire()) {
+           return;
+        }
+        if (giffer == null && file != null) {
+            final int width = (int) map.getWidth();
+            final int height = (int) map.getHeight();
+            giffer = new Giffer(settings, width, height, file.getAbsolutePath());
+            giffer.updateGif(buffer, dateGenerator.dateProperty().get());
         }
         lock.release();
     }
@@ -734,6 +709,10 @@ public class ReplayerController implements Initializable {
            return;
         }
         pause();
+        if (giffer != null) {
+            giffer.endGif();
+            giffer = null;
+        }
         final FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(saveDirectory);
         fileChooser.setTitle(l10n("replay.eu4save.select"));
@@ -758,7 +737,8 @@ public class ReplayerController implements Initializable {
 
         saveDirectory = fileArr[fileArr.length-1].getParentFile();
         settings.setProperty("save.dir", saveDirectory.getPath());
-        titleProperty.setValue(String.format(TITLE_SAVEGAME, fileArr[fileArr.length-1].getName()));
+        file = fileArr[fileArr.length-1];
+        titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
         saveGame = new SaveGame();
         for (CountryInfo ci : countries.values()) {
             ci.reset();
@@ -887,10 +867,8 @@ public class ReplayerController implements Initializable {
                 @Override
                 public void handle(WorkerStateEvent t) {
                     if ("true".equals(settings.getProperty("gif"))) {
-                        final String extension = gifBreak == 0 ? "" : ".1";
-                        saveFileName = fileArr[fileArr.length-1].getAbsolutePath();
-                        initGif(fileArr[fileArr.length-1].getAbsolutePath() + extension);
-                        updateGif(saveGame.startDate);
+                        giffer = new Giffer(settings, width, height, fileArr[fileArr.length-1].getAbsolutePath());
+                        giffer.updateGif(buffer, saveGame.startDate);
                     }
                     output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
                     log.getEngine().loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
@@ -1185,7 +1163,7 @@ public class ReplayerController implements Initializable {
             public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
                 try {
                     final int parsed = Integer.parseInt(newVal);
-                    if (parsed < 0) {
+                    if (parsed <= 0) {
                         daysCombo.setValue(oldVal);
                         return;
                     }
@@ -1374,9 +1352,6 @@ public class ReplayerController implements Initializable {
 
         langCombo.getSelectionModel().select(settings.getProperty("locale.language", "en"));
 
-        gifStep = Integer.parseInt(settings.getProperty("gif.step", "100"));
-        gifBreak = Integer.parseInt(settings.getProperty("gif.new.file", "0"));
-
         seaColor = ColorUtils.toColor(
                 Integer.parseInt(settings.getProperty("sea.color.red", "0")),
                 Integer.parseInt(settings.getProperty("sea.color.green", "0")),
@@ -1403,26 +1378,12 @@ public class ReplayerController implements Initializable {
             }
         }
 
-        gifDateDraw = settings.getProperty("gif.date.draw", "true").equals("true");
-        gifDateColor = Color.decode(settings.getProperty("gif.date.color", "0x000000"));
-        gifDateSize = Float.parseFloat(settings.getProperty("gif.date.size", "12"));
-        gifDateX = Integer.parseInt(settings.getProperty("gif.date.x", "60"));
-        gifDateY = Integer.parseInt(settings.getProperty("gif.date.y", "60"));
-
-        gifSubImage = settings.getProperty("gif.subimage", "false").equals("true");
-        if (gifSubImage) {
-            gifSubImageX = Integer.parseInt(settings.getProperty("gif.subimage.x", "0"));
-            gifSubImageY = Integer.parseInt(settings.getProperty("gif.subimage.y", "0"));
-            gifSubImageWidth = Integer.parseInt(settings.getProperty("gif.subimage.width",
-                    settings.getProperty("gif.width", "0")));
-            gifSubImageHeight = Integer.parseInt(settings.getProperty("gif.subimage.height",
-                    settings.getProperty("gif.height", "0")));
-        }
-
         subjectsAsOverlords = settings.getProperty("subjects.as.overlord", "false").equals("true");
 
         final String rnwMap = settings.getProperty("rnw.map");
         rnw = rnwMap != null  && !rnwMap.isEmpty();
+
+        gifMenu.setVisible(!settings.getProperty("gif", "false").equals("true"));
 
         eu4Directory = new File(settings.getProperty("eu4.dir"));
         try {
@@ -1446,31 +1407,6 @@ public class ReplayerController implements Initializable {
     private Window getWindow() {
         return root.getScene().getWindow();
     }
-
-    void endGif() {
-        if (gifWriter != null) {
-            try {
-                gifWriter.close();
-                gifOutput.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            gifWriter = null;
-            gifOutput = null;
-        }
-    }
-
-    void initGif(final String origFile) {
-        try {
-            final File gifOutputFile = new File(origFile + ".gif");
-            gifOutputFile.delete();
-            gifOutput = new FileImageOutputStream(gifOutputFile);
-            gifWriter = new GifSequenceWriter(gifOutput, BufferedImage.TYPE_INT_ARGB, gifStep, true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     /**
      * Loads colonial regions from files inside /common/colonial_regions.
@@ -1587,16 +1523,6 @@ public class ReplayerController implements Initializable {
 
                     //Copy from source to destination pixel by pixel
                     output = new WritableImage(width, height);
-                    if ("true".equals(settings.getProperty("gif"))) {
-                        gifBufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-                        int gifWidth = width;
-                        int gifHeight = height;
-                        try {
-                            gifWidth = Integer.parseInt(settings.getProperty("gif.width"));
-                            gifHeight = Integer.parseInt(settings.getProperty("gif.height"));
-                        } catch (Exception e) { }
-                        gifSizedImage = new BufferedImage(gifWidth, gifHeight, BufferedImage.TYPE_INT_ARGB);
-                    }
                     politicalBuffer = new int[width*height];
                     religiousBuffer = new int[width*height];
                     culturalBuffer = new int[width*height];
@@ -1771,35 +1697,15 @@ public class ReplayerController implements Initializable {
      * Called when application is stopped to store settings and end gif if needed.
      */
     public void stop() {
-        endGif();
+        if (giffer != null) {
+            giffer.endGif();
+        }
         final StringBuilder s = new StringBuilder();
         for(String event : notableEvents) {
             s.append(";");
             s.append(event);
         }
         settings.setProperty("events", s.substring(1));
-    }
-
-    void updateGif(final Date date) {
-        if (gifBufferedImage == null) {
-            return;
-        }
-        final int[] a = ( (DataBufferInt) gifBufferedImage.getRaster().getDataBuffer() ).getData();
-        System.arraycopy(buffer, 0, a, 0, buffer.length);
-        final Graphics g = gifSizedImage.getGraphics();
-        final BufferedImage src = gifSubImage ? gifBufferedImage.getSubimage(gifSubImageX, gifSubImageY, gifSubImageWidth, gifSubImageHeight) : gifBufferedImage;
-        g.drawImage(src, 0, 0, gifSizedImage.getWidth(), gifSizedImage.getHeight(), null);
-        if (gifDateDraw) {
-            g.setColor(gifDateColor);
-            g.setFont(g.getFont().deriveFont(gifDateSize));
-            g.drawString(date.toString(), gifDateX, gifDateY);
-        }
-        g.dispose();
-        try {
-            gifWriter.writeToSequence(gifSizedImage);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -1857,6 +1763,9 @@ public class ReplayerController implements Initializable {
                     break;
                 default:
                     assert false : l10n("replay.direction.unknown");
+            }
+            if (giffer != null) {
+                giffer.updateGif(buffer, newVal);
             }
         }
     }
@@ -1916,7 +1825,6 @@ public class ReplayerController implements Initializable {
                                 if (newState == State.SUCCEEDED) {
                                     log.getEngine().executeScript(SCROLL_DOWN);
                                     logContent.setLength(LOG_HEADER.length());
-                                    endGif();
                                     e.getLoadWorker().stateProperty().removeListener(this);
                                     dateGenerator.skipTo(getCurrentDate());
                                     statusLabel.textProperty().unbind();

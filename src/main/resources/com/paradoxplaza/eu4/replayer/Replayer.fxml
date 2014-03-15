@@ -106,8 +106,8 @@
 									<Label styleClass="menu-label" text="%fxml.settings.lang">
 										<tooltip>
 											<Tooltip text="%fxml.settings.lang.hint" />
-                                                                                </tooltip>
-                                                                        </Label>
+										</tooltip>
+									</Label>
 									<ComboBox fx:id="langCombo" editable="true" prefWidth="75">
 										<tooltip>
 											<Tooltip text="%fxml.settings.lang.hint" />
@@ -120,8 +120,8 @@
 										</items>
 										<value>
 											<String fx:value="en" />
-                                                                                </value>
-                                                                        </ComboBox>
+										</value>
+									</ComboBox>
 								</HBox>
 							</content>
 						</CustomMenuItem>
@@ -258,6 +258,11 @@
 								</content>
 							</CustomMenuItem>
 						</Menu>
+					</Menu>
+					<Menu fx:id="gifMenu" text="%fxml.gif">
+						<MenuItem text="%fxml.gif.start" onAction="#gifStart" />
+						<MenuItem text="%fxml.gif.end" onAction="#gifEnd" />
+						<SeparatorMenuItem />
 					</Menu>
 					<Menu text="%fxml.generator">
 						<MenuItem text="%fxml.generator.generate" onAction="#generateMod">
