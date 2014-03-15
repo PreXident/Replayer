@@ -125,6 +125,8 @@
 								</HBox>
 							</content>
 						</CustomMenuItem>
+						<CheckMenuItem fx:id="bordersCheckMenuItem" text="%fxml.settings.borders" onAction="#borders" />
+						<CheckMenuItem fx:id="subjectsCheckMenuItem" text="%fxml.settings.subjects" onAction="#subjectsAsOverlords" />
 						<MenuItem text="%fxml.settings.emergency" onAction="#refresh">
 							<accelerator>
 								<KeyCodeCombination alt="UP" control="UP" meta="UP" shift="UP" shortcut="UP" code="F5"/>

@@ -58,6 +58,7 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -238,6 +239,12 @@ public class ReplayerController implements Initializable {
 
     @FXML
     Menu gifMenu;
+
+    @FXML
+    CheckMenuItem bordersCheckMenuItem;
+
+    @FXML
+    CheckMenuItem subjectsCheckMenuItem;
 
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
@@ -454,6 +461,11 @@ public class ReplayerController implements Initializable {
         direction = Direction.BACKWARD;
         timeline.playFromStart();
         lock.release();
+    }
+
+    @FXML
+    private void borders() {
+        settings.setProperty("borders", bordersCheckMenuItem.isSelected() ? "true" : "false");
     }
 
     @FXML
@@ -1027,6 +1039,11 @@ public class ReplayerController implements Initializable {
     }
 
     @FXML
+    private void subjectsAsOverlords() {
+        settings.setProperty("subjects.as.overlord", bordersCheckMenuItem.isSelected() ? "true" : "false");
+    }
+
+    @FXML
     private void technologyCombinedMapMode() {
         buffer = technologyCombinedBuffer;
         output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
@@ -1379,11 +1396,14 @@ public class ReplayerController implements Initializable {
         }
 
         subjectsAsOverlords = settings.getProperty("subjects.as.overlord", "false").equals("true");
+        subjectsCheckMenuItem.setSelected(subjectsAsOverlords);
 
         final String rnwMap = settings.getProperty("rnw.map");
         rnw = rnwMap != null  && !rnwMap.isEmpty();
 
         gifMenu.setVisible(!settings.getProperty("gif", "false").equals("true"));
+
+        bordersCheckMenuItem.setSelected(settings.getProperty("borders", "false").equals("true"));
 
         eu4Directory = new File(settings.getProperty("eu4.dir"));
         try {
