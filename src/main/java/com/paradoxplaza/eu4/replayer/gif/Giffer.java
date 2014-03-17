@@ -99,7 +99,7 @@ public class Giffer {
     protected int fileCounter = 1;
 
     /** Flag if only part of map should be giffed. */
-    protected final boolean gifSubImage;
+    protected boolean gifSubImage;
 
     /** X-coord of gif subimage. */
     protected int gifSubImageX;
@@ -149,6 +149,9 @@ public class Giffer {
     /** On this date the gif should be updated. */
     protected Date gifTarget = null;
 
+    /** Flag indicating whether the gif should loop continuously. */
+    protected final boolean loop;
+
     /**
      * Only constructor.
      * @param settings application settings
@@ -158,6 +161,7 @@ public class Giffer {
      */
     public Giffer(final Properties settings, final int width, final int height, final String baseName) {
         this.settings = settings;
+        loop = settings.getProperty("gif.loop", "true").equals("true");
         gifBreak = parsePropertyWithDefault(settings, "gif.new.file", "0", 0);
         gifStep = parsePropertyWithDefault(settings, "gif.step", "100", 100);
         final String extension = gifBreak == 0 ? "" : ".%s";
@@ -202,6 +206,102 @@ public class Giffer {
     }
 
     /**
+     * Sets {@link #delta}.
+     * @param delta new delta
+     */
+    public void setDelta(int delta) {
+        this.delta = delta;
+    }
+
+    /**
+     * Sets {@link #gifDateColor}.
+     * @param gifDateColor new gif date color
+     */
+    public void setGifDateColor(Color gifDateColor) {
+        this.gifDateColor = gifDateColor;
+    }
+
+    /**
+     * Sets {@link #gifDateDraw}.
+     * @param gifDateDraw new gif date draw
+     */
+    public void setGifDateDraw(boolean gifDateDraw) {
+        this.gifDateDraw = gifDateDraw;
+    }
+
+    /**
+     * Sets {@link #gifDateSize}.
+     * @param gifDateSize new gif date size
+     */
+    public void setGifDateSize(float gifDateSize) {
+        this.gifDateSize = gifDateSize;
+    }
+
+    /**
+     * Sets {@link #gifDateX}.
+     * @param gifDateX new gif date x
+     */
+    public void setGifDateX(int gifDateX) {
+        this.gifDateX = gifDateX;
+    }
+
+    /**
+     * Sets {@link #gifDateY}.
+     * @param gifDateY new gif date y
+     */
+    public void setGifDateY(int gifDateY) {
+        this.gifDateY = gifDateY;
+    }
+
+    /**
+     * Sets {@link #gifSubImage}.
+     * @param gifSubImage new gif subimage
+     */
+    public void setGifSubImage(boolean gifSubImage) {
+        this.gifSubImage = gifSubImage;
+    }
+
+    /**
+     * Sets {@link #gifSubImageHeight}.
+     * @param gifSubImageHeight new gif subimage height
+     */
+    public void setGifSubImageHeight(int gifSubImageHeight) {
+        this.gifSubImageHeight = gifSubImageHeight;
+    }
+
+    /**
+     * Sets {@link #gifSubImageWidth}.
+     * @param gifSubImageWidth new gif subimage width
+     */
+    public void setGifSubImageWidth(int gifSubImageWidth) {
+        this.gifSubImageWidth = gifSubImageWidth;
+    }
+
+    /**
+     * Sets {@link #gifSubImageX}.
+     * @param gifSubImageX new gif subimage x
+     */
+    public void setGifSubImageX(int gifSubImageX) {
+        this.gifSubImageX = gifSubImageX;
+    }
+
+    /**
+     * Sets {@link #gifSubImageY}.
+     * @param gifSubImageY new gif subimage y
+     */
+    public void setGifSubImageY(int gifSubImageY) {
+        this.gifSubImageY = gifSubImageY;
+    }
+
+    /**
+     * Sets {@link #period}.
+     * @param period new period
+     */
+    public void setPeriod(Date.Period period) {
+        this.period = period;
+    }
+
+    /**
      * Creates output file and fills gifOutput and gifWriter.
      */
     private void createOutput() {
@@ -209,7 +309,7 @@ public class Giffer {
         gifOutputFile.delete();
         try {
             gifOutput = new FileImageOutputStream(gifOutputFile);
-            gifWriter = new GifSequenceWriter(gifOutput, BufferedImage.TYPE_INT_ARGB, gifStep, true);
+            gifWriter = new GifSequenceWriter(gifOutput, BufferedImage.TYPE_INT_ARGB, gifStep, loop);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -253,6 +353,7 @@ public class Giffer {
         write(gifWriter, gifSizedImage);
         if (gifBreak != 0 && ++frameCounter >= gifBreak) {
             endGif();
+            ++fileCounter;
             createOutput();
             write(gifWriter, gifSizedImage);
             frameCounter = 1;

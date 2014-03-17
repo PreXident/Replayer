@@ -105,12 +105,12 @@
 								<HBox alignment="CENTER_LEFT" >
 									<Label styleClass="menu-label" text="%fxml.settings.lang">
 										<tooltip>
-											<Tooltip text="%fxml.settings.lang.hint" />
+											<Tooltip text="%fxml.settings.restart.hint" />
 										</tooltip>
 									</Label>
 									<ComboBox fx:id="langCombo" editable="true" prefWidth="75">
 										<tooltip>
-											<Tooltip text="%fxml.settings.lang.hint" />
+											<Tooltip text="%fxml.settings.restart.hint" />
 										</tooltip>
 										<items>
 											<FXCollections fx:factory="observableArrayList">
@@ -262,9 +262,45 @@
 						</Menu>
 					</Menu>
 					<Menu fx:id="gifMenu" text="%fxml.gif">
-						<MenuItem text="%fxml.gif.start" onAction="#gifStart" />
-						<MenuItem text="%fxml.gif.end" onAction="#gifEnd" />
+						<CheckMenuItem fx:id="gifSwitchCheckMenuItem" text="%fxml.gif.switch" onAction="#gifSwitch" />
 						<SeparatorMenuItem />
+						<CheckMenuItem fx:id="gifLoopCheckMenuItem" text="%fxml.gif.loop" onAction="#gifLoop" />
+						<CustomMenuItem hideOnClick="false">
+							<content>
+								<HBox alignment="CENTER_LEFT" >
+									<Label styleClass="menu-label" text="%fxml.gif.step">
+										<tooltip>
+											<Tooltip text="%fxml.gif.restart.hint" />
+										</tooltip>
+									</Label>
+									<TextField fx:id="gifStepEdit" prefWidth="45">
+										<tooltip>
+											<Tooltip text="%fxml.gif.restart.hint" />
+										</tooltip>
+									</TextField>
+								</HBox>
+							</content>
+						</CustomMenuItem>
+						<CustomMenuItem hideOnClick="false">
+							<content>
+								<HBox alignment="CENTER_LEFT" >
+									<Label styleClass="menu-label" text="%fxml.gif.break">
+										<tooltip>
+											<Tooltip text="%fxml.gif.restart.hint" />
+										</tooltip>
+									</Label>
+									<TextField fx:id="gifBreakEdit" prefWidth="40">
+										<tooltip>
+											<Tooltip text="%fxml.gif.restart.hint" />
+										</tooltip>
+									</TextField>
+								</HBox>
+							</content>
+						</CustomMenuItem>
+						<SeparatorMenuItem />
+						<CheckMenuItem fx:id="gifDateCheckMenuItem" text="%fxml.gif.date" onAction="#gifDate" />
+						<SeparatorMenuItem />
+						<CheckMenuItem fx:id="gifSubimageCheckMenuItem" text="%fxml.gif.subimage" onAction="#gifSubimage" />
 					</Menu>
 					<Menu text="%fxml.generator">
 						<MenuItem text="%fxml.generator.generate" onAction="#generateMod">

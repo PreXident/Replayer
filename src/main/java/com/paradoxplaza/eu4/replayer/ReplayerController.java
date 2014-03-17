@@ -246,6 +246,24 @@ public class ReplayerController implements Initializable {
     @FXML
     CheckMenuItem subjectsCheckMenuItem;
 
+    @FXML
+    CheckMenuItem gifSwitchCheckMenuItem;
+
+    @FXML
+    CheckMenuItem gifLoopCheckMenuItem;
+
+    @FXML
+    TextField gifBreakEdit;
+
+    @FXML
+    TextField gifStepEdit;
+
+    @FXML
+    CheckMenuItem gifDateCheckMenuItem;
+
+    @FXML
+    CheckMenuItem gifSubimageCheckMenuItem;
+
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
 
@@ -260,9 +278,6 @@ public class ReplayerController implements Initializable {
 
     /** Image displayed in {@link #imageView}. */
     WritableImage output;
-
-    /** Writer for {@link #output}. */
-//    PixelWriter writer;
 
     /** Buffer for emergency refresh. */
     int[] buffer;
@@ -544,8 +559,8 @@ public class ReplayerController implements Initializable {
                     giffer.updateGif(buffer, iter);
                 }
                 final Date next = iter.next();
-                if (next.equals(bound) && giffer != null) {
-                    giffer = null;
+                if (next.equals(bound)) {
+                    endGif();
                 }
                 return iter.next();
             }
@@ -580,27 +595,56 @@ public class ReplayerController implements Initializable {
     }
 
     @FXML
-    private void gifEnd() {
+    private void gifDate() {
+        final boolean drawDate = gifDateCheckMenuItem.isSelected();
         if (!lock.tryAcquire()) {
-           return;
+            gifDateCheckMenuItem.setSelected(drawDate);
+            return;
         }
+        settings.setProperty("gif.date", drawDate ? "true" : "false");
         if (giffer != null) {
-            giffer.endGif();
-            giffer = null;
+            giffer.setGifDateDraw(drawDate);
         }
         lock.release();
     }
 
     @FXML
-    private void gifStart() {
+    private void gifLoop() {
+        settings.setProperty("gif.loop", gifLoopCheckMenuItem.isSelected() ? "true" : "false");
+    }
+
+    @FXML
+    private void gifSubimage() {
+        final boolean subimage = gifSubimageCheckMenuItem.isSelected();
         if (!lock.tryAcquire()) {
-           return;
+            gifSubimageCheckMenuItem.setSelected(subimage);
+            return;
         }
-        if (giffer == null && file != null) {
-            final int width = (int) map.getWidth();
-            final int height = (int) map.getHeight();
-            giffer = new Giffer(settings, width, height, file.getAbsolutePath());
-            giffer.updateGif(buffer, dateGenerator.dateProperty().get());
+        settings.setProperty("gif.subimage", subimage ? "true" : "false");
+        if (giffer != null) {
+            giffer.setGifSubImage(subimage);
+        }
+        lock.release();
+    }
+
+    @FXML
+    private void gifSwitch() {
+        if (!lock.tryAcquire()) {
+            //undo
+            gifSwitchCheckMenuItem.setSelected(!gifSwitchCheckMenuItem.isSelected());
+            return;
+        }
+        if (gifSwitchCheckMenuItem.isSelected()) {
+            if (giffer == null && file != null) {
+                final int width = (int) map.getWidth();
+                final int height = (int) map.getHeight();
+                giffer = new Giffer(settings, width, height, file.getAbsolutePath());
+                giffer.updateGif(buffer, dateGenerator.dateProperty().get());
+            } else {
+                gifSwitchCheckMenuItem.setSelected(false);
+            }
+        } else {
+            endGif();
         }
         lock.release();
     }
@@ -721,10 +765,7 @@ public class ReplayerController implements Initializable {
            return;
         }
         pause();
-        if (giffer != null) {
-            giffer.endGif();
-            giffer = null;
-        }
+        endGif();
         final FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(saveDirectory);
         fileChooser.setTitle(l10n("replay.eu4save.select"));
@@ -988,6 +1029,7 @@ public class ReplayerController implements Initializable {
                             } else {
                                 timeline.stop();
                                 timeline = null;
+                                endGif();
                                 break;
                             }
                         }
@@ -1289,6 +1331,40 @@ public class ReplayerController implements Initializable {
             }
         });
 
+        gifBreakEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifBreakEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                int gifBreak;
+                try {
+                    gifBreak = Integer.parseInt(newVal);
+                    if (gifBreak < 0) {
+                        gifBreak = 0;
+                    }
+                } catch (NumberFormatException e) {
+                    gifBreak = 0;
+                }
+                settings.setProperty("gif.new.file", Integer.toString(gifBreak));
+            }
+        });
+
+        gifStepEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifStepEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                int gifStep;
+                try {
+                    gifStep = Integer.parseInt(newVal);
+                    if (gifStep <= 0) {
+                        gifStep = 1;
+                    }
+                } catch (NumberFormatException e) {
+                    gifStep = 1;
+                }
+                settings.setProperty("gif.step", Integer.toString(gifStep));
+            }
+        });
+
         final WebEngine provinceEngine = provinceLog.getEngine();
         provinceEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
             @Override
@@ -1402,6 +1478,11 @@ public class ReplayerController implements Initializable {
         rnw = rnwMap != null  && !rnwMap.isEmpty();
 
         gifMenu.setVisible(!settings.getProperty("gif", "false").equals("true"));
+        gifLoopCheckMenuItem.setSelected(settings.getProperty("gif.loop", "true").equals("true"));
+        gifBreakEdit.setText(settings.getProperty("gif.new.file", "0"));
+        gifStepEdit.setText(settings.getProperty("gif.step", "100"));
+        gifDateCheckMenuItem.setSelected(settings.getProperty("gif.date", "true").equals("true"));
+        gifSubimageCheckMenuItem.setSelected(settings.getProperty("gif.subimage", "false").equals("true"));
 
         bordersCheckMenuItem.setSelected(settings.getProperty("borders", "false").equals("true"));
 
@@ -1410,6 +1491,28 @@ public class ReplayerController implements Initializable {
             lock.acquire();
             loadData();
         } catch (InterruptedException e) { }
+    }
+
+    /**
+     * Ends gif.
+     */
+    private void endGif() {
+        if (giffer != null) {
+            giffer.endGif();
+            giffer = null;
+        }
+        if (gifSwitchCheckMenuItem.isSelected()) {
+            if (Platform.isFxApplicationThread()) {
+                gifSwitchCheckMenuItem.setSelected(false);
+            } else {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        gifSwitchCheckMenuItem.setSelected(false);
+                    }
+                });
+            }
+        }
     }
 
     /**
@@ -1717,9 +1820,7 @@ public class ReplayerController implements Initializable {
      * Called when application is stopped to store settings and end gif if needed.
      */
     public void stop() {
-        if (giffer != null) {
-            giffer.endGif();
-        }
+        endGif();
         final StringBuilder s = new StringBuilder();
         for(String event : notableEvents) {
             s.append(";");
