@@ -91,9 +91,15 @@ public class Replayer extends Application {
         //ask for eu4 directory if property is not valid
         final String eu4dir = settings.getProperty("eu4.dir");
         if (eu4dir == null || !new File(eu4dir).exists()) {
-            final DirectoryChooser directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle(l10n("app.eu4dir.select"));
-            final File dir = directoryChooser.showDialog(null);
+            File dir = null;
+            if (System.getenv("EU4_HOME") != null) {
+                dir = new File(System.getenv("EU4_HOME"));
+            }
+            if (dir == null || !dir.exists()) {
+                final DirectoryChooser directoryChooser = new DirectoryChooser();
+                directoryChooser.setTitle(l10n("app.eu4dir.select"));
+                dir = directoryChooser.showDialog(null);
+            }
             if (dir == null || !dir.exists()) {
                 System.out.printf(l10n("app.eu4dir.error"));
                 System.exit(-1);
