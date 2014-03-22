@@ -26,3 +26,17 @@ root {
 .menu-label {
 	-fx-text-fill: -fx-text-base-color;
 }
+
+.color-palette {
+	-fx-background-color: rgba(245, 245, 245, 1.0);
+}
+
+.color-palette .separator {
+	-fx-background-color: rgba(0, 0, 0, 1.0);
+	visibility: none;
+}
+
+.color-palette .hyperlink {
+	-fx-background-color: rgba(0, 0, 0, 1.0);
+	visibility: none;
+}

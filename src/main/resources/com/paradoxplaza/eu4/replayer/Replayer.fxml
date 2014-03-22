@@ -10,6 +10,7 @@
 <?import java.net.URL ?>
 <?import javafx.scene.web.WebView?>
 <?import javafx.collections.FXCollections?>
+<?import com.paradoxplaza.eu4.replayer.gui.*?>
 
 <BorderPane fx:id="root" prefHeight="600" prefWidth="800" xmlns:fx="http://javafx.com/fxml"
 			fx:controller="com.paradoxplaza.eu4.replayer.ReplayerController" styleClass="root" >
@@ -298,9 +299,74 @@
 							</content>
 						</CustomMenuItem>
 						<SeparatorMenuItem />
-						<CheckMenuItem fx:id="gifDateCheckMenuItem" text="%fxml.gif.date" onAction="#gifDate" />
+						<Menu text="%fxml.gif.date">
+							<CheckMenuItem fx:id="gifDateCheckMenuItem" text="%fxml.gif.date.show" onAction="#gifDate" />
+							<CustomMenuItem hideOnClick="false">
+								<content>
+									<MyColorPicker fx:id="gifDateColorPicker" prefHeight="24"/>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false">
+								<content>
+									<HBox alignment="CENTER_LEFT" >
+										<Label styleClass="menu-label" text="%fxml.gif.date.size" prefHeight="19"/>
+										<TextField fx:id="gifDateSizeEdit" prefWidth="40" prefHeight="19"/>
+									</HBox>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false">
+								<content>
+									<HBox alignment="CENTER_LEFT" >
+										<Label styleClass="menu-label" text="%fxml.gif.date.x" prefHeight="19"/>
+										<TextField fx:id="gifDateXEdit" prefWidth="40" prefHeight="19"/>
+									</HBox>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false">
+								<content>
+									<HBox alignment="CENTER_LEFT" >
+										<Label styleClass="menu-label" text="%fxml.gif.date.y" prefHeight="19"/>
+										<TextField fx:id="gifDateYEdit" prefWidth="40" prefHeight="19"/>
+									</HBox>
+								</content>
+							</CustomMenuItem>
+						</Menu>
 						<SeparatorMenuItem />
-						<CheckMenuItem fx:id="gifSubimageCheckMenuItem" text="%fxml.gif.subimage" onAction="#gifSubimage" />
+						<Menu text="%fxml.gif.subimage">
+							<CheckMenuItem fx:id="gifSubimageCheckMenuItem" text="%fxml.gif.subimage.use" onAction="#gifSubimage" />
+							<CustomMenuItem hideOnClick="false">
+								<content>
+									<HBox alignment="CENTER_LEFT" >
+										<Label styleClass="menu-label" text="%fxml.gif.subimage.x" prefHeight="19"/>
+										<TextField fx:id="gifSubimageXEdit" prefWidth="40" prefHeight="19"/>
+									</HBox>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false">
+								<content>
+									<HBox alignment="CENTER_LEFT" >
+										<Label styleClass="menu-label" text="%fxml.gif.subimage.y" prefHeight="19"/>
+										<TextField fx:id="gifSubimageYEdit" prefWidth="40" prefHeight="19"/>
+									</HBox>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false">
+								<content>
+									<HBox alignment="CENTER_LEFT" >
+										<Label styleClass="menu-label" text="%fxml.gif.subimage.width" prefHeight="19"/>
+										<TextField fx:id="gifSubimageWidthEdit" prefWidth="40" prefHeight="19"/>
+									</HBox>
+								</content>
+							</CustomMenuItem>
+							<CustomMenuItem hideOnClick="false">
+								<content>
+									<HBox alignment="CENTER_LEFT" >
+										<Label styleClass="menu-label" text="%fxml.gif.subimage.height" prefHeight="19"/>
+										<TextField fx:id="gifSubimageHeightEdit" prefWidth="40" prefHeight="19"/>
+									</HBox>
+								</content>
+							</CustomMenuItem>
+						</Menu>
 					</Menu>
 					<Menu text="%fxml.generator">
 						<MenuItem text="%fxml.generator.generate" onAction="#generateMod">

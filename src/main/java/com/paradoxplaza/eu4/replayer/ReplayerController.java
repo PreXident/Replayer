@@ -15,6 +15,7 @@ import com.paradoxplaza.eu4.replayer.parser.defines.DefinesParser;
 import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.BatchSaveGameParser;
 import com.paradoxplaza.eu4.replayer.gif.Giffer;
+import com.paradoxplaza.eu4.replayer.gui.MyColorPicker;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
 import java.awt.Point;
@@ -53,12 +54,14 @@ import javafx.concurrent.Worker.State;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -81,6 +84,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.DirectoryChooser;
@@ -263,6 +267,30 @@ public class ReplayerController implements Initializable {
 
     @FXML
     CheckMenuItem gifSubimageCheckMenuItem;
+
+    @FXML
+    MyColorPicker gifDateColorPicker;
+
+    @FXML
+    TextField gifDateSizeEdit;
+
+    @FXML
+    TextField gifDateXEdit;
+
+    @FXML
+    TextField gifDateYEdit;
+
+    @FXML
+    TextField gifSubimageXEdit;
+
+    @FXML
+    TextField gifSubimageYEdit;
+
+    @FXML
+    TextField gifSubimageWidthEdit;
+
+    @FXML
+    TextField gifSubimageHeightEdit;
 
     /** Lock to prevent user input while background processing. */
     final Semaphore lock = new Semaphore(1);
@@ -1365,6 +1393,172 @@ public class ReplayerController implements Initializable {
             }
         });
 
+        gifDateColorPicker.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifDateColorPicker.valueProperty().addListener(new ChangeListener<Color>() {
+            @Override
+            public void changed(ObservableValue<? extends Color> ov, Color oldVal, Color newVal) {
+                if (!lock.tryAcquire()) {
+                    gifDateColorPicker.setValue(oldVal);
+                    return;
+                }
+                final int red = (int) (newVal.getRed() * 255);
+                final int green = (int) (newVal.getGreen() * 255);
+                final int blue = (int) (newVal.getBlue() * 255);
+                settings.setProperty("gif.date.color", String.format("0x%02X%02X%02X", red, green, blue));
+                if (giffer != null) {
+                    giffer.setGifDateColor(new java.awt.Color(red, green, blue));
+                }
+                lock.release();
+            }
+        });
+
+        gifDateSizeEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifDateSizeEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                if (!lock.tryAcquire()) {
+                    return;
+                }
+                try {
+                    final float size = Float.parseFloat(newVal);
+                    if (giffer != null) {
+                        giffer.setGifDateSize(size);
+                    }
+                    settings.setProperty("gif.date.size", newVal);
+                } catch (NumberFormatException e) {
+                    //gifDateSizeEdit.setText(oldVal);
+                } finally {
+                    lock.release();
+                }
+            }
+        });
+
+        gifDateXEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifDateXEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                if (!lock.tryAcquire()) {
+                    return;
+                }
+                try {
+                    final int x = Integer.parseInt(newVal);
+                    if (giffer != null) {
+                        giffer.setGifDateX(x);
+                    }
+                    settings.setProperty("gif.date.x", newVal);
+                } catch (NumberFormatException e) {
+                    //gifDateXEdit.setText(oldVal);
+                } finally {
+                    lock.release();
+                }
+            }
+        });
+
+        gifDateYEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifDateYEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                if (!lock.tryAcquire()) {
+                    return;
+                }
+                try {
+                    final int y = Integer.parseInt(newVal);
+                    if (giffer != null) {
+                        giffer.setGifDateY(y);
+                    }
+                    settings.setProperty("gif.date.y", newVal);
+                } catch (NumberFormatException e) {
+                    //gifDateYEdit.setText(oldVal);
+                } finally {
+                    lock.release();
+                }
+            }
+        });
+
+        gifSubimageXEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifSubimageXEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                if (!lock.tryAcquire()) {
+                    return;
+                }
+                try {
+                    final int x = Integer.parseInt(newVal);
+                    if (giffer != null) {
+                        giffer.setGifSubImageX(x);
+                    }
+                    settings.setProperty("gif.subimage.x", newVal);
+                } catch (NumberFormatException e) {
+                    //gifSubimageXEdit.setText(oldVal);
+                } finally {
+                    lock.release();
+                }
+            }
+        });
+
+        gifSubimageYEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifSubimageYEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                if (!lock.tryAcquire()) {
+                    return;
+                }
+                try {
+                    final int y = Integer.parseInt(newVal);
+                    if (giffer != null) {
+                        giffer.setGifSubImageY(y);
+                    }
+                    settings.setProperty("gif.subimage.y", newVal);
+                } catch (NumberFormatException e) {
+                    //gifSubimageYEdit.setText(oldVal);
+                } finally {
+                    lock.release();
+                }
+            }
+        });
+
+        gifSubimageWidthEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifSubimageWidthEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                if (!lock.tryAcquire()) {
+                    return;
+                }
+                try {
+                    final int w = Integer.parseInt(newVal);
+                    if (giffer != null) {
+                        giffer.setGifSubImageWidth(w);
+                    }
+                    settings.setProperty("gif.subimage.width", newVal);
+                } catch (NumberFormatException e) {
+                    //gifSubimageWidthEdit.setText(oldVal);
+                } finally {
+                    lock.release();
+                }
+            }
+        });
+
+        gifSubimageHeightEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifSubimageHeightEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                if (!lock.tryAcquire()) {
+                    return;
+                }
+                try {
+                    final int h = Integer.parseInt(newVal);
+                    if (giffer != null) {
+                        giffer.setGifSubImageHeight(h);
+                    }
+                    settings.setProperty("gif.subimage.height", newVal);
+                } catch (NumberFormatException e) {
+                    //gifSubimageHeightEdit.setText(oldVal);
+                } finally {
+                    lock.release();
+                }
+            }
+        });
+
         final WebEngine provinceEngine = provinceLog.getEngine();
         provinceEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
             @Override
@@ -1482,7 +1676,15 @@ public class ReplayerController implements Initializable {
         gifBreakEdit.setText(settings.getProperty("gif.new.file", "0"));
         gifStepEdit.setText(settings.getProperty("gif.step", "100"));
         gifDateCheckMenuItem.setSelected(settings.getProperty("gif.date", "true").equals("true"));
+        gifDateColorPicker.setValue(Color.web(settings.getProperty("gif.date.color", "0x000000")));
+        gifDateSizeEdit.setText(settings.getProperty("gif.date.size", "12"));
+        gifDateXEdit.setText(settings.getProperty("gif.date.x", "60"));
+        gifDateYEdit.setText(settings.getProperty("gif.date.y", "60"));
         gifSubimageCheckMenuItem.setSelected(settings.getProperty("gif.subimage", "false").equals("true"));
+        gifSubimageXEdit.setText(settings.getProperty("gif.subimage.x", "0"));
+        gifSubimageYEdit.setText(settings.getProperty("gif.subimage.y", "0"));
+        gifSubimageWidthEdit.setText(settings.getProperty("gif.subimage.width", ""));
+        gifSubimageHeightEdit.setText(settings.getProperty("gif.subimage.height", ""));
 
         bordersCheckMenuItem.setSelected(settings.getProperty("borders", "false").equals("true"));
 
