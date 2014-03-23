@@ -1,28 +1,21 @@
 package com.paradoxplaza.eu4.replayer.gui;
 
 import com.paradoxplaza.eu4.replayer.ColRegionInfo;
-import com.paradoxplaza.eu4.replayer.ColRegionInfo;
-import com.paradoxplaza.eu4.replayer.CountryInfo;
 import com.paradoxplaza.eu4.replayer.CountryInfo;
 import com.paradoxplaza.eu4.replayer.Date;
-import com.paradoxplaza.eu4.replayer.Date;
-import com.paradoxplaza.eu4.replayer.DateGenerator;
 import com.paradoxplaza.eu4.replayer.DateGenerator;
 import com.paradoxplaza.eu4.replayer.DefinesInfo;
-import com.paradoxplaza.eu4.replayer.DefinesInfo;
-import com.paradoxplaza.eu4.replayer.EventProcessor;
 import com.paradoxplaza.eu4.replayer.EventProcessor;
 import com.paradoxplaza.eu4.replayer.FileManager;
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
-import com.paradoxplaza.eu4.replayer.ProvinceInfo;
+import com.paradoxplaza.eu4.replayer.Replay;
 import com.paradoxplaza.eu4.replayer.SaveGame;
-import com.paradoxplaza.eu4.replayer.SaveGame;
-import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.SimpleProvinceEvent;
 import com.paradoxplaza.eu4.replayer.generator.ModGenerator;
+import com.paradoxplaza.eu4.replayer.gif.Giffer;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.climate.ClimateParser;
 import com.paradoxplaza.eu4.replayer.parser.colregion.ColRegionParser;
@@ -32,8 +25,7 @@ import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.parser.defines.DefinesParser;
 import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.BatchSaveGameParser;
-import com.paradoxplaza.eu4.replayer.gif.Giffer;
-import com.paradoxplaza.eu4.replayer.gui.MyColorPicker;
+import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
 import java.awt.Point;
@@ -72,14 +64,12 @@ import javafx.concurrent.Worker.State;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -328,27 +318,6 @@ public class ReplayerController implements Initializable {
     /** Buffer for emergency refresh. */
     public int[] buffer;
 
-    /** Buffer width. */
-    public int bufferWidth;
-
-    /** Buffer height. */
-    public int bufferHeight;
-
-    /** Buffer with political map. */
-    public int[] politicalBuffer;
-
-    /** Buffer with religious map. */
-    public int[] religiousBuffer;
-
-    /** Buffer with cultural map. */
-    public int[] culturalBuffer;
-
-    /** Buffer with technology map with separate color representation of tech branches. */
-    public int[] technologySeparateBuffer;
-
-    /** Buffer with technology map with separate color representation of tech branches. */
-    public int[] technologyCombinedBuffer;
-
     /** How many pixels are added to width and height when zooming in/out. */
     int zoomStep;
 
@@ -364,38 +333,17 @@ public class ReplayerController implements Initializable {
     /** Property binded to stage titleProperty. */
     StringProperty titleProperty = new SimpleStringProperty(TITLE);
 
-    /** Tag -> country mapping. */
-    public Map<String, CountryInfo> countries = new HashMap<>();
-
-    /** ID -> province mapping. */
-    public Map<String, ProvinceInfo> provinces = new HashMap<>();
-
     /** Province color -> province mapping. */
     Map<Integer, ProvinceInfo> colors = new HashMap<>();
 
     /** Set of points constituting borders. */
     Set<Integer> borders = new HashSet<>();
 
-    /** Religion name -> color mapping. */
-    public Map<String, Integer> religions = new HashMap<>();
-
-    /** Culture name -> color mapping. */
-    public Map<String, Integer> cultures = new HashMap<>();
-
     /** Colonial region name -> colonial name mapping. */
     Map<String, ColRegionInfo> colRegions = new HashMap<>();
 
     /** Loaded save game to be replayed. */
     SaveGame saveGame;
-
-    /** Color used to display sea and lakes. */
-    public int seaColor;
-
-    /** Color to display no man's land. */
-    public int landColor;
-
-    /** Color to display province bordes. */
-    int borderColor;
 
     /** Flag indication whether borders should be drawn. */
     boolean drawBorders;
@@ -421,14 +369,8 @@ public class ReplayerController implements Initializable {
     /** Content of log area with html code. */
     public final StringBuilder logContent = new StringBuilder();
 
-    /** Set of currently notable events. */
-    public final Set<String> notableEvents = new HashSet<>();
-
     /** Writer of gif output. */
     Giffer giffer = null;
-
-    /** Tag of state in focus. Never null. */
-    public String focusTag = "";
 
     /** Selected province. */
     ProvinceInfo selectedProvince;
@@ -442,17 +384,11 @@ public class ReplayerController implements Initializable {
     /** Save game file. */
     File file;
 
-    /**
-     * Flag indicating whether {@link #focusTag} is be used.
-     * If true, focusTag is not empty, but contains country tag in focus.
-     */
-    public boolean focusing = false;
-
     /** Random New World feature is on. */
     public boolean rnw = false;
 
-    /** Flag indicating that subject nations should be rendered as part of their overlords. */
-    public boolean subjectsAsOverlords = false;
+    /** Replay object itself. */
+    Replay replay;
 
     /** Jumper that fast forwards/rewinds the save. */
     Jumper finalizer;
@@ -460,24 +396,26 @@ public class ReplayerController implements Initializable {
     /** Handles files with respect to mods. */
     FileManager fileManager = new FileManager(this);
 
-    /** Standard event processor. */
-    final EventProcessor eventProcessor = new EventProcessor(this);
+    /** Listener that updates log, appends to logContent and updates buffer. */
+    final EventProcessor.Listener standardListener = new EventListener(this);
 
-    /** Event processor that does not update log. */
-    final EventProcessor notLogUpdatingProcessor = new EventProcessor(this) {
+    /** Listener that does not update log. */
+    final EventProcessor.Listener noLogUpdateListener = new EventListener(this) {
         @Override
-        protected void updateLog() { }
+        public void updateLog() { }
     };
 
-    /** Event processor that does not update log nor {@link #output}. */
-    final EventProcessor bufferChangeOnlyProcessor = new EventProcessor(this) {
+     /** Listener that does not update log nor {@link #output}, only appends to logContent. */
+    final EventProcessor.Listener bufferChangeOnlyListener = new EventListener(this) {
         @Override
-        protected void setColor(int[] buffer, final int pos, final int color) {
-            buffer[pos] = color;
-        }
+        public void updateLog() { }
+
         @Override
-        protected void updateLog() { }
+        public void setColor(int[] buffer, final int pos, final int color) { }
     };
+
+    /** Event processor. */
+    final EventProcessor eventProcessor = new EventProcessor(standardListener);
 
     @FXML
     private void backPlay() {
@@ -556,8 +494,8 @@ public class ReplayerController implements Initializable {
 
     @FXML
     private void culturalMapMode() {
-        buffer = culturalBuffer;
-        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+        buffer = replay.culturalBuffer;
+        output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
     }
 
     @FXML
@@ -576,6 +514,11 @@ public class ReplayerController implements Initializable {
             {
                 updateInitFormat = l10n("replay.finishing");
                 updateDoneFormat = l10n("replay.fastforward.done");
+            }
+
+            @Override
+            protected EventProcessor.Listener getEventListener() {
+                return bufferChangeOnlyListener;
             }
 
             @Override
@@ -613,7 +556,7 @@ public class ReplayerController implements Initializable {
 
             @Override
             protected void processEvents(final Date date, final List<Event> events) {
-                bufferChangeOnlyProcessor.processEvents(date, events);
+                eventProcessor.processEvents(date, events);
             }
 
             @Override
@@ -634,7 +577,7 @@ public class ReplayerController implements Initializable {
         if (rnw) {
             statusLabel.setText(l10n("generator.rnw"));
         } else {
-            new ModGenerator(settings).generate(provinces.values());
+            new ModGenerator(settings).generate(replay.provinces.values());
             statusLabel.setText(l10n("generator.done"));
         }
         lock.release();
@@ -723,6 +666,11 @@ public class ReplayerController implements Initializable {
                 finalizer = new Jumper() {
 
                     @Override
+                    protected EventProcessor.Listener getEventListener() {
+                        return bufferChangeOnlyListener;
+                    }
+
+                    @Override
                     protected Date getBound() {
                         return target.next();
                     }
@@ -749,7 +697,7 @@ public class ReplayerController implements Initializable {
 
                     @Override
                     protected void processEvents(final Date date, final List<Event> events) {
-                        bufferChangeOnlyProcessor.processEvents(date, events);
+                        eventProcessor.processEvents(date, events);
                     }
 
                     @Override
@@ -759,6 +707,11 @@ public class ReplayerController implements Initializable {
                 };
             } else /* if (date.compareTo(target) > 0 */ {
                 finalizer = new Jumper() {
+
+                    @Override
+                    protected EventProcessor.Listener getEventListener() {
+                        return bufferChangeOnlyListener;
+                    }
 
                     @Override
                     protected Date getBound() {
@@ -787,7 +740,7 @@ public class ReplayerController implements Initializable {
 
                     @Override
                     protected void processEvents(final Date date, final List<Event> events) {
-                        bufferChangeOnlyProcessor.unprocessEvents(date, events);
+                        eventProcessor.unprocessEvents(date, events);
                     }
 
                     @Override
@@ -839,14 +792,7 @@ public class ReplayerController implements Initializable {
         file = fileArr[fileArr.length-1];
         titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
         saveGame = new SaveGame();
-        for (CountryInfo ci : countries.values()) {
-            ci.reset();
-        }
-        for (ProvinceInfo pi : provinces.values()) {
-            pi.reset();
-        }
-        focusTag = settings.getProperty("focus", ""); //this needs to be reset as tag changes are followed during replaying
-        focusing = !focusTag.isEmpty();
+        replay.reset();
 
         try {
             final BatchSaveGameParser parser = new BatchSaveGameParser(rnw, saveGame, fileArr);
@@ -868,17 +814,17 @@ public class ReplayerController implements Initializable {
                             int finalColor;
                             final ProvinceInfo province = colors.get(color);
                             if (province != null && province.isSea) {
-                                finalColor = seaColor;
+                                finalColor = replay.seaColor;
                             } else if (borders.contains(pos)) {
-                                finalColor = borderColor;
+                                finalColor = replay.borderColor;
                             } else {
-                                finalColor = landColor;
+                                finalColor = replay.landColor;
                             }
-                            politicalBuffer[pos] = finalColor;
-                            religiousBuffer[pos] = finalColor;
-                            culturalBuffer[pos] = finalColor;
-                            technologySeparateBuffer[pos] = finalColor;
-                            technologyCombinedBuffer[pos] = finalColor;
+                            replay.politicalBuffer[pos] = finalColor;
+                            replay.religiousBuffer[pos] = finalColor;
+                            replay.culturalBuffer[pos] = finalColor;
+                            replay.technologySeparateBuffer[pos] = finalColor;
+                            replay.technologyCombinedBuffer[pos] = finalColor;
                             updateProgress(pos, size);
                         }
                     }
@@ -900,16 +846,18 @@ public class ReplayerController implements Initializable {
                 protected Void call() throws Exception {
                     dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
                     updateTitle(l10n("replay.world.init"));
-                    notLogUpdatingProcessor.processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)));
+                    eventProcessor.setListener(noLogUpdateListener);
+                    eventProcessor.processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)));
                     //
                     updateTitle(l10n("replay.progressing"));
                     final Date maxDate = saveGame.startDate;
                     Date date = new Date(settings.getProperty("init.start", "1300.1.1"));
                     int day = 0;
                     final int distance = Date.calculateDistance(date, saveGame.startDate) + 1;
+                    eventProcessor.setListener(bufferChangeOnlyListener);
                     while (date.compareTo(maxDate) <= 0) {
                         final List<Event> events = saveGame.timeline.get(date);
-                        bufferChangeOnlyProcessor.processEvents(date, events);
+                        eventProcessor.processEvents(date, events);
                         updateProgress(++day, distance);
                         date = date.next();
                     }
@@ -923,7 +871,7 @@ public class ReplayerController implements Initializable {
                             //count colonies for countries
                             final Map<String, List<ProvinceInfo>> colonies = new HashMap<>();
                             for (String id : colreg.provinces) {
-                                final ProvinceInfo province = provinces.get(id);
+                                final ProvinceInfo province = replay.provinces.get(id);
                                 if (province.owner == null) {
                                     continue;
                                 }
@@ -945,7 +893,7 @@ public class ReplayerController implements Initializable {
                                                         || (p.getSecond() instanceof Controller && prov.owner.equals(prov.controller)))) {
                                                 SimpleProvinceEvent e = (SimpleProvinceEvent) p.getSecond();
                                                 if (e.value.matches("C..")) {
-                                                    bufferChangeOnlyProcessor.processEvents(p.getFirst(), Arrays.asList(e));
+                                                    eventProcessor.processEvents(p.getFirst(), Arrays.asList(e));
                                                 }
                                             }
                                             if (magicalDate.compareTo(p.getFirst()) < 0) {
@@ -958,6 +906,7 @@ public class ReplayerController implements Initializable {
                             }
                         }
                     }
+                    eventProcessor.setListener(standardListener);
                     return null;
                 }
             };
@@ -969,7 +918,7 @@ public class ReplayerController implements Initializable {
                         giffer = new Giffer(settings, width, height, fileArr[fileArr.length-1].getAbsolutePath());
                         giffer.updateGif(buffer, saveGame.startDate);
                     }
-                    output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+                    output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
                     log.getEngine().loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
                     logContent.setLength(LOG_HEADER.length());
                     progressBar.progressProperty().bind(dateGenerator.progressProperty());
@@ -999,11 +948,11 @@ public class ReplayerController implements Initializable {
                     statusLabel.textProperty().bind(starter.titleProperty());
                     progressBar.progressProperty().bind(starter.progressProperty());
                     for (Entry<String, Integer> c : saveGame.dynamicCountriesColors.entrySet()) {
-                        countries.put(c.getKey(), new CountryInfo(c.getKey(), c.getValue()));
+                        replay.countries.put(c.getKey(), new CountryInfo(c.getKey(), c.getValue()));
                     }
                     for (Map.Entry<String, Date> change : saveGame.tagChanges.entrySet()) {
                         final String tag = change.getKey();
-                        final CountryInfo country = countries.get(tag);
+                        final CountryInfo country = replay.countries.get(tag);
                         if (country != null) {
                             country.expectingTagChange = change.getValue();
                         } else {
@@ -1088,8 +1037,8 @@ public class ReplayerController implements Initializable {
 
     @FXML
     private void politicalMapMode() {
-        buffer = politicalBuffer;
-        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+        buffer = replay.politicalBuffer;
+        output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
     }
 
     @FXML
@@ -1112,8 +1061,8 @@ public class ReplayerController implements Initializable {
 
     @FXML
     private void religiousMapMode() {
-        buffer = religiousBuffer;
-        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+        buffer = replay.religiousBuffer;
+        output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
     }
 
     @FXML
@@ -1133,14 +1082,14 @@ public class ReplayerController implements Initializable {
 
     @FXML
     private void technologyCombinedMapMode() {
-        buffer = technologyCombinedBuffer;
-        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+        buffer = replay.technologyCombinedBuffer;
+        output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
     }
 
     @FXML
     private void technologySeparateMapMode() {
-        buffer = technologySeparateBuffer;
-        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+        buffer = replay.technologySeparateBuffer;
+        output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
     }
 
     @FXML
@@ -1251,9 +1200,9 @@ public class ReplayerController implements Initializable {
                         @Override
                         public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
                             if (newVal) {
-                                notableEvents.add(event);
+                                replay.notableEvents.add(event);
                             } else {
-                                notableEvents.remove(event);
+                                replay.notableEvents.remove(event);
                             }
                         }
                     });
@@ -1315,8 +1264,8 @@ public class ReplayerController implements Initializable {
         focusEdit.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
-                focusTag = newVal;
-                focusing = !"".equals(newVal);
+                replay.focusTag = newVal;
+                replay.focusing = !"".equals(newVal);
                 settings.setProperty("focus", newVal);
             }
         });
@@ -1340,8 +1289,8 @@ public class ReplayerController implements Initializable {
             @Override
             public void handle(MouseEvent t) {
                 final Bounds imageBounds = imageView.getBoundsInParent();
-                int x = (int) (t.getX() * bufferWidth / imageBounds.getWidth());
-                int y = (int) (t.getY() * bufferHeight / imageBounds.getHeight());
+                int x = (int) (t.getX() * replay.bufferWidth / imageBounds.getWidth());
+                int y = (int) (t.getY() * replay.bufferHeight / imageBounds.getHeight());
                 final String coords = "[" + x + "," + y + "]\n";
                 final String provinceHint = coords + colors.get(reader.getArgb(x, y)).toString();
                 if (!scrollPane.getTooltip().getText().equals(provinceHint)) {
@@ -1354,8 +1303,8 @@ public class ReplayerController implements Initializable {
             @Override
             public void handle(MouseEvent t) {
                 final Bounds imageBounds = imageView.getBoundsInParent();
-                int x = (int) (t.getX() * bufferWidth / imageBounds.getWidth());
-                int y = (int) (t.getY() * bufferHeight / imageBounds.getHeight());
+                int x = (int) (t.getX() * replay.bufferWidth / imageBounds.getWidth());
+                int y = (int) (t.getY() * replay.bufferHeight / imageBounds.getHeight());
                 selectedProvince = colors.get(reader.getArgb(x, y));
                 if (selectedProvince != null) {
                     final String provinceLogContent = selectedProvince.getLog();
@@ -1631,15 +1580,16 @@ public class ReplayerController implements Initializable {
     public void setSettings(final Properties settings) {
         this.settings = settings;
 
-        notableEvents.clear();
-        notableEvents.addAll(Arrays.asList(settings.getProperty("events", "").split(";")));
+        replay = new Replay(settings);
+        eventProcessor.setReplay(replay);
+
         for(final MenuItem item : eventMenu.getItems()) {
             if (item instanceof CustomMenuItem) {
                 final String event = item.getText();
                 final CustomMenuItem customItem = ((CustomMenuItem) item);
                 if (customItem.getContent() instanceof CheckBox) {
                     final CheckBox checkBox = (CheckBox) customItem.getContent();
-                    checkBox.setSelected(notableEvents.contains(event));
+                    checkBox.setSelected(replay.notableEvents.contains(event));
                 }
             }
         }
@@ -1657,23 +1607,9 @@ public class ReplayerController implements Initializable {
 
         langCombo.getSelectionModel().select(settings.getProperty("locale.language", "en"));
 
-        seaColor = ColorUtils.toColor(
-                Integer.parseInt(settings.getProperty("sea.color.red", "0")),
-                Integer.parseInt(settings.getProperty("sea.color.green", "0")),
-                Integer.parseInt(settings.getProperty("sea.color.blue", "255")));
-        landColor = ColorUtils.toColor(
-                Integer.parseInt(settings.getProperty("land.color.red", "150")),
-                Integer.parseInt(settings.getProperty("land.color.green", "150")),
-                Integer.parseInt(settings.getProperty("land.color.blue", "150")));
-        borderColor = ColorUtils.toColor(
-                Integer.parseInt(settings.getProperty("border.color.red", "0")),
-                Integer.parseInt(settings.getProperty("border.color.green", "0")),
-                Integer.parseInt(settings.getProperty("border.color.blue", "0")));
         drawBorders = "true".equals(settings.getProperty("borders", "false"));
 
-        focusTag = settings.getProperty("focus", "");
-        focusing = !focusTag.isEmpty();
-        focusEdit.setText(focusTag);
+        focusEdit.setText(replay.focusTag);
 
         saveDirectory = new File(settings.getProperty("save.dir", ""));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
@@ -1683,8 +1619,7 @@ public class ReplayerController implements Initializable {
             }
         }
 
-        subjectsAsOverlords = settings.getProperty("subjects.as.overlord", "false").equals("true");
-        subjectsCheckMenuItem.setSelected(subjectsAsOverlords);
+        subjectsCheckMenuItem.setSelected(replay.subjectsAsOverlords);
 
         final String rnwMap = settings.getProperty("rnw.map");
         rnw = rnwMap != null  && !rnwMap.isEmpty();
@@ -1771,7 +1706,7 @@ public class ReplayerController implements Initializable {
      */
     private void loadCountries() {
         System.out.printf(l10n("replay.load.countries"));
-        countries.clear();
+        replay.countries.clear();
 
         for (final InputStream is : fileManager.listFiles("common/country_tags")) {
             try (final InputStream tagStream = is) {
@@ -1786,7 +1721,7 @@ public class ReplayerController implements Initializable {
                         final Ref<Integer> color = new Ref<>();
                         final CountryParser parser = new CountryParser(color, Long.MAX_VALUE, cs);
                         parser.run();
-                        countries.put((String) key, new CountryInfo((String) key, color.val));
+                        replay.countries.put((String) key, new CountryInfo((String) key, color.val));
                     } catch(Exception e) { e.printStackTrace(); }
                 }
             } catch (IOException e) {
@@ -1800,10 +1735,10 @@ public class ReplayerController implements Initializable {
      */
     private void loadCultures() {
         System.out.printf(l10n("replay.load.cultures"));
-        cultures.clear();
+        replay.cultures.clear();
         for(final InputStream cultureStream : fileManager.listFiles("common/cultures")) {
             try (final InputStream is = cultureStream) {
-                final CulturesParser parser = new CulturesParser(new Pair<>(countries, cultures), Long.MAX_VALUE, is);
+                final CulturesParser parser = new CulturesParser(new Pair<>(replay.countries, replay.cultures), Long.MAX_VALUE, is);
                 parser.run();
             } catch(Exception e) { e.printStackTrace(); }
         }
@@ -1845,19 +1780,11 @@ public class ReplayerController implements Initializable {
             protected Void call() throws Exception {
                 updateTitle(l10n("replay.map.load"));
                 try {
-                    InputStream is = null;
-                    try {
-                        is = fileManager.getInputStream("map/provinces.bmp");
+                    try (InputStream is = fileManager.getInputStream("map/provinces.bmp")) {
                         map = new Image(is);
                     } catch (FileNotFoundException e) {
                         System.err.printf(l10n("replay.map.notfound"));
                         map = new WritableImage(1,1);
-                    } finally {
-                        if (is != null) {
-                            try {
-                                is.close();
-                            } catch (IOException e) { }
-                        }
                     }
                     reader = map.getPixelReader();
 
@@ -1866,14 +1793,8 @@ public class ReplayerController implements Initializable {
 
                     //Copy from source to destination pixel by pixel
                     output = new WritableImage(width, height);
-                    politicalBuffer = new int[width*height];
-                    religiousBuffer = new int[width*height];
-                    culturalBuffer = new int[width*height];
-                    technologySeparateBuffer = new int[width*height];
-                    technologyCombinedBuffer = new int[width*height];
-                    buffer = politicalBuffer;
-                    bufferWidth = width;
-                    bufferHeight = height;
+                    replay.initBuffers(width, height);
+                    buffer = replay.politicalBuffer;
                     final PixelWriter writer = output.getPixelWriter();
 
                     for (int y = 0; y < height; ++y){
@@ -1892,7 +1813,7 @@ public class ReplayerController implements Initializable {
                                 }
                             }
                             if (border) {
-                                color = borderColor;
+                                color = replay.borderColor;
                                 borders.add(y * width + x);
                             } else {
                                 final ProvinceInfo province = colors.get(color);
@@ -1902,17 +1823,17 @@ public class ReplayerController implements Initializable {
                                     System.err.printf(l10n("replay.map.unknowncolor"), x, y, color);
                                 }
                             }
-                            politicalBuffer[y * width + x] = color;
-                            religiousBuffer[y * width + x] = color;
-                            culturalBuffer[y * width + x] = color;
-                            technologySeparateBuffer[y * width + x] = color;
-                            technologyCombinedBuffer[y * width + x] = color;
+                            replay.politicalBuffer[y * width + x] = color;
+                            replay.religiousBuffer[y * width + x] = color;
+                            replay.culturalBuffer[y * width + x] = color;
+                            replay.technologySeparateBuffer[y * width + x] = color;
+                            replay.technologyCombinedBuffer[y * width + x] = color;
                             writer.setArgb(x, y, color);
                             updateProgress(y*width+x, height*width);
                         }
                     }
 
-                    for(ProvinceInfo info : provinces.values()) {
+                    for(ProvinceInfo info : replay.provinces.values()) {
                         info.calculateCenter(width);
                     }
 
@@ -1951,7 +1872,7 @@ public class ReplayerController implements Initializable {
      */
     private void loadProvinces() {
         System.out.printf(l10n("replay.provinces.load"));
-        provinces.clear();
+        replay.provinces.clear();
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new InputStreamReader(fileManager.getInputStream("map/definition.csv"), StandardCharsets.ISO_8859_1));
@@ -1969,7 +1890,7 @@ public class ReplayerController implements Initializable {
                         Integer.parseInt(parts[2]),
                         Integer.parseInt(parts[3]));
                 final ProvinceInfo province = new ProvinceInfo(parts[0], parts[4], color);
-                provinces.put(parts[0], province);
+                replay.provinces.put(parts[0], province);
                 final ProvinceInfo original = colors.put(color, province);
                 if (original != null) {
                     throw new RuntimeException(String.format(l10n("replay.provinces.error"), parts[0], original));
@@ -1991,11 +1912,11 @@ public class ReplayerController implements Initializable {
         if (rnw) {
             final ProvinceInfo sea = new ProvinceInfo("SEA", "SEA", ColorUtils.SEA_COLOR);
             sea.isSea = true;
-            provinces.put(sea.id, sea);
+            replay.provinces.put(sea.id, sea);
             colors.put(sea.color, sea);
             final ProvinceInfo wasteland = new ProvinceInfo("WASTELAND", "WASTELAND", ColorUtils.WASTELAND_COLOR);
             wasteland.isWasteland = true;
-            provinces.put(wasteland.id, wasteland);
+            replay.provinces.put(wasteland.id, wasteland);
             colors.put(wasteland.color, wasteland);
         }
     }
@@ -2005,10 +1926,10 @@ public class ReplayerController implements Initializable {
      */
     private void loadReligions() {
         System.out.printf(l10n("replay.load.religions"));
-        religions.clear();
+        replay.religions.clear();
         for(final InputStream religionStream : fileManager.listFiles("common/religions")) {
             try (final InputStream is = religionStream) {
-                final ReligionsParser parser = new ReligionsParser(religions, Long.MAX_VALUE, is);
+                final ReligionsParser parser = new ReligionsParser(replay.religions, Long.MAX_VALUE, is);
                 parser.run();
             } catch(Exception e) { e.printStackTrace(); }
         }
@@ -2020,7 +1941,7 @@ public class ReplayerController implements Initializable {
     private void loadSeas() {
         System.out.printf(l10n("replay.load.seas"));
         try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/default.map")) {
-            final DefaultMapParser parser = new DefaultMapParser(provinces, Long.MAX_VALUE, is);
+            final DefaultMapParser parser = new DefaultMapParser(replay.provinces, Long.MAX_VALUE, is);
             parser.run();
         } catch(Exception e) { e.printStackTrace(); }
     }
@@ -2031,7 +1952,7 @@ public class ReplayerController implements Initializable {
     private void loadWastelands() {
         System.out.printf(l10n("replay.load.wastelands"));
         try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/climate.txt")) {
-            final ClimateParser parser = new ClimateParser(provinces, Long.MAX_VALUE, is);
+            final ClimateParser parser = new ClimateParser(replay.provinces, Long.MAX_VALUE, is);
             parser.run();
         } catch(Exception e) { e.printStackTrace(); }
     }
@@ -2042,7 +1963,7 @@ public class ReplayerController implements Initializable {
     public void stop() {
         endGif();
         final StringBuilder s = new StringBuilder();
-        for(String event : notableEvents) {
+        for(String event : replay.notableEvents) {
             s.append(";");
             s.append(event);
         }
@@ -2123,7 +2044,7 @@ public class ReplayerController implements Initializable {
          * @return false to prevent link following and thus refreshing
          */
         public boolean prov(final String prov) {
-            final Point center = provinces.get(prov).center;
+            final Point center = replay.provinces.get(prov).center;
             if (center == null) {
                 return false;
             }
@@ -2150,15 +2071,20 @@ public class ReplayerController implements Initializable {
         /** Last date that was processed. */
         protected Date currentDate;
 
+        /** Previous event listener to be restored after finish. */
+        protected EventProcessor.Listener prevListener;
+
         /**
          * Only constructor.
          */
         public Jumper() {
+            prevListener = eventProcessor.getListener();
+            eventProcessor.setListener(getEventListener());
             this.stateProperty().addListener(new ChangeListener<State>() {
                 @Override
                 public void changed(ObservableValue<? extends State> ov, State oldVal, State newVal) {
                     if (newVal == State.SUCCEEDED || newVal == State.CANCELLED) {
-                        output.getPixelWriter().setPixels(0, 0, bufferWidth, bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, bufferWidth);
+                        output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
                         final WebEngine e = log.getEngine();
                         e.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
                             @Override
@@ -2183,6 +2109,8 @@ public class ReplayerController implements Initializable {
                 }
             });
         }
+
+        abstract protected EventProcessor.Listener getEventListener();
 
         abstract protected Date getBound();
 
@@ -2220,6 +2148,7 @@ public class ReplayerController implements Initializable {
             } else {
                 updateTitle(l10n("replay.cancel"));
             }
+            eventProcessor.setListener(prevListener);
             return null;
         }
     }
