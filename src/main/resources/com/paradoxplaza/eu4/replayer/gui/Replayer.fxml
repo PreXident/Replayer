@@ -13,7 +13,7 @@
 <?import com.paradoxplaza.eu4.replayer.gui.*?>
 
 <BorderPane fx:id="root" prefHeight="600" prefWidth="800" xmlns:fx="http://javafx.com/fxml"
-			fx:controller="com.paradoxplaza.eu4.replayer.ReplayerController" styleClass="root" >
+			fx:controller="com.paradoxplaza.eu4.replayer.gui.ReplayerController" styleClass="root" >
 	<stylesheets >
 		<URL value="@Replayer.css" />
 	</stylesheets>

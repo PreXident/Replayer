@@ -1,5 +1,23 @@
-package com.paradoxplaza.eu4.replayer;
+package com.paradoxplaza.eu4.replayer.gui;
 
+import com.paradoxplaza.eu4.replayer.ColRegionInfo;
+import com.paradoxplaza.eu4.replayer.ColRegionInfo;
+import com.paradoxplaza.eu4.replayer.CountryInfo;
+import com.paradoxplaza.eu4.replayer.CountryInfo;
+import com.paradoxplaza.eu4.replayer.Date;
+import com.paradoxplaza.eu4.replayer.Date;
+import com.paradoxplaza.eu4.replayer.DateGenerator;
+import com.paradoxplaza.eu4.replayer.DateGenerator;
+import com.paradoxplaza.eu4.replayer.DefinesInfo;
+import com.paradoxplaza.eu4.replayer.DefinesInfo;
+import com.paradoxplaza.eu4.replayer.EventProcessor;
+import com.paradoxplaza.eu4.replayer.EventProcessor;
+import com.paradoxplaza.eu4.replayer.FileManager;
+import com.paradoxplaza.eu4.replayer.ProvinceInfo;
+import com.paradoxplaza.eu4.replayer.ProvinceInfo;
+import com.paradoxplaza.eu4.replayer.SaveGame;
+import com.paradoxplaza.eu4.replayer.SaveGame;
+import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
@@ -296,7 +314,7 @@ public class ReplayerController implements Initializable {
     final Semaphore lock = new Semaphore(1);
 
     /** Replayer settings. */
-    Properties settings;
+    public Properties settings;
 
     /** Original map picture. */
     Image map;
@@ -305,31 +323,31 @@ public class ReplayerController implements Initializable {
     PixelReader reader;
 
     /** Image displayed in {@link #imageView}. */
-    WritableImage output;
+    public WritableImage output;
 
     /** Buffer for emergency refresh. */
-    int[] buffer;
+    public int[] buffer;
 
     /** Buffer width. */
-    int bufferWidth;
+    public int bufferWidth;
 
     /** Buffer height. */
-    int bufferHeight;
+    public int bufferHeight;
 
     /** Buffer with political map. */
-    int[] politicalBuffer;
+    public int[] politicalBuffer;
 
     /** Buffer with religious map. */
-    int[] religiousBuffer;
+    public int[] religiousBuffer;
 
     /** Buffer with cultural map. */
-    int[] culturalBuffer;
+    public int[] culturalBuffer;
 
     /** Buffer with technology map with separate color representation of tech branches. */
-    int[] technologySeparateBuffer;
+    public int[] technologySeparateBuffer;
 
     /** Buffer with technology map with separate color representation of tech branches. */
-    int[] technologyCombinedBuffer;
+    public int[] technologyCombinedBuffer;
 
     /** How many pixels are added to width and height when zooming in/out. */
     int zoomStep;
@@ -341,16 +359,16 @@ public class ReplayerController implements Initializable {
     String saveFileName;
 
     /** Directory containing needed game files. */
-    File eu4Directory;
+    public File eu4Directory;
 
     /** Property binded to stage titleProperty. */
     StringProperty titleProperty = new SimpleStringProperty(TITLE);
 
     /** Tag -> country mapping. */
-    Map<String, CountryInfo> countries = new HashMap<>();
+    public Map<String, CountryInfo> countries = new HashMap<>();
 
     /** ID -> province mapping. */
-    Map<String, ProvinceInfo> provinces = new HashMap<>();
+    public Map<String, ProvinceInfo> provinces = new HashMap<>();
 
     /** Province color -> province mapping. */
     Map<Integer, ProvinceInfo> colors = new HashMap<>();
@@ -359,10 +377,10 @@ public class ReplayerController implements Initializable {
     Set<Integer> borders = new HashSet<>();
 
     /** Religion name -> color mapping. */
-    Map<String, Integer> religions = new HashMap<>();
+    public Map<String, Integer> religions = new HashMap<>();
 
     /** Culture name -> color mapping. */
-    Map<String, Integer> cultures = new HashMap<>();
+    public Map<String, Integer> cultures = new HashMap<>();
 
     /** Colonial region name -> colonial name mapping. */
     Map<String, ColRegionInfo> colRegions = new HashMap<>();
@@ -371,10 +389,10 @@ public class ReplayerController implements Initializable {
     SaveGame saveGame;
 
     /** Color used to display sea and lakes. */
-    int seaColor;
+    public int seaColor;
 
     /** Color to display no man's land. */
-    int landColor;
+    public int landColor;
 
     /** Color to display province bordes. */
     int borderColor;
@@ -401,16 +419,16 @@ public class ReplayerController implements Initializable {
     final DateListener dateListener = new DateListener();
 
     /** Content of log area with html code. */
-    final StringBuilder logContent = new StringBuilder();
+    public final StringBuilder logContent = new StringBuilder();
 
     /** Set of currently notable events. */
-    final Set<String> notableEvents = new HashSet<>();
+    public final Set<String> notableEvents = new HashSet<>();
 
     /** Writer of gif output. */
     Giffer giffer = null;
 
     /** Tag of state in focus. Never null. */
-    String focusTag = "";
+    public String focusTag = "";
 
     /** Selected province. */
     ProvinceInfo selectedProvince;
@@ -428,13 +446,13 @@ public class ReplayerController implements Initializable {
      * Flag indicating whether {@link #focusTag} is be used.
      * If true, focusTag is not empty, but contains country tag in focus.
      */
-    boolean focusing = false;
+    public boolean focusing = false;
 
     /** Random New World feature is on. */
-    boolean rnw = false;
+    public boolean rnw = false;
 
     /** Flag indicating that subject nations should be rendered as part of their overlords. */
-    boolean subjectsAsOverlords = false;
+    public boolean subjectsAsOverlords = false;
 
     /** Jumper that fast forwards/rewinds the save. */
     Jumper finalizer;
@@ -690,7 +708,7 @@ public class ReplayerController implements Initializable {
         try {
             final Date target = new Date(dateLabel.getText());
             direction = null;
-            if (target.compareTo(dateGenerator.min) < 0 || target.compareTo(dateGenerator.max) > 0) {
+            if (target.compareTo(dateGenerator.getMin()) < 0 || target.compareTo(dateGenerator.getMax()) > 0) {
                 statusLabel.setText(l10n("replay.jump.outside"));
                 lock.release();
                 return;

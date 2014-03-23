@@ -15,13 +15,13 @@ import javafx.beans.property.SimpleObjectProperty;
 public class DateGenerator implements Iterable<Date>, Iterator<Date> {
 
     /** Minimal date of the generator. */
-    final Date min;
+    protected final Date min;
 
     /** Maximal date of the generator. */
-    final Date max;
+    protected final Date max;
 
     /** Current date of the generator. */
-    final ObjectProperty<Date> date;
+    protected final ObjectProperty<Date> date;
 
     /**
      * Number of days between min and max.
@@ -68,12 +68,12 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
      * @return true if prev() can be called, false otherwise
      */
     public boolean hasPrev() {
-        return min.compareTo(date.get()) < 0;
+        return getMin().compareTo(date.get()) < 0;
     }
 
     @Override
     public boolean hasNext() {
-        return date.get().compareTo(max) < 0;
+        return date.get().compareTo(getMax()) < 0;
     }
 
     @Override
@@ -105,16 +105,30 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
      * @param date date to skip to
      */
     public void skipTo(final Date date) {
-        if (min.compareTo(date) > 0 || max.compareTo(date) < 0) {
+        if (getMin().compareTo(date) > 0 || getMax().compareTo(date) < 0) {
             throw new IllegalArgumentException(l10n("generator.period.error"));
         }
         this.date.set(date);
-        day = Date.calculateDistance(min, date);
+        day = Date.calculateDistance(getMin(), date);
         progress.set(day/distance);
     }
 
     @Override
     public void remove() {
         //nothing
+    }
+
+    /**
+     * @return the min
+     */
+    public Date getMin() {
+        return min;
+    }
+
+    /**
+     * @return the max
+     */
+    public Date getMax() {
+        return max;
     }
 }

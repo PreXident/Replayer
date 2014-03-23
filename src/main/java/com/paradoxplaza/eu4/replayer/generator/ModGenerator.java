@@ -1,10 +1,10 @@
 package com.paradoxplaza.eu4.replayer.generator;
 
-import com.paradoxplaza.eu4.replayer.ColorUtils;
-import static com.paradoxplaza.eu4.replayer.ColorUtils.SEA_COLOR;
-import static com.paradoxplaza.eu4.replayer.ColorUtils.WASTELAND_COLOR;
+import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
+import static com.paradoxplaza.eu4.replayer.utils.ColorUtils.SEA_COLOR;
+import static com.paradoxplaza.eu4.replayer.utils.ColorUtils.WASTELAND_COLOR;
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
-import com.paradoxplaza.eu4.replayer.ReplayerController;
+import com.paradoxplaza.eu4.replayer.gui.ReplayerController;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import java.io.BufferedWriter;
 import java.io.File;

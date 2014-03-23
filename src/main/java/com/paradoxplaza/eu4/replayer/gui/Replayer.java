@@ -1,4 +1,4 @@
-package com.paradoxplaza.eu4.replayer;
+package com.paradoxplaza.eu4.replayer.gui;
 
 import com.paradoxplaza.eu4.replayer.localization.Localizator;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;

@@ -14,7 +14,7 @@
 
 ::-webkit-scrollbar-thumb {
 	border:1px solid rgba(0, 0, 0, 0.3);
-	//box-shadow: -3px -3px 6px rgba(200, 200, 200, 1) inset,3px 3px 3px;
+	/*box-shadow: -3px -3px 6px rgba(200, 200, 200, 1) inset,3px 3px 3px;*/
 	background-color: rgba(220, 220, 220, 1);
 	-webkit-border-radius: 6px;
 }

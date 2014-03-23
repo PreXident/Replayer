@@ -22,7 +22,7 @@ public class SaveGame {
     public Date startDate = new Date();
 
     /** Timeline containing displayable events. */
-    final Map<Date, List<Event>> timeline = new HashMap<>();
+    public final Map<Date, List<Event>> timeline = new HashMap<>();
 
     /** Set of country tags that appeard during game through tag changes. */
     public final Map<String, Date> tagChanges = new HashMap<>();

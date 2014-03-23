@@ -1,4 +1,4 @@
-package com.paradoxplaza.eu4.replayer;
+package com.paradoxplaza.eu4.replayer.gui;
 
 import java.util.Collection;
 import java.util.Iterator;

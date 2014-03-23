@@ -1,4 +1,4 @@
-package com.paradoxplaza.eu4.replayer;
+package com.paradoxplaza.eu4.replayer.utils;
 
 /**
  * A few methods for working with colors.

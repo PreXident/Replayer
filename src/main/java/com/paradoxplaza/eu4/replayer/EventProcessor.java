@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.gui.ReplayerController;
+import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
 import com.paradoxplaza.eu4.replayer.events.AlwaysNotable;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Culture;

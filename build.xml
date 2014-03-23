@@ -17,7 +17,7 @@
 	<property name="file.dist" value="replayer.jar" />
 	<property name="file.dist.zip" value="replayer-${project.version}.zip" />
 	<property name="file.readme" value="README.txt" />
-	<property name="class.main" value="com.paradoxplaza.eu4.replayer.Replayer" />
+	<property name="class.main" value="com.paradoxplaza.eu4.replayer.gui.Replayer" />
 	<!-- testing properties -->
 	<property name="dir.test.src" value="src/test/java" />
 	<property name="dir.test.reports" value="build/reports" />

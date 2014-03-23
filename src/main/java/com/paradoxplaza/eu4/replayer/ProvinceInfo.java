@@ -40,7 +40,7 @@ public class ProvinceInfo {
     public String culture = null;
 
     /** Events that happened to this province. */
-    List<Pair<Date,Event>> events = new ArrayList<>();
+    public List<Pair<Date,Event>> events = new ArrayList<>();
 
     /** Colonial region the province belongs to, if any. */
     public ColRegionInfo colRegion = null;

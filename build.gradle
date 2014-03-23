@@ -5,7 +5,7 @@ apply plugin: 'fatjar'
 compileJava.options.encoding = 'UTF-8'
 
 defaultTasks 'run'
-ext.mainClassName = 'com.paradoxplaza.eu4.replayer.Replayer'
+ext.mainClassName = 'com.paradoxplaza.eu4.replayer.gui.Replayer'
 archivesBaseName = 'replayer'
 version= ext.projectVersion //property from file version.properties
 

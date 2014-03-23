@@ -1,6 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser.religion;
 
-import com.paradoxplaza.eu4.replayer.ColorUtils;
+import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import java.util.Map;

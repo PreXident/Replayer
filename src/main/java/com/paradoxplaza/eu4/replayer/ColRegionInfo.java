@@ -14,7 +14,7 @@ public class ColRegionInfo {
     final String name;
 
     /** Provinces belonging to this region. */
-    final Set<String> provinces = new HashSet<>();
+    public final Set<String> provinces = new HashSet<>();
 
     /**
      * Only constructor.

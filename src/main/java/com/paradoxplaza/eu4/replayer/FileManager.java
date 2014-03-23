@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.gui.ReplayerController;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.mod.ModParser;
 import java.io.ByteArrayInputStream;
@@ -18,7 +19,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 /**
  * Class for files and directories with respect to mods.
  */
-class FileManager {
+public class FileManager {
 
     /** Application's controller. */
     final ReplayerController controller;

@@ -44,7 +44,7 @@ public class Date implements Comparable<Date> {
      * @param up upper date
      * @return number of days between lower and upper date
      */
-    static int calculateDistance(Date low, Date up) {
+    static public int calculateDistance(Date low, Date up) {
         if (low.compareTo(up) > 0) {
             final Date swap = low;
             low = up;
