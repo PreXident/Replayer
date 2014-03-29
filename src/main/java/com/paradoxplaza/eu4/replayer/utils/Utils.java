@@ -1,9 +1,11 @@
 package com.paradoxplaza.eu4.replayer.utils;
 
+import java.util.Properties;
+
 /**
- * A few methods for working with colors.
+ * A few methods useful throughout the code.
  */
-public class ColorUtils {
+public class Utils {
 
     /** Color used in EU4 mapmode screenshots for seas. */
     static final public int SEA_COLOR = toColor(68, 107, 163);
@@ -50,6 +52,16 @@ public class ColorUtils {
         return 255 << 24 | red << 16 | green << 8 | blue;
     }
 
+    /**
+     * Returns whether the Random New World feature is on.
+     * @param settings application settings
+     * @return true if RNW is on, false otherwise
+     */
+    static public boolean isRNW(final Properties settings) {
+        final String rnwMap = settings.getProperty("rnw.map");
+        return rnwMap != null  && !rnwMap.isEmpty();
+    }
+
     /** Utility classes need no constructors. */
-    private ColorUtils() { }
+    private Utils() { }
 }

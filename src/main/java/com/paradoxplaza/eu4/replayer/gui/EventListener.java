@@ -6,7 +6,7 @@ import com.paradoxplaza.eu4.replayer.EventProcessor;
  * Ancestor of other {@link EventProcessor event listeners}.
  * It handles everything, others only lack functionality.
  */
-public class EventListener implements EventProcessor.Listener {
+public class EventListener implements EventProcessor.IEventListener {
 
     /** Replayer controller with GUI. */
     final protected ReplayerController controller;
@@ -30,7 +30,7 @@ public class EventListener implements EventProcessor.Listener {
     }
 
     @Override
-    public void setColor(int[] buffer, int pos, int color) {
+    public void setColor(final int[] buffer, final int pos, final int color) {
         if (controller.buffer == buffer) {
             controller.output.getPixelWriter().setArgb(
                     pos % controller.replay.bufferWidth,

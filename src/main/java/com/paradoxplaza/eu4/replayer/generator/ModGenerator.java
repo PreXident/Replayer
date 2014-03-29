@@ -1,11 +1,11 @@
 package com.paradoxplaza.eu4.replayer.generator;
 
-import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
-import static com.paradoxplaza.eu4.replayer.utils.ColorUtils.SEA_COLOR;
-import static com.paradoxplaza.eu4.replayer.utils.ColorUtils.WASTELAND_COLOR;
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
-import com.paradoxplaza.eu4.replayer.gui.ReplayerController;
+import com.paradoxplaza.eu4.replayer.Replay;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.utils.Utils;
+import static com.paradoxplaza.eu4.replayer.utils.Utils.SEA_COLOR;
+import static com.paradoxplaza.eu4.replayer.utils.Utils.WASTELAND_COLOR;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,7 +37,7 @@ public class ModGenerator {
      */
     public void generate(Iterable<ProvinceInfo> provinces) {
         unzipStaticModPart();
-        final String baseDir = settings.getProperty("mod.basedir", ReplayerController.DEFAULT_BASE_DIR) + "/mod/RNW";
+        final String baseDir = settings.getProperty("mod.basedir", Replay.DEFAULT_BASE_DIR) + "/mod/RNW";
         try (BufferedWriter tagWriter = new BufferedWriter(new FileWriter(baseDir + "/common/country_tags/RNW.txt"))) {
             final TagGenerator tagGenerator = new TagGenerator();
             for(ProvinceInfo province : provinces) {
@@ -48,7 +48,7 @@ public class ModGenerator {
                     System.err.printf(l10n("generator.conflict"), province.id);
                 }
                 final String tag = tagGenerator.next();
-                final String color = ColorUtils.colorToStringFloat(province.color, " ");
+                final String color = Utils.colorToStringFloat(province.color, " ");
                 //generating itself
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(baseDir + "/history/provinces/" + province.id + " - dummy.txt"))) {
                     writer.append("owner = " + tag);
@@ -74,8 +74,11 @@ public class ModGenerator {
         }
     }
 
+    /**
+     * Unzips the fixed files for the mod.
+     */
     private void unzipStaticModPart() {
-        final String baseDir = settings.getProperty("mod.basedir", ReplayerController.DEFAULT_BASE_DIR) + "/mod";
+        final String baseDir = settings.getProperty("mod.basedir", Replay.DEFAULT_BASE_DIR) + "/mod";
         try (ZipInputStream zip = new ZipInputStream(getClass().getResourceAsStream("mod.zip"))) {
             ZipEntry z = zip.getNextEntry();
             final byte[] buf = new byte[2048];

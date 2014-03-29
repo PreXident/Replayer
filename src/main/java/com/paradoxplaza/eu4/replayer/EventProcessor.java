@@ -11,7 +11,7 @@ import com.paradoxplaza.eu4.replayer.events.Subject;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
 import com.paradoxplaza.eu4.replayer.events.Technology;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
-import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
+import com.paradoxplaza.eu4.replayer.utils.Utils;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.List;
 public class EventProcessor {
 
     /** Default listener that does nothing. */
-    static public final Listener defaultListener = new Listener() {
+    static public final IEventListener defaultListener = new IEventListener() {
         @Override
         public void appendLog(String text) { }
 
@@ -42,7 +42,7 @@ public class EventProcessor {
      * @return color representing the technology levels as separate color parts
      */
     static int getSeparateTechColor(final int adm, final int dip, final int mil) {
-        return ColorUtils.toColor(mil * 7, adm * 7, dip * 7);
+        return Utils.toColor(mil * 7, adm * 7, dip * 7);
     }
 
     /**
@@ -55,33 +55,27 @@ public class EventProcessor {
     static int getCombinedTechColor(final int adm, final int dip, final int mil) {
         final int val = adm + dip + mil;
         final int round = (int) (val * 8.0/3.0);
-        return ColorUtils.toColor(0, round, 0);
+        return Utils.toColor(0, round, 0);
     }
 
     /** Replay to update. */
     Replay replay;
 
-    /** Listener to log and buffer updates. */
-    Listener listener = defaultListener;
+    /** IEventListener to log and buffer updates. */
+    IEventListener listener = defaultListener;
 
     /**
      * Sets listener to default one.
      */
-    public EventProcessor() { }
-
-    /**
-     * Sets initial listener.
-     * @param listener initial listener
-     */
-    public EventProcessor(final Listener listener) {
-        this.listener = listener;
+    public EventProcessor(final Replay replay) {
+        this.replay = replay;
     }
 
     /**
      * Returns current listener.
      * @return current listener
      */
-    public Listener getListener() {
+    public IEventListener getListener() {
         return listener;
     }
 
@@ -89,7 +83,7 @@ public class EventProcessor {
      * Sets update log and buffer updates listener. Do not pass null!
      * @param listener new listener
      */
-    public void setListener(final Listener listener) {
+    public void setListener(final IEventListener listener) {
         this.listener = listener;
     }
 
@@ -98,14 +92,6 @@ public class EventProcessor {
      */
     public void resetListener() {
         listener = defaultListener;
-    }
-
-    /**
-     * Sets replay to update.
-     * @param controller replay to update
-     */
-    public void setReplay(final Replay replay) {
-        this.replay = replay;
     }
 
     /**
@@ -772,7 +758,7 @@ public class EventProcessor {
      * Handles GUI related stuff.
      * Listens to log changes, updates of log and buffers.
      */
-    public interface Listener {
+    public interface IEventListener {
         void appendLog(String text);
         void updateLog();
         void setColor(int[] buffer, final int pos, final int color);

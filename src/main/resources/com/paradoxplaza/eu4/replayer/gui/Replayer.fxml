@@ -403,7 +403,7 @@
 						<Tooltip text="%fxml.hint.finish" />
 					</tooltip>
 				</Button>
-				<TextField fx:id="dateLabel" prefWidth="75" />
+				<TextField fx:id="dateEdit" prefWidth="75" />
 				<Button fx:id="jumpButton" text="->" onAction="#jump" visible="false">
 					<tooltip>
 						<Tooltip text="%fxml.hint.jump" />

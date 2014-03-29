@@ -1,6 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
-import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
+import com.paradoxplaza.eu4.replayer.utils.Utils;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.State;
@@ -44,7 +44,7 @@ public class CountryColor extends CompoundState<SaveGame> {
 
     @Override
     protected void endCompound(final SaveGame saveGame) {
-        saveGame.getDynamicCountriesColors().put(country, ColorUtils.toColor(colors[0], colors[1], colors[2]));
+        saveGame.getDynamicCountriesColors().put(country, Utils.toColor(colors[0], colors[1], colors[2]));
     }
 
     @Override

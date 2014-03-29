@@ -4,9 +4,8 @@ import com.paradoxplaza.eu4.replayer.ColRegionInfo;
 import com.paradoxplaza.eu4.replayer.CountryInfo;
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.DateGenerator;
-import com.paradoxplaza.eu4.replayer.DefinesInfo;
-import com.paradoxplaza.eu4.replayer.EventProcessor;
-import com.paradoxplaza.eu4.replayer.FileManager;
+import com.paradoxplaza.eu4.replayer.DateGenerator.IDateListener;
+import com.paradoxplaza.eu4.replayer.EventProcessor.IEventListener;
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
 import com.paradoxplaza.eu4.replayer.Replay;
 import com.paradoxplaza.eu4.replayer.SaveGame;
@@ -25,9 +24,9 @@ import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.parser.defines.DefinesParser;
 import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.BatchSaveGameParser;
-import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
+import com.paradoxplaza.eu4.replayer.utils.Utils;
 import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.File;
@@ -42,14 +41,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Pattern;
 import javafx.animation.Animation;
@@ -135,30 +132,6 @@ public class ReplayerController implements Initializable {
     /** JavaScript call to scroll to the bottom of the page. */
     static final String SCROLL_DOWN = "window.scrollTo(0,document.body.scrollHeight)";
 
-    /** Path appended to user's home directory to get default "game" folder on Windows. */
-    static final String WIN_DIR = "/Documents/Paradox Interactive/Europa Universalis IV";
-
-    /** Path appended to user's home directory to get default game folder on Linux. */
-    static final String LINUX_DIR = "/.paradoxinteractive/Europa Universalis IV";
-
-    /** Default base direcotry containing settings, mods, saves, etc. */
-    static public final String DEFAULT_BASE_DIR =
-            System.getProperty("user.home", "") +
-            (
-                //Windows
-                System.getProperty("os.name", "").startsWith("Windows") ? WIN_DIR :
-                //Linux
-                System.getProperty("os.name", "").startsWith("Linux") ? LINUX_DIR :
-                //Mac?
-                ""
-            );
-
-    /** Default save game directory. */
-    static final String DEFAULT_SAVE_DIR = DEFAULT_BASE_DIR + "/save games";
-
-    /** Default mod directory. */
-    static final String DEFAULT_MOD_DIR = DEFAULT_BASE_DIR + "/mod";
-
     /**
      * Translates {@link #map} coordinate to {@link #scrollPane} procentual HValue/VValue.
      * @param mapCoord map coordinate
@@ -195,9 +168,6 @@ public class ReplayerController implements Initializable {
         return (int) (scroll / imageViewSize * mapSize);
     }
 
-    /** Possible directions of replaying. */
-    enum Direction { FORWARD, BACKWARD }
-
     @FXML
     BorderPane root;
 
@@ -214,7 +184,7 @@ public class ReplayerController implements Initializable {
     HBox logContainer;
 
     @FXML
-    TextField dateLabel;
+    TextField dateEdit;
 
     @FXML
     VBox bottom;
@@ -333,21 +303,6 @@ public class ReplayerController implements Initializable {
     /** Property binded to stage titleProperty. */
     StringProperty titleProperty = new SimpleStringProperty(TITLE);
 
-    /** Province color -> province mapping. */
-    Map<Integer, ProvinceInfo> colors = new HashMap<>();
-
-    /** Set of points constituting borders. */
-    Set<Integer> borders = new HashSet<>();
-
-    /** Colonial region name -> colonial name mapping. */
-    Map<String, ColRegionInfo> colRegions = new HashMap<>();
-
-    /** Loaded save game to be replayed. */
-    SaveGame saveGame;
-
-    /** Flag indication whether borders should be drawn. */
-    boolean drawBorders;
-
     /** Number of periods processed in one tick. */
     int deltaPerTick;
 
@@ -356,12 +311,6 @@ public class ReplayerController implements Initializable {
 
     /** Timer for replaying. */
     Timeline timeline;
-
-    /** Current direction of replaying. */
-    Direction direction = null;
-
-    /** Generates dates for replaying dates. */
-    DateGenerator dateGenerator;
 
     /** Listens to date changes and initiates event processing. */
     final DateListener dateListener = new DateListener();
@@ -378,14 +327,8 @@ public class ReplayerController implements Initializable {
     /** Content of selected province log. */
     String selectedProvinceLogContent;
 
-    /** Holds information from defines.lua. */
-    final DefinesInfo defines = new DefinesInfo();
-
     /** Save game file. */
     File file;
-
-    /** Random New World feature is on. */
-    public boolean rnw = false;
 
     /** Replay object itself. */
     Replay replay;
@@ -393,20 +336,11 @@ public class ReplayerController implements Initializable {
     /** Jumper that fast forwards/rewinds the save. */
     Jumper finalizer;
 
-    /** Handles files with respect to mods. */
-    FileManager fileManager = new FileManager(this);
+    /** IEventListener that updates log, appends to logContent and updates buffer. */
+    final IEventListener standardListener = new EventListener(this);
 
-    /** Listener that updates log, appends to logContent and updates buffer. */
-    final EventProcessor.Listener standardListener = new EventListener(this);
-
-    /** Listener that does not update log. */
-    final EventProcessor.Listener noLogUpdateListener = new EventListener(this) {
-        @Override
-        public void updateLog() { }
-    };
-
-     /** Listener that does not update log nor {@link #output}, only appends to logContent. */
-    final EventProcessor.Listener bufferChangeOnlyListener = new EventListener(this) {
+     /** IEventListener that does not update log nor {@link #output}, only appends to logContent. */
+    final IEventListener logAppendOnlyListener = new EventListener(this) {
         @Override
         public void updateLog() { }
 
@@ -414,29 +348,21 @@ public class ReplayerController implements Initializable {
         public void setColor(int[] buffer, final int pos, final int color) { }
     };
 
-    /** Event processor. */
-    final EventProcessor eventProcessor = new EventProcessor(standardListener);
-
     @FXML
     private void backPlay() {
         if (!lock.tryAcquire()) {
            return;
         }
-        if (saveGame == null) {
+        if (replay.saveGame == null) {
             lock.release();
             return;
         }
         if (timeline != null) {
-            if (direction == Direction.BACKWARD) {
-                timeline.play();
-                lock.release();
-                return;
-            } else {
-                timeline.stop();
-            }
+            timeline.stop();
+            lock.release();
+            return;
         }
 
-        //final Timeline tl = new Timeline();
         timeline = new Timeline();
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.getKeyFrames().add(
@@ -444,20 +370,13 @@ public class ReplayerController implements Initializable {
                   new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(final ActionEvent e) {
-                        Date iter = dateGenerator.dateProperty().get();
-                        final Date target = iter.skip(period, -deltaPerTick);
-                        while (!target.equals(iter)) {
-                            if (dateGenerator.hasPrev()) {
-                                iter = dateGenerator.prev();
-                            } else {
-                                timeline.stop();
-                                timeline = null;
-                                break;
-                            }
+                        replay.skip(period, -deltaPerTick);
+                        if (replay.isAtStart()) {
+                            timeline.stop();
+                            timeline = null;
                         }
                     }
                 }));
-        direction = Direction.BACKWARD;
         timeline.playFromStart();
         lock.release();
     }
@@ -503,67 +422,13 @@ public class ReplayerController implements Initializable {
         if (!lock.tryAcquire()) {
            return;
         }
-        if (saveGame == null || !dateGenerator.hasNext()) {
+        if (replay.saveGame == null || !replay.dateGenerator.hasNext()) {
             lock.release();
             return;
         }
         pause();
-        direction = null;
-        finalizer = new Jumper() {
-            Date bound;
-            {
-                updateInitFormat = l10n("replay.finishing");
-                updateDoneFormat = l10n("replay.fastforward.done");
-            }
-
-            @Override
-            protected EventProcessor.Listener getEventListener() {
-                return bufferChangeOnlyListener;
-            }
-
-            @Override
-            protected Date getBound() {
-                bound = saveGame.date.next();
-                return bound;
-            }
-
-            @Override
-            protected Date getCurrentDate() {
-                return currentDate;
-            }
-
-            @Override
-            protected Date getIter() {
-                return dateGenerator.dateProperty().get().next();
-            }
-
-            @Override
-            protected Date getTarget() {
-                return saveGame.date;
-            }
-
-            @Override
-            protected Date iterNext(Date iter) {
-                if (giffer != null) {
-                    giffer.updateGif(buffer, iter);
-                }
-                final Date next = iter.next();
-                if (next.equals(bound)) {
-                    endGif();
-                }
-                return iter.next();
-            }
-
-            @Override
-            protected void processEvents(final Date date, final List<Event> events) {
-                eventProcessor.processEvents(date, events);
-            }
-
-            @Override
-            protected int updateDay(final int day) {
-                return day + 1;
-            }
-        };
+        //finalizer = new Jumper(replay.saveGame.date, logAppendOnlyListener);
+        finalizer = new Jumper(replay.saveGame.date, logAppendOnlyListener);
         statusLabel.textProperty().bind(finalizer.titleProperty());
         progressBar.progressProperty().bind(finalizer.progressProperty());
         new Thread(finalizer, "Game finalizer").start();
@@ -574,7 +439,7 @@ public class ReplayerController implements Initializable {
         if (!lock.tryAcquire()) {
            return;
         }
-        if (rnw) {
+        if (replay.rnw) {
             statusLabel.setText(l10n("generator.rnw"));
         } else {
             new ModGenerator(settings).generate(replay.provinces.values());
@@ -628,7 +493,7 @@ public class ReplayerController implements Initializable {
                 final int width = (int) map.getWidth();
                 final int height = (int) map.getHeight();
                 giffer = new Giffer(settings, width, height, file.getAbsolutePath());
-                giffer.updateGif(buffer, dateGenerator.dateProperty().get());
+                giffer.updateGif(buffer, replay.getDate());
             } else {
                 gifSwitchCheckMenuItem.setSelected(false);
             }
@@ -643,112 +508,25 @@ public class ReplayerController implements Initializable {
         if (!lock.tryAcquire()) {
            return;
         }
-        if (saveGame == null) {
+        if (replay.saveGame == null) {
             lock.release();
             return;
         }
         pause();
         try {
-            final Date target = new Date(dateLabel.getText());
-            direction = null;
-            if (target.compareTo(dateGenerator.getMin()) < 0 || target.compareTo(dateGenerator.getMax()) > 0) {
+            final Date target = new Date(dateEdit.getText());
+            if (target.compareTo(replay.dateGenerator.getMin()) < 0 || target.compareTo(replay.dateGenerator.getMax()) > 0) {
                 statusLabel.setText(l10n("replay.jump.outside"));
                 lock.release();
                 return;
             }
             pause();
-            final Date date = dateGenerator.dateProperty().get();
+            final Date date = replay.getDate();
             if (date.equals(target)) {
                 lock.release();
                 return;
             }
-            if (date.compareTo(target) < 0) {
-                finalizer = new Jumper() {
-
-                    @Override
-                    protected EventProcessor.Listener getEventListener() {
-                        return bufferChangeOnlyListener;
-                    }
-
-                    @Override
-                    protected Date getBound() {
-                        return target.next();
-                    }
-
-                    @Override
-                    protected Date getCurrentDate() {
-                        return currentDate;
-                    }
-
-                    @Override
-                    protected Date getIter() {
-                        return date.next();
-                    }
-
-                    @Override
-                    protected Date getTarget() {
-                        return target;
-                    }
-
-                    @Override
-                    protected Date iterNext(final Date iter) {
-                        return iter.next();
-                    }
-
-                    @Override
-                    protected void processEvents(final Date date, final List<Event> events) {
-                        eventProcessor.processEvents(date, events);
-                    }
-
-                    @Override
-                    protected int updateDay(final int day) {
-                        return day + 1;
-                    }
-                };
-            } else /* if (date.compareTo(target) > 0 */ {
-                finalizer = new Jumper() {
-
-                    @Override
-                    protected EventProcessor.Listener getEventListener() {
-                        return bufferChangeOnlyListener;
-                    }
-
-                    @Override
-                    protected Date getBound() {
-                        return target;
-                    }
-
-                    @Override
-                    protected Date getCurrentDate() {
-                        return currentDate.prev();
-                    }
-
-                    @Override
-                    protected Date getIter() {
-                        return date;
-                    }
-
-                    @Override
-                    protected Date getTarget() {
-                        return target;
-                    }
-
-                    @Override
-                    protected Date iterNext(final Date iter) {
-                        return iter.prev();
-                    }
-
-                    @Override
-                    protected void processEvents(final Date date, final List<Event> events) {
-                        eventProcessor.unprocessEvents(date, events);
-                    }
-
-                    @Override
-                    protected int updateDay(final int day) {
-                        return day - 1;
-                    }
-                };
-            }
+            finalizer = new Jumper(target, logAppendOnlyListener);
             statusLabel.textProperty().bind(finalizer.titleProperty());
             progressBar.progressProperty().bind(finalizer.progressProperty());
             new Thread(finalizer, "Jumper").start();
@@ -791,11 +569,11 @@ public class ReplayerController implements Initializable {
         settings.setProperty("save.dir", saveDirectory.getPath());
         file = fileArr[fileArr.length-1];
         titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
-        saveGame = new SaveGame();
+        replay.saveGame = new SaveGame();
         replay.reset();
 
         try {
-            final BatchSaveGameParser parser = new BatchSaveGameParser(rnw, saveGame, fileArr);
+            final BatchSaveGameParser parser = new BatchSaveGameParser(replay.rnw, replay.saveGame, fileArr);
             final int width = (int) map.getWidth();
             final int height = (int) map.getHeight();
             imageView.setImage(null);
@@ -812,10 +590,10 @@ public class ReplayerController implements Initializable {
                             final int pos = y * width + x;
                             final int color = reader.getArgb(x, y);
                             int finalColor;
-                            final ProvinceInfo province = colors.get(color);
+                            final ProvinceInfo province = replay.colors.get(color);
                             if (province != null && province.isSea) {
                                 finalColor = replay.seaColor;
-                            } else if (borders.contains(pos)) {
+                            } else if (replay.borders.contains(pos)) {
                                 finalColor = replay.borderColor;
                             } else {
                                 finalColor = replay.landColor;
@@ -844,20 +622,20 @@ public class ReplayerController implements Initializable {
             final Task<Void> starter = new Task<Void>() {
                 @Override
                 protected Void call() throws Exception {
-                    dateGenerator = new DateGenerator(saveGame.startDate, saveGame.date);
+                    replay.dateGenerator = new DateGenerator(replay.saveGame.startDate, replay.saveGame.date);
                     updateTitle(l10n("replay.world.init"));
-                    eventProcessor.setListener(noLogUpdateListener);
-                    eventProcessor.processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null)));
+                    replay.setEventListener(logAppendOnlyListener);
+                    replay.eventProcessor.processEvents(null, new ProgressIterable<>(replay.saveGame.timeline.get(null)));
                     //
                     updateTitle(l10n("replay.progressing"));
-                    final Date maxDate = saveGame.startDate;
+                    final Date maxDate = replay.saveGame.startDate;
                     Date date = new Date(settings.getProperty("init.start", "1300.1.1"));
                     int day = 0;
-                    final int distance = Date.calculateDistance(date, saveGame.startDate) + 1;
-                    eventProcessor.setListener(bufferChangeOnlyListener);
+                    final int distance = Date.calculateDistance(date, replay.saveGame.startDate) + 1;
+                    replay.setEventListener(logAppendOnlyListener);
                     while (date.compareTo(maxDate) <= 0) {
-                        final List<Event> events = saveGame.timeline.get(date);
-                        eventProcessor.processEvents(date, events);
+                        final List<Event> events = replay.saveGame.timeline.get(date);
+                        replay.eventProcessor.processEvents(date, events);
                         updateProgress(++day, distance);
                         date = date.next();
                     }
@@ -866,8 +644,8 @@ public class ReplayerController implements Initializable {
                         updateTitle(l10n("replay.colonials.fix"));
                         int colRegCounter = 0;
                         final Date magicalDate = new Date(settings.getProperty("fix.colonials.date", "1444.11.11"));
-                        for (ColRegionInfo colreg : colRegions.values()) {
-                            updateProgress(colRegCounter++, colRegions.size());
+                        for (ColRegionInfo colreg : replay.colRegions.values()) {
+                            updateProgress(colRegCounter++, replay.colRegions.size());
                             //count colonies for countries
                             final Map<String, List<ProvinceInfo>> colonies = new HashMap<>();
                             for (String id : colreg.provinces) {
@@ -884,7 +662,7 @@ public class ReplayerController implements Initializable {
                             }
                             //set owner and controller for colonial nations' provinces
                             for (List<ProvinceInfo> provs : colonies.values()) {
-                                if (provs.size() > defines.MAX_CROWN_COLONIES) {
+                                if (provs.size() > replay.defines.MAX_CROWN_COLONIES) {
                                     for (ProvinceInfo prov : provs) {
                                         List<Pair<Date, Event>> events = new ArrayList<>(prov.events);
                                         for (Pair<Date, Event> p : events) {
@@ -893,7 +671,7 @@ public class ReplayerController implements Initializable {
                                                         || (p.getSecond() instanceof Controller && prov.owner.equals(prov.controller)))) {
                                                 SimpleProvinceEvent e = (SimpleProvinceEvent) p.getSecond();
                                                 if (e.value.matches("C..")) {
-                                                    eventProcessor.processEvents(p.getFirst(), Arrays.asList(e));
+                                                    replay.eventProcessor.processEvents(p.getFirst(), Arrays.asList(e));
                                                 }
                                             }
                                             if (magicalDate.compareTo(p.getFirst()) < 0) {
@@ -906,7 +684,7 @@ public class ReplayerController implements Initializable {
                             }
                         }
                     }
-                    eventProcessor.setListener(standardListener);
+                    replay.setEventListener(standardListener);
                     return null;
                 }
             };
@@ -916,14 +694,15 @@ public class ReplayerController implements Initializable {
                 public void handle(WorkerStateEvent t) {
                     if ("true".equals(settings.getProperty("gif"))) {
                         giffer = new Giffer(settings, width, height, fileArr[fileArr.length-1].getAbsolutePath());
-                        giffer.updateGif(buffer, saveGame.startDate);
+                        giffer.updateGif(buffer, replay.saveGame.startDate);
                     }
                     output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
                     log.getEngine().loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
                     logContent.setLength(LOG_HEADER.length());
-                    progressBar.progressProperty().bind(dateGenerator.progressProperty());
-                    dateGenerator.dateProperty().addListener(dateListener);
-                    dateLabel.setText(dateGenerator.dateProperty().get().toString());
+                    progressBar.progressProperty().unbind();
+                    progressBar.progressProperty().set(replay.dateGenerator.getProgress());
+                    replay.setDateListener(dateListener);
+                    dateEdit.setText(replay.getDate().toString());
                     imageView.setImage(output);
                     new JavascriptBridge().prov(settings.getProperty("center.id", "1"));
                     statusLabel.textProperty().unbind();
@@ -947,10 +726,10 @@ public class ReplayerController implements Initializable {
                 public void handle(WorkerStateEvent t) {
                     statusLabel.textProperty().bind(starter.titleProperty());
                     progressBar.progressProperty().bind(starter.progressProperty());
-                    for (Entry<String, Integer> c : saveGame.dynamicCountriesColors.entrySet()) {
+                    for (Entry<String, Integer> c : replay.saveGame.dynamicCountriesColors.entrySet()) {
                         replay.countries.put(c.getKey(), new CountryInfo(c.getKey(), c.getValue()));
                     }
-                    for (Map.Entry<String, Date> change : saveGame.tagChanges.entrySet()) {
+                    for (Map.Entry<String, Date> change : replay.saveGame.tagChanges.entrySet()) {
                         final String tag = change.getKey();
                         final CountryInfo country = replay.countries.get(tag);
                         if (country != null) {
@@ -995,18 +774,14 @@ public class ReplayerController implements Initializable {
         if (!lock.tryAcquire()) {
            return;
         }
-        if (saveGame == null) {
+        if (replay.saveGame == null) {
             lock.release();
             return;
         }
         if (timeline != null) {
-            if (direction == Direction.FORWARD) {
-                timeline.play();
-                lock.release();
-                return;
-            } else {
-                timeline.stop();
-            }
+            timeline.stop();
+            lock.release();
+            return;
         }
 
         timeline = new Timeline();
@@ -1016,21 +791,14 @@ public class ReplayerController implements Initializable {
                   new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(final ActionEvent e) {
-                        Date iter = dateGenerator.dateProperty().get();
-                        final Date target = iter.skip(period, deltaPerTick);
-                        while (!target.equals(iter)) {
-                            if (dateGenerator.hasNext()) {
-                                iter = dateGenerator.next();
-                            } else {
-                                timeline.stop();
-                                timeline = null;
-                                endGif();
-                                break;
-                            }
+                        replay.skip(period, deltaPerTick);
+                        if (replay.isAtStart()) {
+                            timeline.stop();
+                            timeline = null;
+                            endGif();
                         }
                     }
                 }));
-        direction = Direction.FORWARD;
         timeline.playFromStart();
         lock.release();
     }
@@ -1097,12 +865,12 @@ public class ReplayerController implements Initializable {
         if (!lock.tryAcquire()) {
            return;
         }
-        if (saveGame == null || !dateGenerator.hasPrev()) {
+        if (replay.saveGame == null || !replay.dateGenerator.hasPrev()) {
             lock.release();
             return;
         }
         lock.release();
-        dateLabel.setText(saveGame.startDate.toString());
+        dateEdit.setText(replay.saveGame.startDate.toString());
         jump();
     }
 
@@ -1292,7 +1060,7 @@ public class ReplayerController implements Initializable {
                 int x = (int) (t.getX() * replay.bufferWidth / imageBounds.getWidth());
                 int y = (int) (t.getY() * replay.bufferHeight / imageBounds.getHeight());
                 final String coords = "[" + x + "," + y + "]\n";
-                final String provinceHint = coords + colors.get(reader.getArgb(x, y)).toString();
+                final String provinceHint = coords + replay.colors.get(reader.getArgb(x, y)).toString();
                 if (!scrollPane.getTooltip().getText().equals(provinceHint)) {
                     scrollPane.setTooltip(new Tooltip(provinceHint));
                 }
@@ -1305,7 +1073,7 @@ public class ReplayerController implements Initializable {
                 final Bounds imageBounds = imageView.getBoundsInParent();
                 int x = (int) (t.getX() * replay.bufferWidth / imageBounds.getWidth());
                 int y = (int) (t.getY() * replay.bufferHeight / imageBounds.getHeight());
-                selectedProvince = colors.get(reader.getArgb(x, y));
+                selectedProvince = replay.colors.get(reader.getArgb(x, y));
                 if (selectedProvince != null) {
                     final String provinceLogContent = selectedProvince.getLog();
                     if (!provinceLogContent.equals(selectedProvinceLogContent)) {
@@ -1316,13 +1084,13 @@ public class ReplayerController implements Initializable {
             }
         });
 
-        dateLabel.textProperty().addListener(new ChangeListener<String>() {
+        dateEdit.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(final ObservableValue<? extends String> ov, final String oldVal, final String newVal) {
-                if (dateGenerator == null) {
+                if (replay.dateGenerator == null) {
                     return;
                 }
-                jumpButton.setVisible(!newVal.equals(dateGenerator.dateProperty().get().toString()));
+                jumpButton.setVisible(!newVal.equals(replay.getDate().toString()));
             }
         });
 
@@ -1581,7 +1349,6 @@ public class ReplayerController implements Initializable {
         this.settings = settings;
 
         replay = new Replay(settings);
-        eventProcessor.setReplay(replay);
 
         for(final MenuItem item : eventMenu.getItems()) {
             if (item instanceof CustomMenuItem) {
@@ -1607,22 +1374,19 @@ public class ReplayerController implements Initializable {
 
         langCombo.getSelectionModel().select(settings.getProperty("locale.language", "en"));
 
-        drawBorders = "true".equals(settings.getProperty("borders", "false"));
+        replay.drawBorders = "true".equals(settings.getProperty("borders", "false"));
 
         focusEdit.setText(replay.focusTag);
 
         saveDirectory = new File(settings.getProperty("save.dir", ""));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
-            saveDirectory = new File(DEFAULT_SAVE_DIR);
+            saveDirectory = new File(Replay.DEFAULT_SAVE_DIR);
             if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
                 saveDirectory = new File(System.getProperty("user.home"), "/");
             }
         }
 
         subjectsCheckMenuItem.setSelected(replay.subjectsAsOverlords);
-
-        final String rnwMap = settings.getProperty("rnw.map");
-        rnw = rnwMap != null  && !rnwMap.isEmpty();
 
         gifMenu.setVisible(!settings.getProperty("gif", "false").equals("true"));
         gifLoopCheckMenuItem.setSelected(settings.getProperty("gif.loop", "true").equals("true"));
@@ -1691,10 +1455,10 @@ public class ReplayerController implements Initializable {
      */
     private void loadColRegions() {
         System.out.printf(l10n("replay.load.colonials"));
-        colRegions.clear();
-        for(final InputStream cultureStream : fileManager.listFiles("common/colonial_regions")) {
+        replay.colRegions.clear();
+        for(final InputStream cultureStream : replay.fileManager.listFiles("common/colonial_regions")) {
             try (final InputStream is = cultureStream) {
-                final ColRegionParser parser = new ColRegionParser(colRegions, Long.MAX_VALUE, is);
+                final ColRegionParser parser = new ColRegionParser(replay.colRegions, Long.MAX_VALUE, is);
                 parser.run();
             } catch(Exception e) { e.printStackTrace(); }
         }
@@ -1708,7 +1472,7 @@ public class ReplayerController implements Initializable {
         System.out.printf(l10n("replay.load.countries"));
         replay.countries.clear();
 
-        for (final InputStream is : fileManager.listFiles("common/country_tags")) {
+        for (final InputStream is : replay.fileManager.listFiles("common/country_tags")) {
             try (final InputStream tagStream = is) {
                 final Properties tags = new Properties();
                 tags.load(tagStream);
@@ -1717,7 +1481,7 @@ public class ReplayerController implements Initializable {
                     if (path.startsWith("\"")) {
                         path = path.substring(1, path.length() - 1); //get rid of "
                     }
-                    try (final InputStream cs = fileManager.getInputStream("common/" + path)) {
+                    try (final InputStream cs = replay.fileManager.getInputStream("common/" + path)) {
                         final Ref<Integer> color = new Ref<>();
                         final CountryParser parser = new CountryParser(color, Long.MAX_VALUE, cs);
                         parser.run();
@@ -1736,7 +1500,7 @@ public class ReplayerController implements Initializable {
     private void loadCultures() {
         System.out.printf(l10n("replay.load.cultures"));
         replay.cultures.clear();
-        for(final InputStream cultureStream : fileManager.listFiles("common/cultures")) {
+        for(final InputStream cultureStream : replay.fileManager.listFiles("common/cultures")) {
             try (final InputStream is = cultureStream) {
                 final CulturesParser parser = new CulturesParser(new Pair<>(replay.countries, replay.cultures), Long.MAX_VALUE, is);
                 parser.run();
@@ -1750,7 +1514,7 @@ public class ReplayerController implements Initializable {
     private void loadData() {
         System.out.printf(l10n("replay.load.data"));
         titleProperty.set(TITLE);
-        fileManager.loadMods();
+        replay.fileManager.loadMods();
         loadDefines();
         loadProvinces();
         loadColRegions();
@@ -1762,10 +1526,13 @@ public class ReplayerController implements Initializable {
         loadReligions();
     }
 
+    /**
+     * Loads defines from common/defines.lua.
+     */
     private void loadDefines() {
         System.out.printf(l10n("replay.load.defines"));
-        try (final InputStream is = fileManager.getInputStream("common/defines.lua")) {
-            final DefinesParser parser = new DefinesParser(defines, Long.MAX_VALUE, is);
+        try (final InputStream is = replay.fileManager.getInputStream("common/defines.lua")) {
+            final DefinesParser parser = new DefinesParser(replay.defines, Long.MAX_VALUE, is);
             parser.run();
         } catch(Exception e) { e.printStackTrace(); }
     }
@@ -1780,7 +1547,7 @@ public class ReplayerController implements Initializable {
             protected Void call() throws Exception {
                 updateTitle(l10n("replay.map.load"));
                 try {
-                    try (InputStream is = fileManager.getInputStream("map/provinces.bmp")) {
+                    try (InputStream is = replay.fileManager.getInputStream("map/provinces.bmp")) {
                         map = new Image(is);
                     } catch (FileNotFoundException e) {
                         System.err.printf(l10n("replay.map.notfound"));
@@ -1801,7 +1568,7 @@ public class ReplayerController implements Initializable {
                         for (int x = 0; x < width; ++x){
                             int color = reader.getArgb(x, y);
                             boolean border = false;
-                            if (drawBorders) {
+                            if (replay.drawBorders) {
                                 if (x > 0 && reader.getArgb(x-1, y) != color) {
                                     border = true;
                                 } else if (x < width - 1 && reader.getArgb(x+1, y) != color) {
@@ -1814,9 +1581,9 @@ public class ReplayerController implements Initializable {
                             }
                             if (border) {
                                 color = replay.borderColor;
-                                borders.add(y * width + x);
+                                replay.borders.add(y * width + x);
                             } else {
-                                final ProvinceInfo province = colors.get(color);
+                                final ProvinceInfo province = replay.colors.get(color);
                                 if (province != null) {
                                     province.points.add(y * width + x);
                                 } else {
@@ -1875,7 +1642,7 @@ public class ReplayerController implements Initializable {
         replay.provinces.clear();
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(fileManager.getInputStream("map/definition.csv"), StandardCharsets.ISO_8859_1));
+            reader = new BufferedReader(new InputStreamReader(replay.fileManager.getInputStream("map/definition.csv"), StandardCharsets.ISO_8859_1));
             //skip first line
             reader.readLine();
             String line = line = reader.readLine();
@@ -1885,13 +1652,13 @@ public class ReplayerController implements Initializable {
                     continue;
                 }
                 final String[] parts = line.split(";");
-                final int color = ColorUtils.toColor(
+                final int color = Utils.toColor(
                         Integer.parseInt(parts[1]),
                         Integer.parseInt(parts[2]),
                         Integer.parseInt(parts[3]));
                 final ProvinceInfo province = new ProvinceInfo(parts[0], parts[4], color);
                 replay.provinces.put(parts[0], province);
-                final ProvinceInfo original = colors.put(color, province);
+                final ProvinceInfo original = replay.colors.put(color, province);
                 if (original != null) {
                     throw new RuntimeException(String.format(l10n("replay.provinces.error"), parts[0], original));
                 }
@@ -1909,15 +1676,15 @@ public class ReplayerController implements Initializable {
                 } catch (IOException e) { }
             }
         }
-        if (rnw) {
-            final ProvinceInfo sea = new ProvinceInfo("SEA", "SEA", ColorUtils.SEA_COLOR);
+        if (replay.rnw) {
+            final ProvinceInfo sea = new ProvinceInfo("SEA", "SEA", Utils.SEA_COLOR);
             sea.isSea = true;
             replay.provinces.put(sea.id, sea);
-            colors.put(sea.color, sea);
-            final ProvinceInfo wasteland = new ProvinceInfo("WASTELAND", "WASTELAND", ColorUtils.WASTELAND_COLOR);
+            replay.colors.put(sea.color, sea);
+            final ProvinceInfo wasteland = new ProvinceInfo("WASTELAND", "WASTELAND", Utils.WASTELAND_COLOR);
             wasteland.isWasteland = true;
             replay.provinces.put(wasteland.id, wasteland);
-            colors.put(wasteland.color, wasteland);
+            replay.colors.put(wasteland.color, wasteland);
         }
     }
 
@@ -1927,7 +1694,7 @@ public class ReplayerController implements Initializable {
     private void loadReligions() {
         System.out.printf(l10n("replay.load.religions"));
         replay.religions.clear();
-        for(final InputStream religionStream : fileManager.listFiles("common/religions")) {
+        for(final InputStream religionStream : replay.fileManager.listFiles("common/religions")) {
             try (final InputStream is = religionStream) {
                 final ReligionsParser parser = new ReligionsParser(replay.religions, Long.MAX_VALUE, is);
                 parser.run();
@@ -1971,6 +1738,19 @@ public class ReplayerController implements Initializable {
     }
 
     /**
+     * Updates gif for the date if possible.
+     * @param date current date
+     */
+    public void updateGif(final Date date) {
+        if (giffer != null) {
+            giffer.updateGif(buffer, date);
+            if (replay.isAtEnd()) {
+                endGif();
+            }
+        }
+    }
+
+    /**
      * Appends {@link #logContent} to {@link #log} asynchronously.
      */
     public void updateLog() {
@@ -2001,34 +1781,21 @@ public class ReplayerController implements Initializable {
     }
 
     /**
-     * Listens to changes of {@link #dateGenerator} and initiates event processing.
+     * Listens to changes of {@link #dateGenerator} and updates GUI.
      */
-    class DateListener implements ChangeListener<Date> {
-
+    class DateListener implements IDateListener {
         @Override
-        public void changed(final ObservableValue<? extends Date> ov, final Date oldVal, final Date newVal) {
-            dateLabel.setText(newVal.toString());
-
-            if (direction == null) {
-                return;
-            }
-            statusLabel.textProperty().unbind();
-            statusLabel.setText("");
-            switch (direction) {
-                case FORWARD:
-                    final List<Event> forwardsEvents = saveGame.timeline.get(newVal);
-                    eventProcessor.processEvents(newVal, forwardsEvents);
-                    break;
-                case BACKWARD:
-                    final List<Event> backwardEvents = saveGame.timeline.get(newVal.next());
-                    eventProcessor.unprocessEvents(newVal, backwardEvents);
-                    break;
-                default:
-                    assert false : l10n("replay.direction.unknown");
-            }
-            if (giffer != null) {
-                giffer.updateGif(buffer, newVal);
-            }
+        public void update(final Date date, final double progress) {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    dateEdit.setText(date.toString());
+                    statusLabel.textProperty().unbind();
+                    statusLabel.setText("");
+                    progressBar.progressProperty().set(progress);
+                }
+            });
+            updateGif(date);
         }
     }
 
@@ -2058,98 +1825,118 @@ public class ReplayerController implements Initializable {
     }
 
     /**
-     * Class for jumping to specified date.
+     * Class for jumping in the time period.
      */
-    abstract class Jumper extends Task<Void> {
-
-        /** Title when jumping. */
-        protected String updateInitFormat = l10n("replay.jumping");
-
-        /** Title when jumped. */
-        protected String updateDoneFormat = l10n("replay.jumped");
-
-        /** Last date that was processed. */
-        protected Date currentDate;
+    class Jumper extends Task<Void> {
 
         /** Previous event listener to be restored after finish. */
-        protected EventProcessor.Listener prevListener;
+        protected IEventListener prevEventListener;
+
+        /** Previous event listener to be restored after finish. */
+        protected IDateListener prevDateListener;
+
+        /** Target date to skip to. */
+        protected final Date target;
 
         /**
          * Only constructor.
+         * @param target target date to skip to
+         * @param eventListener event listener to use
          */
-        public Jumper() {
-            prevListener = eventProcessor.getListener();
-            eventProcessor.setListener(getEventListener());
-            this.stateProperty().addListener(new ChangeListener<State>() {
-                @Override
-                public void changed(ObservableValue<? extends State> ov, State oldVal, State newVal) {
-                    if (newVal == State.SUCCEEDED || newVal == State.CANCELLED) {
-                        output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
-                        final WebEngine e = log.getEngine();
-                        e.getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
-                            @Override
-                            public void changed(ObservableValue<? extends State> ov, State oldState, State newState) {
-                                if (newState == State.SUCCEEDED) {
-                                    log.getEngine().executeScript(SCROLL_DOWN);
-                                    logContent.setLength(LOG_HEADER.length());
-                                    e.getLoadWorker().stateProperty().removeListener(this);
-                                    dateGenerator.skipTo(getCurrentDate());
-                                    statusLabel.textProperty().unbind();
-                                    dateLabel.textProperty().set(dateGenerator.dateProperty().get().toString());
-                                    jumpButton.setVisible(false);
-                                    finalizer = null;
-                                    lock.release();
-                                }
-                            }
-                        });
-                        e.loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
-                    } else if (newVal == State.FAILED) {
-                        getException().printStackTrace();
-                    }
-                }
-            });
+        public Jumper(final Date target, final IEventListener eventListener) {
+            this.target = target;
+            prevEventListener = replay.getEventListener();
+            replay.setEventListener(eventListener);
+            prevDateListener = replay.getDateListener();
+            replay.setDateListener(new CancellingDateListener());
+            this.stateProperty().addListener(new EndStateListener());
         }
-
-        abstract protected EventProcessor.Listener getEventListener();
-
-        abstract protected Date getBound();
-
-        abstract protected Date getCurrentDate();
-
-        abstract protected Date getIter();
-
-        abstract protected Date getTarget();
-
-        abstract protected Date iterNext(final Date iter);
-
-        abstract protected void processEvents(final Date date, final List<Event> events);
-
-        abstract protected int updateDay(final int day);
 
         @Override
         protected final Void call() throws Exception {
-            Date iter = getIter();
-            final Date target = getTarget();
-            final Date bound = getBound();
-            updateTitle(String.format(updateInitFormat, target));
-
-            int day = Date.calculateDistance(saveGame.startDate, iter);
-            final int distance = Date.calculateDistance(saveGame.startDate, saveGame.date) + 1;
-            while (!iter.equals(bound) && !isCancelled()) {
-                final List<Event> events = saveGame.timeline.get(iter);
-                processEvents(iter, events);
-                day = updateDay(day);
-                updateProgress(day, distance);
-                currentDate = iter;
-                iter = iterNext(iter);
-            }
-            if (!isCancelled()) {
-                updateTitle(String.format(updateDoneFormat, target));
-            } else {
+            updateTitle(String.format(l10n("replay.jumping"), target));
+            try {
+                replay.skipTo(target);
+                updateTitle(String.format(l10n("replay.jumped"), target));
+            } catch (CancelException e) {
                 updateTitle(l10n("replay.cancel"));
             }
-            eventProcessor.setListener(prevListener);
             return null;
+        }
+
+        /**
+         * Simple indicator whether the jump was cancelled.
+         */
+        class CancelException extends RuntimeException { }
+
+        /**
+         * Checks whether the jump was cancelled during jumping.
+         */
+        class CancellingDateListener implements IDateListener {
+
+            @Override
+            public void update(Date date, double progress) {
+                updateGif(date);
+                if (!isCancelled()) {
+                    updateProgress(progress, 1D);
+                } else {
+                    throw new CancelException();
+                }
+            }
+
+        }
+
+        /**
+         * Gets called when the state is change.
+         * Intented to clean up after the jump.
+         */
+        class EndStateListener implements ChangeListener<State> {
+            @Override
+            public void changed(ObservableValue<? extends State> ov, State oldVal, State newVal) {
+                if (newVal == State.SUCCEEDED || newVal == State.CANCELLED) {
+                    replay.setEventListener(prevEventListener);
+                    replay.setDateListener(prevDateListener);
+                    output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
+                    final WebEngine e = log.getEngine();
+                    e.getLoadWorker().stateProperty().addListener(
+                            new LogFinishListener(e)
+                    );
+                    e.loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
+                } else if (newVal == State.FAILED) {
+                    getException().printStackTrace();
+                }
+            }
+        };
+
+        /**
+         * Listens to log worker to finish loading.
+         */
+        class LogFinishListener implements ChangeListener<State> {
+
+            /** Log container. */
+            final WebEngine webEngine;
+
+            /**
+             * Only constructor.
+             * @param webEngine log container
+             */
+            public LogFinishListener(final WebEngine webEngine) {
+                this.webEngine = webEngine;
+            }
+
+            @Override
+            public void changed(ObservableValue<? extends State> ov, State oldState, State newState) {
+                if (newState == State.SUCCEEDED) {
+                    log.getEngine().executeScript(SCROLL_DOWN);
+                    logContent.setLength(LOG_HEADER.length());
+                    webEngine.getLoadWorker().stateProperty().removeListener(this); //must remove itself
+                    statusLabel.textProperty().unbind();
+                    dateEdit.textProperty().set(replay.getDate().toString());
+                    jumpButton.setVisible(false);
+                    finalizer = null;
+                    lock.release();
+                }
+            }
         }
     }
 }

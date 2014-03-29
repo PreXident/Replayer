@@ -1,6 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser.religion;
 
-import com.paradoxplaza.eu4.replayer.utils.ColorUtils;
+import com.paradoxplaza.eu4.replayer.utils.Utils;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class Color extends CompoundState<Map<String, Integer>> {
 
     @Override
     protected void endCompound(final Map<String, Integer> religions) {
-        religions.put(religion, ColorUtils.toColor(colors[0], colors[1], colors[2]));
+        religions.put(religion, Utils.toColor(colors[0], colors[1], colors[2]));
     }
 
     @Override

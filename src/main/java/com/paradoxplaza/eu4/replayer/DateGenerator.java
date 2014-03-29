@@ -2,17 +2,19 @@ package com.paradoxplaza.eu4.replayer;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import java.util.Iterator;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyDoubleProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
 
 /**
  * Generates Dates.
  */
 public class DateGenerator implements Iterable<Date>, Iterator<Date> {
+
+    /**
+     * Default listener that does nothing.
+     */
+    static protected IDateListener defaultListener = new IDateListener() {
+        @Override
+        public void update(Date date, double progress) { }
+    };
 
     /** Minimal date of the generator. */
     protected final Date min;
@@ -21,7 +23,7 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
     protected final Date max;
 
     /** Current date of the generator. */
-    protected final ObjectProperty<Date> date;
+    protected Date date;
 
     /**
      * Number of days between min and max.
@@ -30,10 +32,13 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
     final double distance;
 
     /** Current date number. */
-    int day = 0;
+    protected int day = 0;
 
-    /** Progress in timeline. */
-    final DoubleProperty progress = new SimpleDoubleProperty(0);
+    /** Current progress of the generating. */
+    protected double progress = 0;
+
+    /** Change listener to state of generator. */
+    IDateListener listener = defaultListener;
 
     /**
      * Only contructor.
@@ -42,7 +47,7 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
      */
     public DateGenerator(final Date min, final Date max) {
         this.min = min;
-        date = new SimpleObjectProperty<>(min);
+        date = min;
         this.max = max;
         distance = Date.calculateDistance(min, max);
     }
@@ -51,15 +56,55 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
      * Returns current date.
      * @return current date
      */
-    public ReadOnlyObjectProperty<Date> dateProperty() {
+    public Date getDate() {
         return date;
+    }
+
+    /**
+     * Returns current {@link #listener}.
+     * @return current listener
+     */
+    public IDateListener getListener() {
+        return listener;
+    }
+
+    /**
+     * Sets the {@link #listener}. Do not pass null!
+     * @param listener
+     */
+    public void setListener(final IDateListener listener) {
+        assert listener != null : "Listener cannot be null";
+        this.listener = listener;
+    }
+
+    /**
+     * Resets {@link #listener} to default listener that does nothing.
+     */
+    public void resetListener() {
+        listener = defaultListener;
+    }
+
+    /**
+     * Returns {@link #max}.
+     * @return the max
+     */
+    public Date getMax() {
+        return max;
+    }
+
+    /**
+     * Returns {@link #min}.
+     * @return the min
+     */
+    public Date getMin() {
+        return min;
     }
 
     /**
      * Returns progress.
      * @return progress
      */
-    public ReadOnlyDoubleProperty progressProperty() {
+    public double getProgress() {
         return progress;
     }
 
@@ -68,12 +113,12 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
      * @return true if prev() can be called, false otherwise
      */
     public boolean hasPrev() {
-        return getMin().compareTo(date.get()) < 0;
+        return getMin().compareTo(date) < 0;
     }
 
     @Override
     public boolean hasNext() {
-        return date.get().compareTo(getMax()) < 0;
+        return date.compareTo(getMax()) < 0;
     }
 
     @Override
@@ -84,9 +129,10 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
     @Override
     public Date next() {
         assert hasNext(): l10n("generator.next.error");
-        date.set(date.get().next());
-        progress.set(++day/distance);
-        return date.get();
+        date = date.next();
+        progress = ++day/distance;
+        listener.update(date, progress);
+        return date;
     }
 
     /**
@@ -95,22 +141,10 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
      */
     public Date prev() {
         assert hasPrev() : l10n("generator.prev.error");
-        date.set(date.get().prev());
-        progress.set(--day/distance);
-        return date.get();
-    }
-
-    /**
-     * Sets current date.
-     * @param date date to skip to
-     */
-    public void skipTo(final Date date) {
-        if (getMin().compareTo(date) > 0 || getMax().compareTo(date) < 0) {
-            throw new IllegalArgumentException(l10n("generator.period.error"));
-        }
-        this.date.set(date);
-        day = Date.calculateDistance(getMin(), date);
-        progress.set(day/distance);
+        date = date.prev();
+        progress = --day/distance;
+        listener.update(date, progress);
+        return date;
     }
 
     @Override
@@ -119,16 +153,15 @@ public class DateGenerator implements Iterable<Date>, Iterator<Date> {
     }
 
     /**
-     * @return the min
+     * Listener to date changes.
      */
-    public Date getMin() {
-        return min;
-    }
+    public static interface IDateListener {
 
-    /**
-     * @return the max
-     */
-    public Date getMax() {
-        return max;
+        /**
+         * Gets called when date changes.
+         * @param date current date
+         * @param progress current progress
+         */
+        void update(Date date, double progress);
     }
 }

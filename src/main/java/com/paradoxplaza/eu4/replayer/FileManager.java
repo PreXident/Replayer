@@ -1,8 +1,8 @@
 package com.paradoxplaza.eu4.replayer;
 
-import com.paradoxplaza.eu4.replayer.gui.ReplayerController;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.mod.ModParser;
+import com.paradoxplaza.eu4.replayer.utils.Utils;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -21,8 +22,8 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
  */
 public class FileManager {
 
-    /** Application's controller. */
-    final ReplayerController controller;
+    /** Application settings. */
+    final Properties settings;
 
     /** List of active mods. */
     final List<ModInfo> mods = new ArrayList<>();
@@ -30,17 +31,21 @@ public class FileManager {
     /** Base mod directory. */
     String modDirPath;
 
+    /** Flag whether the Random New World feature is on. */
+    final boolean rnw;
+
     /**
      * Only constructor.
-     * @param controller application's controller
+     * @param settings application's settings
      */
-    public FileManager(final ReplayerController controller) {
-        this.controller = controller;
+    public FileManager(final Properties settings) {
+        this.settings = settings;
+        rnw = Utils.isRNW(settings);
     }
 
     public InputStream getInputStream(final String path) throws IOException {
-        if (controller.rnw && path.equals("map/provinces.bmp")) {
-            return new FileInputStream(controller.settings.getProperty("rnw.map"));
+        if (rnw && path.equals("map/provinces.bmp")) {
+            return new FileInputStream(settings.getProperty("rnw.map"));
         }
         for (ModInfo mod : mods) {
             if (mod.dir != null) {
@@ -68,7 +73,7 @@ public class FileManager {
                 System.err.printf(l10n("mod.error"), mod.name);
             }
         }
-        final String filePath = controller.eu4Directory + "/" + path;
+        final String filePath = settings.getProperty("eu4.dir") + "/" + path;
         final File file = new File(filePath);
         return new FileInputStream(file);
     }
@@ -121,7 +126,7 @@ public class FileManager {
             }
         }
         if (!replaced) {
-            final File dir = new File(controller.eu4Directory + "/" + directory);
+            final File dir = new File(settings.getProperty("eu4.dir") + "/" + directory);
             listDirectory(dir, streams, files);
         }
         return streams;
@@ -173,8 +178,8 @@ public class FileManager {
             }
         }
         mods.clear();
-        modDirPath = controller.settings.getProperty("mod.basedir", ReplayerController.DEFAULT_BASE_DIR);
-        final String[] modDescriptors = controller.settings.getProperty("mod.list", "").split(";");
+        modDirPath = settings.getProperty("mod.basedir", Replay.DEFAULT_BASE_DIR);
+        final String[] modDescriptors = settings.getProperty("mod.list", "").split(";");
         for (String desc : modDescriptors) {
             if ("".equals(desc)) {
                 continue;
