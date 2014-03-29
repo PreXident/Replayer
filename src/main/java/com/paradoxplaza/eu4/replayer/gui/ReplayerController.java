@@ -428,7 +428,7 @@ public class ReplayerController implements Initializable {
         }
         pause();
         //finalizer = new Jumper(replay.saveGame.date, logAppendOnlyListener);
-        finalizer = new Jumper(replay.saveGame.date, logAppendOnlyListener);
+        finalizer = new Jumper(this, replay.saveGame.date, logAppendOnlyListener);
         statusLabel.textProperty().bind(finalizer.titleProperty());
         progressBar.progressProperty().bind(finalizer.progressProperty());
         new Thread(finalizer, "Game finalizer").start();
@@ -526,7 +526,7 @@ public class ReplayerController implements Initializable {
                 lock.release();
                 return;
             }
-            finalizer = new Jumper(target, logAppendOnlyListener);
+            finalizer = new Jumper(this, target, logAppendOnlyListener);
             statusLabel.textProperty().bind(finalizer.titleProperty());
             progressBar.progressProperty().bind(finalizer.progressProperty());
             new Thread(finalizer, "Jumper").start();
@@ -1821,122 +1821,6 @@ public class ReplayerController implements Initializable {
             scrollPane.setVvalue(mapCoordToScrollProcent(
                     center.y, map.getHeight(), scrollPane.getHeight(), imageBounds.getHeight()));
             return false;
-        }
-    }
-
-    /**
-     * Class for jumping in the time period.
-     */
-    class Jumper extends Task<Void> {
-
-        /** Previous event listener to be restored after finish. */
-        protected IEventListener prevEventListener;
-
-        /** Previous event listener to be restored after finish. */
-        protected IDateListener prevDateListener;
-
-        /** Target date to skip to. */
-        protected final Date target;
-
-        /**
-         * Only constructor.
-         * @param target target date to skip to
-         * @param eventListener event listener to use
-         */
-        public Jumper(final Date target, final IEventListener eventListener) {
-            this.target = target;
-            prevEventListener = replay.getEventListener();
-            replay.setEventListener(eventListener);
-            prevDateListener = replay.getDateListener();
-            replay.setDateListener(new CancellingDateListener());
-            this.stateProperty().addListener(new EndStateListener());
-        }
-
-        @Override
-        protected final Void call() throws Exception {
-            updateTitle(String.format(l10n("replay.jumping"), target));
-            try {
-                replay.skipTo(target);
-                updateTitle(String.format(l10n("replay.jumped"), target));
-            } catch (CancelException e) {
-                updateTitle(l10n("replay.cancel"));
-            }
-            return null;
-        }
-
-        /**
-         * Simple indicator whether the jump was cancelled.
-         */
-        class CancelException extends RuntimeException { }
-
-        /**
-         * Checks whether the jump was cancelled during jumping.
-         */
-        class CancellingDateListener implements IDateListener {
-
-            @Override
-            public void update(Date date, double progress) {
-                updateGif(date);
-                if (!isCancelled()) {
-                    updateProgress(progress, 1D);
-                } else {
-                    throw new CancelException();
-                }
-            }
-
-        }
-
-        /**
-         * Gets called when the state is change.
-         * Intented to clean up after the jump.
-         */
-        class EndStateListener implements ChangeListener<State> {
-            @Override
-            public void changed(ObservableValue<? extends State> ov, State oldVal, State newVal) {
-                if (newVal == State.SUCCEEDED || newVal == State.CANCELLED) {
-                    replay.setEventListener(prevEventListener);
-                    replay.setDateListener(prevDateListener);
-                    output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
-                    final WebEngine e = log.getEngine();
-                    e.getLoadWorker().stateProperty().addListener(
-                            new LogFinishListener(e)
-                    );
-                    e.loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
-                } else if (newVal == State.FAILED) {
-                    getException().printStackTrace();
-                }
-            }
-        };
-
-        /**
-         * Listens to log worker to finish loading.
-         */
-        class LogFinishListener implements ChangeListener<State> {
-
-            /** Log container. */
-            final WebEngine webEngine;
-
-            /**
-             * Only constructor.
-             * @param webEngine log container
-             */
-            public LogFinishListener(final WebEngine webEngine) {
-                this.webEngine = webEngine;
-            }
-
-            @Override
-            public void changed(ObservableValue<? extends State> ov, State oldState, State newState) {
-                if (newState == State.SUCCEEDED) {
-                    log.getEngine().executeScript(SCROLL_DOWN);
-                    logContent.setLength(LOG_HEADER.length());
-                    webEngine.getLoadWorker().stateProperty().removeListener(this); //must remove itself
-                    statusLabel.textProperty().unbind();
-                    dateEdit.textProperty().set(replay.getDate().toString());
-                    jumpButton.setVisible(false);
-                    finalizer = null;
-                    lock.release();
-                }
-            }
         }
     }
 }
