@@ -1,26 +1,24 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
+import com.paradoxplaza.eu4.replayer.ITaskBridge;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Task;
+import java.util.List;
 
 /**
  * Controls loading of a batch of saves.
  */
-public class BatchSaveGameParser extends Task<SaveGame> {
+public class BatchSaveGameParser implements Runnable {
 
     /** Result save game. */
     final SaveGame saveGame;
 
     /** Save game files to parse. */
-    final File[] files;
+    final List<File> files;
 
     /** Flag indicating whether the RNW is used. */
     final boolean rnw;
@@ -28,37 +26,35 @@ public class BatchSaveGameParser extends Task<SaveGame> {
     /** Currently running save game parser. */
     SaveGameParser currentParser;
 
+    final ITaskBridge<SaveGame> bridge;
+
     /**
      * Only constructor.
      * @param rnw is RNW used?
      * @param saveGame SaveGame to fill
      * @param files sorted inputs to parse
+     * @param bridge bridge listening to progress
      */
     public BatchSaveGameParser(final boolean rnw,
-            final SaveGame saveGame, final File[] files) {
+            final SaveGame saveGame, final List<File> files,
+            final ITaskBridge<SaveGame> bridge) {
         this.saveGame = saveGame;
         this.files = files;
         this.rnw = rnw;
+        this.bridge = bridge;
     }
 
     @Override
-    protected SaveGame call() throws Exception {
-        updateTitle(l10n("parser.batch.init"));
+    public void run() {
+        bridge.updateTitle(l10n("parser.batch.init"));
         SaveGameParser.synchronizeProvinces = rnw;
         runParser(saveGame, 0);
         SaveGameParser.synchronizeProvinces = false;
-        for (int i = 1; i < files.length; ++i) {
+        for (int i = 1; i < files.size(); ++i) {
             final SaveGame currentSaveGame = runParser(new SaveGame(), i);
             saveGame.concatenate(currentSaveGame);
         }
-        return saveGame;
-    }
-
-    @Override
-    protected void cancelled() {
-        if (currentParser != null) {
-            currentParser.cancel();
-        }
+        bridge.updateValue(saveGame);
     }
 
     /**
@@ -69,32 +65,16 @@ public class BatchSaveGameParser extends Task<SaveGame> {
      * @return processed save game
      * @throws FileNotFoundException if file is not found
      */
-    private SaveGame runParser(final SaveGame saveGame, final int index)
-            throws FileNotFoundException {
-        final File currentFile = files[index];
-        final InputStream is = new FileInputStream(currentFile);
-        currentParser = new SaveGameParser(saveGame, currentFile.length(), is);
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                currentParser.titleProperty().addListener(new ChangeListener<String>() {
-                    @Override
-                    public void changed(ObservableValue<? extends String> ov, String t, String t1) {
-                        updateTitle(currentFile.getName() + " (" + (index + 1) + "/" + files.length + ") - " + t1);
-                    }
-                });
-                currentParser.progressProperty().addListener(new ChangeListener<Number>() {
-                    @Override
-                    public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
-                        final double max = 1 / t1.doubleValue();
-                        if (!Double.isInfinite(max) && !Double.isNaN(max)) {
-                            updateProgress(1, max);
-                        }
-                    }
-                });
-            }
-        });
-        currentParser.run();
-        return saveGame;
+    private SaveGame runParser(final SaveGame saveGame, final int index) {
+        try {
+            final File currentFile = files.get(index);
+            final InputStream is = new FileInputStream(currentFile);
+            currentParser = new SaveGameParser(saveGame, currentFile.length(), is, bridge);
+            currentParser.run();
+            return saveGame;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return saveGame;
+        }
     }
 }

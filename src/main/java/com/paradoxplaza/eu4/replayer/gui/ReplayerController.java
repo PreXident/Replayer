@@ -3,16 +3,13 @@ package com.paradoxplaza.eu4.replayer.gui;
 import com.paradoxplaza.eu4.replayer.ColRegionInfo;
 import com.paradoxplaza.eu4.replayer.CountryInfo;
 import com.paradoxplaza.eu4.replayer.Date;
-import com.paradoxplaza.eu4.replayer.DateGenerator;
 import com.paradoxplaza.eu4.replayer.DateGenerator.IDateListener;
+import com.paradoxplaza.eu4.replayer.DefinesInfo;
+import com.paradoxplaza.eu4.replayer.EmptyTaskBridge;
 import com.paradoxplaza.eu4.replayer.EventProcessor.IEventListener;
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
 import com.paradoxplaza.eu4.replayer.Replay;
 import com.paradoxplaza.eu4.replayer.SaveGame;
-import com.paradoxplaza.eu4.replayer.events.Controller;
-import com.paradoxplaza.eu4.replayer.events.Event;
-import com.paradoxplaza.eu4.replayer.events.Owner;
-import com.paradoxplaza.eu4.replayer.events.SimpleProvinceEvent;
 import com.paradoxplaza.eu4.replayer.generator.ModGenerator;
 import com.paradoxplaza.eu4.replayer.gif.Giffer;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
@@ -23,7 +20,6 @@ import com.paradoxplaza.eu4.replayer.parser.culture.CulturesParser;
 import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
 import com.paradoxplaza.eu4.replayer.parser.defines.DefinesParser;
 import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
-import com.paradoxplaza.eu4.replayer.parser.savegame.BatchSaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
 import com.paradoxplaza.eu4.replayer.utils.Utils;
@@ -38,13 +34,11 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.concurrent.Semaphore;
@@ -327,7 +321,7 @@ public class ReplayerController implements Initializable {
     /** Content of selected province log. */
     String selectedProvinceLogContent;
 
-    /** Save game file. */
+    /** The last file of save game batch. */
     File file;
 
     /** Replay object itself. */
@@ -552,210 +546,69 @@ public class ReplayerController implements Initializable {
         fileChooser.getExtensionFilters().add(extFilter);
 
         //Show open file dialog
-        final List<File> files = fileChooser.showOpenMultipleDialog(getWindow());
-        if (files == null || files.isEmpty()) {
+        final List<File> filesUnmod = fileChooser.showOpenMultipleDialog(getWindow());
+        if (filesUnmod == null || filesUnmod.isEmpty()) {
             lock.release();
             return;
         }
-        final File[] fileArr = files.toArray(new File[files.size()]);
-        Arrays.sort(fileArr, new Comparator<File>() {
+        final List<File> files = new ArrayList<>(filesUnmod);
+        Collections.sort(files, new Comparator<File>() {
             @Override
             public int compare(File f1, File f2) {
                 return f1.getName().compareToIgnoreCase(f2.getName());
             }
         });
 
-        saveDirectory = fileArr[fileArr.length-1].getParentFile();
+        file = files.get(files.size() - 1);
+        saveDirectory = file.getParentFile();
         settings.setProperty("save.dir", saveDirectory.getPath());
-        file = fileArr[fileArr.length-1];
         titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
         replay.saveGame = new SaveGame();
         replay.reset();
 
-        try {
-            final BatchSaveGameParser parser = new BatchSaveGameParser(replay.rnw, replay.saveGame, fileArr);
-            final int width = (int) map.getWidth();
-            final int height = (int) map.getHeight();
-            imageView.setImage(null);
-            final Task<Void> mapInitializer = new Task<Void>() {
-                @Override
-                protected Void call() throws Exception {
-                    updateTitle(l10n("replay.map.init"));
-                    final int width = (int) map.getWidth();
-                    final int height = (int) map.getHeight();
+        final Task<SaveGame> loader = new Task<SaveGame>() {
+            @Override
+            protected SaveGame call() throws Exception {
+                replay.loadSaves(this, logAppendOnlyListener, files);
+                return replay.saveGame;
+            }
+        };
 
-                    final long size = height * width;
-                    for (int y = 0; y < height; ++y) {
-                        for (int x = 0; x < width; ++x) {
-                            final int pos = y * width + x;
-                            final int color = reader.getArgb(x, y);
-                            int finalColor;
-                            final ProvinceInfo province = replay.colors.get(color);
-                            if (province != null && province.isSea) {
-                                finalColor = replay.seaColor;
-                            } else if (replay.borders.contains(pos)) {
-                                finalColor = replay.borderColor;
-                            } else {
-                                finalColor = replay.landColor;
-                            }
-                            replay.politicalBuffer[pos] = finalColor;
-                            replay.religiousBuffer[pos] = finalColor;
-                            replay.culturalBuffer[pos] = finalColor;
-                            replay.technologySeparateBuffer[pos] = finalColor;
-                            replay.technologyCombinedBuffer[pos] = finalColor;
-                            updateProgress(pos, size);
-                        }
-                    }
-                    return null;
+        loader.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent t) {
+                if ("true".equals(settings.getProperty("gif"))) {
+                    giffer = new Giffer(settings, replay.bufferWidth, replay.bufferHeight, file.getAbsolutePath());
+                    giffer.updateGif(buffer, replay.saveGame.startDate);
                 }
-            };
-            mapInitializer.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-                @Override
-                public void handle(WorkerStateEvent t) {
-                    output.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), buffer, 0, width);
-                    statusLabel.textProperty().bind(parser.titleProperty());
-                    progressBar.progressProperty().bind(parser.progressProperty());
-                    new Thread(parser, "Parser").start();
-                }
-            });
+                output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
+                log.getEngine().loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
+                logContent.setLength(LOG_HEADER.length());
+                progressBar.progressProperty().unbind();
+                progressBar.progressProperty().set(replay.dateGenerator.getProgress());
+                replay.setDateListener(dateListener);
+                dateEdit.setText(replay.getDate().toString());
+                imageView.setImage(output);
+                new JavascriptBridge().prov(settings.getProperty("center.id", "1"));
+                statusLabel.textProperty().unbind();
+                statusLabel.setText(l10n("replay.save.loaded"));
+                lock.release();
+            }
+        });
 
-            final Task<Void> starter = new Task<Void>() {
-                @Override
-                protected Void call() throws Exception {
-                    replay.dateGenerator = new DateGenerator(replay.saveGame.startDate, replay.saveGame.date);
-                    updateTitle(l10n("replay.world.init"));
-                    replay.setEventListener(logAppendOnlyListener);
-                    replay.eventProcessor.processEvents(null, new ProgressIterable<>(replay.saveGame.timeline.get(null)));
-                    //
-                    updateTitle(l10n("replay.progressing"));
-                    final Date maxDate = replay.saveGame.startDate;
-                    Date date = new Date(settings.getProperty("init.start", "1300.1.1"));
-                    int day = 0;
-                    final int distance = Date.calculateDistance(date, replay.saveGame.startDate) + 1;
-                    replay.setEventListener(logAppendOnlyListener);
-                    while (date.compareTo(maxDate) <= 0) {
-                        final List<Event> events = replay.saveGame.timeline.get(date);
-                        replay.eventProcessor.processEvents(date, events);
-                        updateProgress(++day, distance);
-                        date = date.next();
-                    }
-                    //fix colonial nations
-                    if (settings.getProperty("fix.colonials", "true").equals("true")) {
-                        updateTitle(l10n("replay.colonials.fix"));
-                        int colRegCounter = 0;
-                        final Date magicalDate = new Date(settings.getProperty("fix.colonials.date", "1444.11.11"));
-                        for (ColRegionInfo colreg : replay.colRegions.values()) {
-                            updateProgress(colRegCounter++, replay.colRegions.size());
-                            //count colonies for countries
-                            final Map<String, List<ProvinceInfo>> colonies = new HashMap<>();
-                            for (String id : colreg.provinces) {
-                                final ProvinceInfo province = replay.provinces.get(id);
-                                if (province.owner == null) {
-                                    continue;
-                                }
-                                List<ProvinceInfo> list = colonies.get(province.owner);
-                                if (list == null) {
-                                    list = new ArrayList<>();
-                                    colonies.put(province.owner, list);
-                                }
-                                list.add(province);
-                            }
-                            //set owner and controller for colonial nations' provinces
-                            for (List<ProvinceInfo> provs : colonies.values()) {
-                                if (provs.size() > replay.defines.MAX_CROWN_COLONIES) {
-                                    for (ProvinceInfo prov : provs) {
-                                        List<Pair<Date, Event>> events = new ArrayList<>(prov.events);
-                                        for (Pair<Date, Event> p : events) {
-                                            if (magicalDate.equals(p.getFirst())
-                                                    && (p.getSecond() instanceof Owner
-                                                        || (p.getSecond() instanceof Controller && prov.owner.equals(prov.controller)))) {
-                                                SimpleProvinceEvent e = (SimpleProvinceEvent) p.getSecond();
-                                                if (e.value.matches("C..")) {
-                                                    replay.eventProcessor.processEvents(p.getFirst(), Arrays.asList(e));
-                                                }
-                                            }
-                                            if (magicalDate.compareTo(p.getFirst()) < 0) {
-                                                break;
-                                            }
-                                        }
-                                        prov.events = events; //processor added the reprocessed events to the list, so we need to restore backup
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    replay.setEventListener(standardListener);
-                    return null;
+        loader.setOnFailed(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(final WorkerStateEvent t) {
+                final Throwable e = t.getSource().getException();
+                if (e != null) {
+                    e.printStackTrace();
                 }
-            };
+            }
+        });
 
-            starter.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-                @Override
-                public void handle(WorkerStateEvent t) {
-                    if ("true".equals(settings.getProperty("gif"))) {
-                        giffer = new Giffer(settings, width, height, fileArr[fileArr.length-1].getAbsolutePath());
-                        giffer.updateGif(buffer, replay.saveGame.startDate);
-                    }
-                    output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
-                    log.getEngine().loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
-                    logContent.setLength(LOG_HEADER.length());
-                    progressBar.progressProperty().unbind();
-                    progressBar.progressProperty().set(replay.dateGenerator.getProgress());
-                    replay.setDateListener(dateListener);
-                    dateEdit.setText(replay.getDate().toString());
-                    imageView.setImage(output);
-                    new JavascriptBridge().prov(settings.getProperty("center.id", "1"));
-                    statusLabel.textProperty().unbind();
-                    statusLabel.setText(l10n("replay.save.loaded"));
-                    lock.release();
-                }
-            });
-
-            starter.setOnFailed(new EventHandler<WorkerStateEvent>() {
-                @Override
-                public void handle(final WorkerStateEvent t) {
-                    final Throwable e = starter.getException();
-                    if (e != null) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            parser.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-                @Override
-                public void handle(WorkerStateEvent t) {
-                    statusLabel.textProperty().bind(starter.titleProperty());
-                    progressBar.progressProperty().bind(starter.progressProperty());
-                    for (Entry<String, Integer> c : replay.saveGame.dynamicCountriesColors.entrySet()) {
-                        replay.countries.put(c.getKey(), new CountryInfo(c.getKey(), c.getValue()));
-                    }
-                    for (Map.Entry<String, Date> change : replay.saveGame.tagChanges.entrySet()) {
-                        final String tag = change.getKey();
-                        final CountryInfo country = replay.countries.get(tag);
-                        if (country != null) {
-                            country.expectingTagChange = change.getValue();
-                        } else {
-                            System.err.printf(l10n("replay.tagchange.unknowntag"), tag);
-                        }
-                    }
-                    new Thread(starter, "Starter").start();
-                }
-            });
-
-            parser.setOnFailed(new EventHandler<WorkerStateEvent>() {
-                @Override
-                public void handle(final WorkerStateEvent t) {
-                    final Throwable e = starter.getException();
-                    if (e != null) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            statusLabel.textProperty().bind(mapInitializer.titleProperty());
-            progressBar.progressProperty().bind(mapInitializer.progressProperty());
-            new Thread(mapInitializer, "MapInitializer").start();
-        } catch (Exception e) { e.printStackTrace(); }
+        statusLabel.textProperty().bind(loader.titleProperty());
+        progressBar.progressProperty().bind(loader.progressProperty());
+        new Thread(loader, "SaveGameLoader").start();
     }
 
     @FXML
@@ -1458,7 +1311,9 @@ public class ReplayerController implements Initializable {
         replay.colRegions.clear();
         for(final InputStream cultureStream : replay.fileManager.listFiles("common/colonial_regions")) {
             try (final InputStream is = cultureStream) {
-                final ColRegionParser parser = new ColRegionParser(replay.colRegions, Long.MAX_VALUE, is);
+                final ColRegionParser parser = new ColRegionParser(
+                        replay.colRegions, Long.MAX_VALUE, is,
+                        new EmptyTaskBridge<Map<String, ColRegionInfo>>());
                 parser.run();
             } catch(Exception e) { e.printStackTrace(); }
         }
@@ -1483,7 +1338,9 @@ public class ReplayerController implements Initializable {
                     }
                     try (final InputStream cs = replay.fileManager.getInputStream("common/" + path)) {
                         final Ref<Integer> color = new Ref<>();
-                        final CountryParser parser = new CountryParser(color, Long.MAX_VALUE, cs);
+                        final CountryParser parser = new CountryParser(
+                                color, Long.MAX_VALUE, cs,
+                                new EmptyTaskBridge<Ref<Integer>>());
                         parser.run();
                         replay.countries.put((String) key, new CountryInfo((String) key, color.val));
                     } catch(Exception e) { e.printStackTrace(); }
@@ -1502,7 +1359,9 @@ public class ReplayerController implements Initializable {
         replay.cultures.clear();
         for(final InputStream cultureStream : replay.fileManager.listFiles("common/cultures")) {
             try (final InputStream is = cultureStream) {
-                final CulturesParser parser = new CulturesParser(new Pair<>(replay.countries, replay.cultures), Long.MAX_VALUE, is);
+                final CulturesParser parser = new CulturesParser(
+                        new Pair<>(replay.countries, replay.cultures),
+                        Long.MAX_VALUE, is, new EmptyTaskBridge<Pair<Map<String, CountryInfo>, Map<String, Integer>>>());
                 parser.run();
             } catch(Exception e) { e.printStackTrace(); }
         }
@@ -1532,7 +1391,9 @@ public class ReplayerController implements Initializable {
     private void loadDefines() {
         System.out.printf(l10n("replay.load.defines"));
         try (final InputStream is = replay.fileManager.getInputStream("common/defines.lua")) {
-            final DefinesParser parser = new DefinesParser(replay.defines, Long.MAX_VALUE, is);
+            final DefinesParser parser = new DefinesParser(
+                    replay.defines, Long.MAX_VALUE, is,
+                    new EmptyTaskBridge<DefinesInfo>());
             parser.run();
         } catch(Exception e) { e.printStackTrace(); }
     }
@@ -1567,6 +1428,7 @@ public class ReplayerController implements Initializable {
                     for (int y = 0; y < height; ++y){
                         for (int x = 0; x < width; ++x){
                             int color = reader.getArgb(x, y);
+                            final int pos = y * width + x;
                             boolean border = false;
                             if (replay.drawBorders) {
                                 if (x > 0 && reader.getArgb(x-1, y) != color) {
@@ -1581,20 +1443,21 @@ public class ReplayerController implements Initializable {
                             }
                             if (border) {
                                 color = replay.borderColor;
-                                replay.borders.add(y * width + x);
+                                replay.borders.add(pos);
                             } else {
                                 final ProvinceInfo province = replay.colors.get(color);
                                 if (province != null) {
-                                    province.points.add(y * width + x);
+                                    province.points.add(pos);
                                 } else {
                                     System.err.printf(l10n("replay.map.unknowncolor"), x, y, color);
                                 }
                             }
-                            replay.politicalBuffer[y * width + x] = color;
-                            replay.religiousBuffer[y * width + x] = color;
-                            replay.culturalBuffer[y * width + x] = color;
-                            replay.technologySeparateBuffer[y * width + x] = color;
-                            replay.technologyCombinedBuffer[y * width + x] = color;
+                            replay.provincesBmpBuffer[pos] = color;
+                            replay.politicalBuffer[pos] = color;
+                            replay.religiousBuffer[pos] = color;
+                            replay.culturalBuffer[pos] = color;
+                            replay.technologySeparateBuffer[pos] = color;
+                            replay.technologyCombinedBuffer[pos] = color;
                             writer.setArgb(x, y, color);
                             updateProgress(y*width+x, height*width);
                         }
@@ -1696,7 +1559,9 @@ public class ReplayerController implements Initializable {
         replay.religions.clear();
         for(final InputStream religionStream : replay.fileManager.listFiles("common/religions")) {
             try (final InputStream is = religionStream) {
-                final ReligionsParser parser = new ReligionsParser(replay.religions, Long.MAX_VALUE, is);
+                final ReligionsParser parser = new ReligionsParser(
+                        replay.religions, Long.MAX_VALUE, is,
+                        new EmptyTaskBridge<Map<String, Integer>>());
                 parser.run();
             } catch(Exception e) { e.printStackTrace(); }
         }
@@ -1708,7 +1573,9 @@ public class ReplayerController implements Initializable {
     private void loadSeas() {
         System.out.printf(l10n("replay.load.seas"));
         try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/default.map")) {
-            final DefaultMapParser parser = new DefaultMapParser(replay.provinces, Long.MAX_VALUE, is);
+            final DefaultMapParser parser = new DefaultMapParser(
+                    replay.provinces, Long.MAX_VALUE, is,
+                    new EmptyTaskBridge<Map<String, ProvinceInfo>>());
             parser.run();
         } catch(Exception e) { e.printStackTrace(); }
     }
@@ -1719,7 +1586,9 @@ public class ReplayerController implements Initializable {
     private void loadWastelands() {
         System.out.printf(l10n("replay.load.wastelands"));
         try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/climate.txt")) {
-            final ClimateParser parser = new ClimateParser(replay.provinces, Long.MAX_VALUE, is);
+            final ClimateParser parser = new ClimateParser(
+                    replay.provinces, Long.MAX_VALUE, is,
+                    new EmptyTaskBridge<Map<String, ProvinceInfo>>());
             parser.run();
         } catch(Exception e) { e.printStackTrace(); }
     }

@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
+import com.paradoxplaza.eu4.replayer.ITaskBridge;
 import java.io.InputStream;
 
 /**
@@ -10,6 +11,7 @@ public class EOLCommentParser<Context> extends TextParser<Context> {
     /** Flag indicating the parser is inside a eol-comment. */
     boolean inComment = false;
 
+    /** String starting to-end-of-line comment */
     final String startComment;
 
     /**
@@ -18,9 +20,14 @@ public class EOLCommentParser<Context> extends TextParser<Context> {
      * @param start starting stare
      * @param size size of parsed file
      * @param input input stream to parse
+     * @param startComment string starting comment section
+     * @param bridge bridge listening to progress
      */
-    public EOLCommentParser(final Context context, final StartAdapter<Context> start, final long size, final InputStream input, final String startComment) {
-        super(context, start, size, input);
+    public EOLCommentParser(final Context context,
+            final StartAdapter<Context> start, final long size,
+            final InputStream input, final String startComment,
+            final ITaskBridge bridge) {
+        super(context, start, size, input, bridge);
         this.startComment = startComment;
     }
 

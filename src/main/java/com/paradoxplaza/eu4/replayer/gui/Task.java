@@ -1,42 +1,34 @@
 package com.paradoxplaza.eu4.replayer.gui;
 
-import java.util.Collection;
-import java.util.Iterator;
+import com.paradoxplaza.eu4.replayer.ITaskBridge;
 
 /**
- * Simple extension to add ProgressIterable to Tasks.
+ * Simple extension to publish update* methods.
  */
-abstract class Task<T> extends javafx.concurrent.Task<T> {
-    class ProgressIterable<T> implements Iterable<T> {
+abstract class Task<T> extends javafx.concurrent.Task<T> implements ITaskBridge<T> {
 
-        Collection<T> list;
+    @Override
+    public void updateMessage(String message) {
+        super.updateMessage(message);
+    }
 
-        public ProgressIterable(final Collection<T> list) {
-            this.list = list;
-        }
+    @Override
+    public void updateProgress(double workDone, double max) {
+        super.updateProgress(workDone, max);
+    }
 
-        @Override
-        public Iterator<T> iterator() {
-            return new Iterator<T>() {
-                final Iterator<T> it = list.iterator();
-                int count = 0;
+    @Override
+    public void updateProgress(long workDone, long max) {
+        super.updateProgress(workDone, max);
+    }
 
-                @Override
-                public boolean hasNext() {
-                    return it.hasNext();
-                }
+    @Override
+    public void updateTitle(String title) {
+        super.updateTitle(title);
+    }
 
-                @Override
-                public T next() {
-                    updateProgress(++count, list.size());
-                    return it.next();
-                }
-
-                @Override
-                public void remove() {
-                    it.remove();
-                }
-            };
-        }
+    @Override
+    public void updateValue(T value) {
+        super.updateValue(value);
     }
 }

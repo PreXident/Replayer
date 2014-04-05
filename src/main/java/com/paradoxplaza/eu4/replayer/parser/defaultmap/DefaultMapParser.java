@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser.defaultmap;
 
+import com.paradoxplaza.eu4.replayer.ITaskBridge;
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
 import com.paradoxplaza.eu4.replayer.parser.TextParser;
 import java.io.InputStream;
@@ -15,8 +16,11 @@ public class DefaultMapParser extends TextParser<Map<String, ProvinceInfo>> {
      * @param context seas to fill
      * @param size input size
      * @param input input stream to parse
+     * @param bridge bridge listening to progress
      */
-    public DefaultMapParser(final Map<String, ProvinceInfo> context, final long size, final InputStream input) {
-        super(context, new Start(), size, input);
+    public DefaultMapParser(final Map<String, ProvinceInfo> context,
+            final long size, final InputStream input,
+            final ITaskBridge<Map<String, ProvinceInfo>> bridge) {
+        super(context, new Start(), size, input, bridge);
     }
 }
