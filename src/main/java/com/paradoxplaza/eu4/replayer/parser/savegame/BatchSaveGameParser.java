@@ -23,10 +23,14 @@ public class BatchSaveGameParser implements Runnable {
     /** Flag indicating whether the RNW is used. */
     final boolean rnw;
 
-    /** Currently running save game parser. */
-    SaveGameParser currentParser;
+    /** Index of currently running save game parser. */
+    int currentIndex;
 
+    /** Gets informed about progress. */
     final ITaskBridge<SaveGame> bridge;
+
+    /** Adds file counter to title. */
+    final BridgeDecorator decoratedBridge;
 
     /**
      * Only constructor.
@@ -42,6 +46,7 @@ public class BatchSaveGameParser implements Runnable {
         this.files = files;
         this.rnw = rnw;
         this.bridge = bridge;
+        this.decoratedBridge = new BridgeDecorator(bridge);
     }
 
     @Override
@@ -67,14 +72,68 @@ public class BatchSaveGameParser implements Runnable {
      */
     private SaveGame runParser(final SaveGame saveGame, final int index) {
         try {
+            currentIndex = index;
             final File currentFile = files.get(index);
             final InputStream is = new FileInputStream(currentFile);
-            currentParser = new SaveGameParser(saveGame, currentFile.length(), is, bridge);
-            currentParser.run();
+            final SaveGameParser parser = new SaveGameParser(
+                    saveGame, currentFile.length(), is, decoratedBridge);
+            parser.run();
             return saveGame;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return saveGame;
+        }
+    }
+
+    /**
+     * Simple decorator to add file counter to title.
+     */
+    class BridgeDecorator implements ITaskBridge<SaveGame> {
+
+        /** Decorated bridge/ */
+        final ITaskBridge<SaveGame> decorated;
+
+        /**
+         * Only constructor.
+         * @param decorated decorated bridge
+         */
+        public BridgeDecorator(final ITaskBridge<SaveGame> decorated) {
+            this.decorated = decorated;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return decorated.isCancelled();
+        }
+
+        @Override
+        public void run() {
+            decorated.run();
+        }
+
+        @Override
+        public void updateMessage(String message) {
+            decorated.updateMessage(message);
+        }
+
+        @Override
+        public void updateProgress(double workDone, double max) {
+            decorated.updateProgress(workDone, max);
+        }
+
+        @Override
+        public void updateProgress(long workDone, long max) {
+            decorated.updateProgress(workDone, max);
+        }
+
+        @Override
+        public void updateTitle(String title) {
+            decorated.updateTitle(title + " (" + (currentIndex + 1) + "/" + files.size() + ")");
+        }
+
+        @Override
+        public void updateValue(SaveGame value) {
+            decorated.updateValue(value);
         }
     }
 }
