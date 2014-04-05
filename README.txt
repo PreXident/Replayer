@@ -20,6 +20,7 @@ http://www.youtube.com/watch?v=kPdwBscCszY
 #Creating gifs#
 ###############
 
+Since 1.6 there is GUI for creating gifs, however you can still use properties based approach:
 As hinted in changelog, set gif=true in replayer.properties and use '>>' to fastforward to the end date. The gif is created in the folder with save game and its size is affected by properties gif.width and gif.height. The sampling period can be set in settings (Per Tick), I recommend 1 Year. If you save frames to gif too often (like every two days), it will take a long time, the file will be huge and few other applications will be able to handle it. To prevent this, you can set property gif.new.file to a positive integral value, and after that number of frames new gif file will be created. Property gif.step specifies number of ms between gif frames. See change log for version 1.1 for additional gif related properties.
 As of 1.2 you can also export only part of the map, using new properties (thx to ferluciCZ for suggesting this feature). For Europe it could look like this:
 gif=true
@@ -81,6 +82,12 @@ Feature subjects.as.overlord is not perfect, as it can display only relations th
 ############
 #Change log#
 ############
+
+1.6
+Borders and subjects as overlords can be set in settings (restart is needed however)
+Path to EU4 directory can be loaded from environment variable EU4_HOME if not specified in the property file
+Added GUI for controlling gif output
+Gifs can be created from command line without GUI, see giffer.bat
 
 1.5
 Batch Saves (thx to Penguintopia) - you can now select multiple saves to be replayed, they will be sorted alphabetically and information from every save above the first one will be added to the first one successively (this is necessary for technology mapmode and others that use information stored in save outside history)
@@ -206,3 +213,4 @@ Lateralus (Hottemax at Bitbucket)
 Elliot Kroo's GifSequenceWriter under Creative Commons Attribution 3.0 Unported License.
 PositionInputStream by erickson.
 Apache Commons Compress under Apache License
+JCommander under Apache License

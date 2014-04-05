@@ -26,7 +26,7 @@ public class EOLCommentParser<Context> extends TextParser<Context> {
     public EOLCommentParser(final Context context,
             final StartAdapter<Context> start, final long size,
             final InputStream input, final String startComment,
-            final ITaskBridge bridge) {
+            final ITaskBridge<Context> bridge) {
         super(context, start, size, input, bridge);
         this.startComment = startComment;
     }

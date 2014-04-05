@@ -29,6 +29,7 @@ abstract class Task<T> extends javafx.concurrent.Task<T> implements ITaskBridge<
 
     @Override
     public void updateValue(T value) {
-        super.updateValue(value);
+        //since 1.8
+        //super.updateValue(value);
     }
 }

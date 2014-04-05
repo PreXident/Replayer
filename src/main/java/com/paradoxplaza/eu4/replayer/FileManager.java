@@ -2,7 +2,6 @@ package com.paradoxplaza.eu4.replayer;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.mod.ModParser;
-import com.paradoxplaza.eu4.replayer.utils.Utils;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;

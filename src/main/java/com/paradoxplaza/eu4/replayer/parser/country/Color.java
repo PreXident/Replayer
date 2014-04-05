@@ -1,6 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser.country;
 
-import com.paradoxplaza.eu4.replayer.utils.Utils;
+import com.paradoxplaza.eu4.replayer.Utils;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.utils.Ref;

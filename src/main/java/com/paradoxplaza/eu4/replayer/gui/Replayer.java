@@ -3,6 +3,7 @@ package com.paradoxplaza.eu4.replayer.gui;
 import com.paradoxplaza.eu4.replayer.localization.Localizator;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.utils.UnclosableStream;
+import com.paradoxplaza.eu4.replayer.Utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,7 +27,7 @@ import javafx.stage.Stage;
 public class Replayer extends Application {
 
     /** Path to default property file. The file should be inside the jar. */
-    private static final String DEFAULT_JAR_PROPERTIES = "replayer.defprops";
+    public static final String DEFAULT_JAR_PROPERTIES = "replayer.defprops";
 
     /** Default path to property file. */
     private static final String DEFAULT_PROPERTIES = "replayer.properties";
@@ -56,8 +57,8 @@ public class Replayer extends Application {
     public void start(final Stage stage) throws Exception {
         System.out.printf(l10n("app.starting"));
         //load default properties
-        settings = new Properties(loadDefaultJarProperties());
-        resetDefaultLocale(settings.getProperty("locale.language"));
+        settings = new Properties(Utils.loadDefaultJarProperties());
+        Utils.resetDefaultLocale(settings.getProperty("locale.language"));
 
         //parse arguments from command line, ie. load property file
         final List<String> args = getParameters().getRaw();
@@ -86,7 +87,7 @@ public class Replayer extends Application {
                 e.printStackTrace();
             }
         }
-        resetDefaultLocale(settings.getProperty("locale.language"));
+        Utils.resetDefaultLocale(settings.getProperty("locale.language"));
 
         //ask for eu4 directory if property is not valid
         final String eu4dir = settings.getProperty("eu4.dir");
@@ -135,33 +136,6 @@ public class Replayer extends Application {
             return param.equals("--help") || param.equals("-h") || param.equals("/?");
         }
         return false;
-    }
-
-    /**
-     * Loads and returns default properties from {@link #DEFAULT_JAR_PROPERTIES}.
-     * @return default properties
-     */
-    private Properties loadDefaultJarProperties() {
-        System.out.printf(l10n("app.properties.jar"));
-        final Properties res = new Properties();
-        try {
-            res.load(getClass().getClassLoader().getResourceAsStream(DEFAULT_JAR_PROPERTIES));
-        } catch(Exception e) {
-            //someone messed with our properties!
-            e.printStackTrace();
-        }
-        return res;
-    }
-
-    /**
-     * Resets default locale and {@link Localizer} if langCode is not null.
-     * @param langCode new default locale language code
-     */
-    private void resetDefaultLocale(final String langCode) {
-        if (langCode != null) {
-            Locale.setDefault(new Locale(langCode));
-            Localizator.getInstance().reloadResourceBundle();
-        }
     }
 
     @Override

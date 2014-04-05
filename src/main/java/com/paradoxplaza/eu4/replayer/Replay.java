@@ -17,7 +17,6 @@ import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.BatchSaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
-import com.paradoxplaza.eu4.replayer.utils.Utils;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;

@@ -11,7 +11,6 @@ import com.paradoxplaza.eu4.replayer.events.Subject;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
 import com.paradoxplaza.eu4.replayer.events.Technology;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
-import com.paradoxplaza.eu4.replayer.utils.Utils;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

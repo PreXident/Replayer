@@ -1,13 +1,28 @@
 package com.paradoxplaza.eu4.replayer.gif;
 
+import com.beust.jcommander.JCommander;
 import com.paradoxplaza.eu4.replayer.Date;
+import com.paradoxplaza.eu4.replayer.DateGenerator;
+import com.paradoxplaza.eu4.replayer.EmptyTaskBridge;
+import com.paradoxplaza.eu4.replayer.EventProcessor;
+import com.paradoxplaza.eu4.replayer.Replay;
+import com.paradoxplaza.eu4.replayer.SaveGame;
+import com.paradoxplaza.eu4.replayer.Utils;
+import com.paradoxplaza.eu4.replayer.gif.GifferOptions.Buffer;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.utils.IgnoreCaseFileNameComparator;
+import com.paradoxplaza.eu4.replayer.utils.UnclosableStream;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
 import java.util.Properties;
+import java.util.concurrent.Semaphore;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageOutputStream;
 
@@ -15,6 +30,99 @@ import javax.imageio.stream.ImageOutputStream;
  * Class responsible for creating gifs.
  */
 public class Giffer {
+
+    /**
+     * Returns buffer from replay according to buffer enum.
+     * @param buffer which buffer to chose
+     * @param replay buffer container
+     * @return buffer from replay according to buffer enum
+     */
+    static private int[] choseBuffer(
+            final Buffer buffer, final Replay replay) {
+        switch(buffer) {
+            case POLITICAL:
+                return replay.politicalBuffer;
+            case RELIGIOUS:
+                return replay.religiousBuffer;
+            case CULTURAL:
+                return replay.culturalBuffer;
+            case TECHNOLOGICAL_COMBINED:
+                return replay.technologyCombinedBuffer;
+            case TECHNOLOGICAL_SEPARATE:
+                return replay.technologySeparateBuffer;
+            default:
+                throw new IllegalArgumentException("Uknown buffer type!");
+        }
+    }
+
+    /**
+     * Loads specified saves and creates gif.
+     * @param args command line arguments
+     * @throws InterruptedException should not happen
+     */
+    static public void main(final String[] args) throws InterruptedException {
+        final Properties settings = new Properties(Utils.loadDefaultJarProperties());
+        Utils.resetDefaultLocale(settings.getProperty("locale.language"));
+        //
+        final GifferOptions options = new GifferOptions();
+        final JCommander jCommander = new JCommander(options, args);
+        jCommander.setProgramName("java -cp replayer.jar com.paradoxplaza.eu4.replayer.gif.Giffer"); //set name in usage
+        if (options.help || options.files.isEmpty()) {
+            jCommander.usage();
+            return;
+        }
+        Collections.sort(options.files, new IgnoreCaseFileNameComparator());
+        //
+        System.out.printf(l10n("app.properties.loading"), options.properties);
+        try (final InputStream is =
+                options.properties.equals("-") ? new UnclosableStream(System.in)
+                    : new FileInputStream(options.properties)) {
+             settings.load(is);
+        } catch(Exception e) {
+            System.err.printf(l10n("app.properties.error"), options.properties);
+            e.printStackTrace();
+        }
+        Utils.resetDefaultLocale(settings.getProperty("locale.language"));
+        //
+        //if eu4.dir property is not valid, look into environment variable
+        final String eu4dir = settings.getProperty("eu4.dir");
+        if (eu4dir == null || !new File(eu4dir).exists()) {
+            File dir = null;
+            if (System.getenv("EU4_HOME") != null) {
+                dir = new File(System.getenv("EU4_HOME"));
+            }
+            if (dir == null || !dir.exists()) {
+                System.out.printf(l10n("app.eu4dir.error"));
+                System.exit(-1);
+            } else {
+                settings.put("eu4.dir", dir.getPath());
+            }
+        }
+        //
+        final Replay replay = new Replay(settings);
+        final Semaphore lock = new Semaphore(1);
+        lock.acquire();
+        replay.loadData(new EmptyTaskBridge<Void>() {
+            @Override
+            public void run() {
+                lock.release();
+            }
+        });
+        lock.acquire();
+        final int[] buffer = choseBuffer(options.buffer, replay);
+        final String name = options.files.get(options.files.size() - 1).getAbsolutePath();
+        final Giffer giffer = new Giffer(settings, replay.bufferWidth, replay.bufferHeight, name);
+        //
+        replay.loadSaves(new EmptyTaskBridge<SaveGame>(), EventProcessor.defaultListener, options.files);
+        replay.setDateListener(new DateGenerator.IDateListener() {
+            @Override
+            public void update(Date date, double progress) {
+                giffer.updateGif(buffer, date);
+            }
+        });
+        replay.skipTo(replay.saveGame.date);
+        giffer.endGif();
+    }
 
     /**
      * Gets property and parses it as an integer.

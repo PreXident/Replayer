@@ -9,6 +9,7 @@ import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.generator.ModGenerator;
 import com.paradoxplaza.eu4.replayer.gif.Giffer;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.utils.IgnoreCaseFileNameComparator;
 import java.awt.Point;
 import java.io.File;
 import java.net.URL;
@@ -521,12 +522,7 @@ public class ReplayerController implements Initializable {
             return;
         }
         final List<File> files = new ArrayList<>(filesUnmod);
-        Collections.sort(files, new Comparator<File>() {
-            @Override
-            public int compare(File f1, File f2) {
-                return f1.getName().compareToIgnoreCase(f2.getName());
-            }
-        });
+        Collections.sort(files, new IgnoreCaseFileNameComparator());
 
         file = files.get(files.size() - 1);
         saveDirectory = file.getParentFile();

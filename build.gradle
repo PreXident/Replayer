@@ -31,6 +31,11 @@ dependencies {
 			fatJarExclude = false
 		}
 	}
+        compile 'com.beust:jcommander:1.35', {
+		ext {
+			fatJarExclude = false
+		}
+        }
 }
 
 //include only explicitly not exluded dependencies to fatJar
