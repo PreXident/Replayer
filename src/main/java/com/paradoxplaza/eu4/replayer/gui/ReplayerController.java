@@ -1,11 +1,7 @@
 package com.paradoxplaza.eu4.replayer.gui;
 
-import com.paradoxplaza.eu4.replayer.ColRegionInfo;
-import com.paradoxplaza.eu4.replayer.CountryInfo;
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.DateGenerator.IDateListener;
-import com.paradoxplaza.eu4.replayer.DefinesInfo;
-import com.paradoxplaza.eu4.replayer.EmptyTaskBridge;
 import com.paradoxplaza.eu4.replayer.EventProcessor.IEventListener;
 import com.paradoxplaza.eu4.replayer.ProvinceInfo;
 import com.paradoxplaza.eu4.replayer.Replay;
@@ -13,32 +9,14 @@ import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.generator.ModGenerator;
 import com.paradoxplaza.eu4.replayer.gif.Giffer;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
-import com.paradoxplaza.eu4.replayer.parser.climate.ClimateParser;
-import com.paradoxplaza.eu4.replayer.parser.colregion.ColRegionParser;
-import com.paradoxplaza.eu4.replayer.parser.country.CountryParser;
-import com.paradoxplaza.eu4.replayer.parser.culture.CulturesParser;
-import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
-import com.paradoxplaza.eu4.replayer.parser.defines.DefinesParser;
-import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
-import com.paradoxplaza.eu4.replayer.utils.Pair;
-import com.paradoxplaza.eu4.replayer.utils.Ref;
-import com.paradoxplaza.eu4.replayer.utils.Utils;
 import java.awt.Point;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.concurrent.Semaphore;
@@ -71,11 +49,8 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelFormat;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -269,12 +244,6 @@ public class ReplayerController implements Initializable {
 
     /** Replayer settings. */
     public Properties settings;
-
-    /** Original map picture. */
-    Image map;
-
-    /** Reader for {@link #map}. */
-    PixelReader reader;
 
     /** Image displayed in {@link #imageView}. */
     public WritableImage output;
@@ -484,8 +453,8 @@ public class ReplayerController implements Initializable {
         }
         if (gifSwitchCheckMenuItem.isSelected()) {
             if (giffer == null && file != null) {
-                final int width = (int) map.getWidth();
-                final int height = (int) map.getHeight();
+                final int width = replay.bufferWidth;
+                final int height = replay.bufferHeight;
                 giffer = new Giffer(settings, width, height, file.getAbsolutePath());
                 giffer.updateGif(buffer, replay.getDate());
             } else {
@@ -688,8 +657,8 @@ public class ReplayerController implements Initializable {
 
     @FXML
     private void resetZoom() {
-        imageView.setFitHeight(map.getHeight());
-        imageView.setFitWidth(map.getWidth());
+        imageView.setFitHeight(replay.bufferHeight);
+        imageView.setFitWidth(replay.bufferWidth);
         //if scrollbars were not visible we need to do this to make them appear
         //again if needed
         scrollPane.setContent(null);
@@ -731,28 +700,28 @@ public class ReplayerController implements Initializable {
     private void zoomIn() {
         Bounds bounds = imageView.getBoundsInParent();
         final int x = scrollProcentToMapCoord(
-                scrollPane.getHvalue(), map.getWidth(),
+                scrollPane.getHvalue(), replay.bufferWidth,
                 scrollPane.getWidth(), bounds.getWidth());
         final int y = scrollProcentToMapCoord(
-                scrollPane.getVvalue(), map.getHeight(),
+                scrollPane.getVvalue(), replay.bufferHeight,
                 scrollPane.getHeight(), bounds.getHeight());
         imageView.setFitHeight(imageView.getFitHeight() + zoomStep);
         imageView.setFitWidth(imageView.getFitWidth() + zoomStep);
         bounds = imageView.getBoundsInParent();
         scrollPane.setHvalue(mapCoordToScrollProcent(
-                x, map.getWidth(), scrollPane.getWidth(), bounds.getWidth()));
+                x, replay.bufferWidth, scrollPane.getWidth(), bounds.getWidth()));
         scrollPane.setVvalue(mapCoordToScrollProcent(
-                y, map.getHeight(), scrollPane.getHeight(), bounds.getHeight()));
+                y, replay.bufferHeight, scrollPane.getHeight(), bounds.getHeight()));
     }
 
     @FXML
     private void zoomOut() {
         Bounds bounds = imageView.getBoundsInParent();
         final int x = scrollProcentToMapCoord(
-                scrollPane.getHvalue(), map.getWidth(),
+                scrollPane.getHvalue(), replay.bufferWidth,
                 scrollPane.getWidth(), bounds.getWidth());
         final int y = scrollProcentToMapCoord(
-                scrollPane.getVvalue(), map.getHeight(),
+                scrollPane.getVvalue(), replay.bufferHeight,
                 scrollPane.getHeight(), bounds.getHeight());
         double h = imageView.getFitHeight() - zoomStep;
         imageView.setFitHeight(h < 0 ? imageView.getFitHeight() : h);
@@ -760,9 +729,9 @@ public class ReplayerController implements Initializable {
         imageView.setFitWidth(w < 0 ? imageView.getFitWidth() : w);
         bounds = imageView.getBoundsInParent();
         scrollPane.setHvalue(mapCoordToScrollProcent(
-                x, map.getWidth(), scrollPane.getWidth(), bounds.getWidth()));
+                x, replay.bufferWidth, scrollPane.getWidth(), bounds.getWidth()));
         scrollPane.setVvalue(mapCoordToScrollProcent(
-                y, map.getHeight(), scrollPane.getHeight(), bounds.getHeight()));
+                y, replay.bufferHeight, scrollPane.getHeight(), bounds.getHeight()));
     }
 
     @Override
@@ -913,7 +882,7 @@ public class ReplayerController implements Initializable {
                 int x = (int) (t.getX() * replay.bufferWidth / imageBounds.getWidth());
                 int y = (int) (t.getY() * replay.bufferHeight / imageBounds.getHeight());
                 final String coords = "[" + x + "," + y + "]\n";
-                final String provinceHint = coords + replay.colors.get(reader.getArgb(x, y)).toString();
+                final String provinceHint = coords + replay.colors.get(replay.getProvinceColor(x, y)).toString();
                 if (!scrollPane.getTooltip().getText().equals(provinceHint)) {
                     scrollPane.setTooltip(new Tooltip(provinceHint));
                 }
@@ -926,7 +895,7 @@ public class ReplayerController implements Initializable {
                 final Bounds imageBounds = imageView.getBoundsInParent();
                 int x = (int) (t.getX() * replay.bufferWidth / imageBounds.getWidth());
                 int y = (int) (t.getY() * replay.bufferHeight / imageBounds.getHeight());
-                selectedProvince = replay.colors.get(reader.getArgb(x, y));
+                selectedProvince = replay.colors.get(replay.getProvinceColor(x, y));
                 if (selectedProvince != null) {
                     final String provinceLogContent = selectedProvince.getLog();
                     if (!provinceLogContent.equals(selectedProvinceLogContent)) {
@@ -1304,294 +1273,42 @@ public class ReplayerController implements Initializable {
     }
 
     /**
-     * Loads colonial regions from files inside /common/colonial_regions.
-     */
-    private void loadColRegions() {
-        System.out.printf(l10n("replay.load.colonials"));
-        replay.colRegions.clear();
-        for(final InputStream cultureStream : replay.fileManager.listFiles("common/colonial_regions")) {
-            try (final InputStream is = cultureStream) {
-                final ColRegionParser parser = new ColRegionParser(
-                        replay.colRegions, Long.MAX_VALUE, is,
-                        new EmptyTaskBridge<Map<String, ColRegionInfo>>());
-                parser.run();
-            } catch(Exception e) { e.printStackTrace(); }
-        }
-    }
-
-    /**
-     * Loads countries from files inside /common/country_tags directory
-     * and files mentioned in them.
-     */
-    private void loadCountries() {
-        System.out.printf(l10n("replay.load.countries"));
-        replay.countries.clear();
-
-        for (final InputStream is : replay.fileManager.listFiles("common/country_tags")) {
-            try (final InputStream tagStream = is) {
-                final Properties tags = new Properties();
-                tags.load(tagStream);
-                for (Object key : tags.keySet()) {
-                    String path = ((String) tags.get(key)).trim();
-                    if (path.startsWith("\"")) {
-                        path = path.substring(1, path.length() - 1); //get rid of "
-                    }
-                    try (final InputStream cs = replay.fileManager.getInputStream("common/" + path)) {
-                        final Ref<Integer> color = new Ref<>();
-                        final CountryParser parser = new CountryParser(
-                                color, Long.MAX_VALUE, cs,
-                                new EmptyTaskBridge<Ref<Integer>>());
-                        parser.run();
-                        replay.countries.put((String) key, new CountryInfo((String) key, color.val));
-                    } catch(Exception e) { e.printStackTrace(); }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * Loads religion colors from common/religions/*.
-     */
-    private void loadCultures() {
-        System.out.printf(l10n("replay.load.cultures"));
-        replay.cultures.clear();
-        for(final InputStream cultureStream : replay.fileManager.listFiles("common/cultures")) {
-            try (final InputStream is = cultureStream) {
-                final CulturesParser parser = new CulturesParser(
-                        new Pair<>(replay.countries, replay.cultures),
-                        Long.MAX_VALUE, is, new EmptyTaskBridge<Pair<Map<String, CountryInfo>, Map<String, Integer>>>());
-                parser.run();
-            } catch(Exception e) { e.printStackTrace(); }
-        }
-    }
-
-    /**
      * Loads data in proper order.
      */
     private void loadData() {
-        System.out.printf(l10n("replay.load.data"));
         titleProperty.set(TITLE);
-        replay.fileManager.loadMods();
-        loadDefines();
-        loadProvinces();
-        loadColRegions();
-        loadMap();
-        loadSeas();
-        loadWastelands();
-        loadCountries();
-        loadCultures();
-        loadReligions();
-    }
-
-    /**
-     * Loads defines from common/defines.lua.
-     */
-    private void loadDefines() {
-        System.out.printf(l10n("replay.load.defines"));
-        try (final InputStream is = replay.fileManager.getInputStream("common/defines.lua")) {
-            final DefinesParser parser = new DefinesParser(
-                    replay.defines, Long.MAX_VALUE, is,
-                    new EmptyTaskBridge<DefinesInfo>());
-            parser.run();
-        } catch(Exception e) { e.printStackTrace(); }
-    }
-
-    /**
-     * Starts loading the map from map/provinces.bmp.
-     */
-    private void loadMap() {
-        System.out.printf(l10n("replay.map.load"));
-        final Task<Void> mapLoader = new Task<Void>() {
+        imageView.setImage(null);
+        scrollPane.setContent(null);
+        final Task<Void> finisher = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                updateTitle(l10n("replay.map.load"));
-                try {
-                    try (InputStream is = replay.fileManager.getInputStream("map/provinces.bmp")) {
-                        map = new Image(is);
-                    } catch (FileNotFoundException e) {
-                        System.err.printf(l10n("replay.map.notfound"));
-                        map = new WritableImage(1,1);
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        buffer = replay.politicalBuffer;
+                        output = new WritableImage(replay.bufferWidth, replay.bufferHeight);
+                        output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
+                        progressBar.progressProperty().unbind();
+                        progressBar.setProgress(0);
+                        statusLabel.textProperty().unbind();
+                        statusLabel.setText(l10n("replay.map.loaded"));
+                        scrollPane.setContent(null);
+                        imageView.setImage(output);
+                        scrollPane.setContent(imageView);
+                        int fitWidth = Integer.parseInt(settings.getProperty("map.fit.width", "0"));
+                        int fitHeight = Integer.parseInt(settings.getProperty("map.fit.height", "0"));
+                        imageView.setFitHeight(fitHeight);
+                        imageView.setFitWidth(fitWidth);
+                        lock.release();
                     }
-                    reader = map.getPixelReader();
-
-                    final int width = (int) map.getWidth();
-                    final int height = (int) map.getHeight();
-
-                    //Copy from source to destination pixel by pixel
-                    output = new WritableImage(width, height);
-                    replay.initBuffers(width, height);
-                    buffer = replay.politicalBuffer;
-                    final PixelWriter writer = output.getPixelWriter();
-
-                    for (int y = 0; y < height; ++y){
-                        for (int x = 0; x < width; ++x){
-                            int color = reader.getArgb(x, y);
-                            final int pos = y * width + x;
-                            boolean border = false;
-                            if (replay.drawBorders) {
-                                if (x > 0 && reader.getArgb(x-1, y) != color) {
-                                    border = true;
-                                } else if (x < width - 1 && reader.getArgb(x+1, y) != color) {
-                                    border = true;
-                                } else if (y > 0 && reader.getArgb(x, y-1) != color) {
-                                    border = true;
-                                } else if (y < height - 1 && reader.getArgb(x, y+1) != color) {
-                                    border = true;
-                                }
-                            }
-                            if (border) {
-                                color = replay.borderColor;
-                                replay.borders.add(pos);
-                            } else {
-                                final ProvinceInfo province = replay.colors.get(color);
-                                if (province != null) {
-                                    province.points.add(pos);
-                                } else {
-                                    System.err.printf(l10n("replay.map.unknowncolor"), x, y, color);
-                                }
-                            }
-                            replay.provincesBmpBuffer[pos] = color;
-                            replay.politicalBuffer[pos] = color;
-                            replay.religiousBuffer[pos] = color;
-                            replay.culturalBuffer[pos] = color;
-                            replay.technologySeparateBuffer[pos] = color;
-                            replay.technologyCombinedBuffer[pos] = color;
-                            writer.setArgb(x, y, color);
-                            updateProgress(y*width+x, height*width);
-                        }
-                    }
-
-                    for(ProvinceInfo info : replay.provinces.values()) {
-                        info.calculateCenter(width);
-                    }
-
-                    lock.release();
-                    return null;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw e;
-                }
+                });
+                return null;
             }
         };
-        progressBar.progressProperty().bind(mapLoader.progressProperty());
-        statusLabel.textProperty().bind(mapLoader.titleProperty());
-        mapLoader.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-            @Override
-            public void handle(WorkerStateEvent t) {
-                System.out.printf(l10n("replay.map.loaded"));
-                progressBar.progressProperty().unbind();
-                progressBar.setProgress(0);
-                statusLabel.textProperty().unbind();
-                statusLabel.setText(l10n("replay.map.loaded"));
-                scrollPane.setContent(null);
-                imageView.setImage(output);
-                scrollPane.setContent(imageView);
-                int fitWidth = Integer.parseInt(settings.getProperty("map.fit.width", "0"));
-                int fitHeight = Integer.parseInt(settings.getProperty("map.fit.height", "0"));
-                imageView.setFitHeight(fitHeight);
-                imageView.setFitWidth(fitWidth);
-            }
-        });
-        new Thread(mapLoader, "MapLoader").start();
-    }
-
-    /**
-     * Loads provinces from map/definition.csv.
-     */
-    private void loadProvinces() {
-        System.out.printf(l10n("replay.provinces.load"));
-        replay.provinces.clear();
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(replay.fileManager.getInputStream("map/definition.csv"), StandardCharsets.ISO_8859_1));
-            //skip first line
-            reader.readLine();
-            String line = line = reader.readLine();
-            while (line != null) {
-                if (line.isEmpty()) {
-                    line = reader.readLine();
-                    continue;
-                }
-                final String[] parts = line.split(";");
-                final int color = Utils.toColor(
-                        Integer.parseInt(parts[1]),
-                        Integer.parseInt(parts[2]),
-                        Integer.parseInt(parts[3]));
-                final ProvinceInfo province = new ProvinceInfo(parts[0], parts[4], color);
-                replay.provinces.put(parts[0], province);
-                final ProvinceInfo original = replay.colors.put(color, province);
-                if (original != null) {
-                    throw new RuntimeException(String.format(l10n("replay.provinces.error"), parts[0], original));
-                }
-                line = reader.readLine();
-            }
-        } catch (FileNotFoundException e) {
-            System.err.printf(l10n("replay.provinces.notfound"));
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) { }
-            }
-        }
-        if (replay.rnw) {
-            final ProvinceInfo sea = new ProvinceInfo("SEA", "SEA", Utils.SEA_COLOR);
-            sea.isSea = true;
-            replay.provinces.put(sea.id, sea);
-            replay.colors.put(sea.color, sea);
-            final ProvinceInfo wasteland = new ProvinceInfo("WASTELAND", "WASTELAND", Utils.WASTELAND_COLOR);
-            wasteland.isWasteland = true;
-            replay.provinces.put(wasteland.id, wasteland);
-            replay.colors.put(wasteland.color, wasteland);
-        }
-    }
-
-    /**
-     * Loads religion colors from common/religions/*.
-     */
-    private void loadReligions() {
-        System.out.printf(l10n("replay.load.religions"));
-        replay.religions.clear();
-        for(final InputStream religionStream : replay.fileManager.listFiles("common/religions")) {
-            try (final InputStream is = religionStream) {
-                final ReligionsParser parser = new ReligionsParser(
-                        replay.religions, Long.MAX_VALUE, is,
-                        new EmptyTaskBridge<Map<String, Integer>>());
-                parser.run();
-            } catch(Exception e) { e.printStackTrace(); }
-        }
-    }
-
-    /**
-     * Loads sea provinces from map/default.map.
-     */
-    private void loadSeas() {
-        System.out.printf(l10n("replay.load.seas"));
-        try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/default.map")) {
-            final DefaultMapParser parser = new DefaultMapParser(
-                    replay.provinces, Long.MAX_VALUE, is,
-                    new EmptyTaskBridge<Map<String, ProvinceInfo>>());
-            parser.run();
-        } catch(Exception e) { e.printStackTrace(); }
-    }
-
-    /**
-     * Loads wasteland provinces from map/climate.txt.
-     */
-    private void loadWastelands() {
-        System.out.printf(l10n("replay.load.wastelands"));
-        try (final InputStream is = new FileInputStream(eu4Directory.getPath() + "/map/climate.txt")) {
-            final ClimateParser parser = new ClimateParser(
-                    replay.provinces, Long.MAX_VALUE, is,
-                    new EmptyTaskBridge<Map<String, ProvinceInfo>>());
-            parser.run();
-        } catch(Exception e) { e.printStackTrace(); }
-    }
+        progressBar.progressProperty().bind(finisher.progressProperty());
+        statusLabel.textProperty().bind(finisher.titleProperty());
+        replay.loadData(finisher);
+   }
 
     /**
      * Called when application is stopped to store settings and end gif if needed.
@@ -1686,9 +1403,9 @@ public class ReplayerController implements Initializable {
             }
             final Bounds imageBounds = imageView.getBoundsInParent();
             scrollPane.setHvalue(mapCoordToScrollProcent(
-                    center.x, map.getWidth(), scrollPane.getWidth(), imageBounds.getWidth()));
+                    center.x, replay.bufferWidth, scrollPane.getWidth(), imageBounds.getWidth()));
             scrollPane.setVvalue(mapCoordToScrollProcent(
-                    center.y, map.getHeight(), scrollPane.getHeight(), imageBounds.getHeight()));
+                    center.y, replay.bufferHeight, scrollPane.getHeight(), imageBounds.getHeight()));
             return false;
         }
     }

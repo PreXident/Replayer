@@ -11,6 +11,11 @@ public class EmptyTaskBridge<T> implements ITaskBridge<T> {
     }
 
     @Override
+    public void run() {
+        //nothing
+    }
+
+    @Override
     public void updateMessage(String message) {
         //nothing
     }

@@ -7,10 +7,25 @@ import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.SimpleProvinceEvent;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.parser.climate.ClimateParser;
+import com.paradoxplaza.eu4.replayer.parser.colregion.ColRegionParser;
+import com.paradoxplaza.eu4.replayer.parser.country.CountryParser;
+import com.paradoxplaza.eu4.replayer.parser.culture.CulturesParser;
+import com.paradoxplaza.eu4.replayer.parser.defaultmap.DefaultMapParser;
+import com.paradoxplaza.eu4.replayer.parser.defines.DefinesParser;
+import com.paradoxplaza.eu4.replayer.parser.religion.ReligionsParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.BatchSaveGameParser;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 import com.paradoxplaza.eu4.replayer.utils.Utils;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import javax.imageio.ImageIO;
 
 /**
  * Class representing the replay itself with no GUI.
@@ -236,9 +252,18 @@ public class Replay {
         eventProcessor.setListener(eventListener);
     }
 
+    /**
+     * Returns color on specified coordinates from {@link #provincesBmpBuffer}.
+     * @param x x-coord
+     * @param y y-coord
+     * @return color on specified coordinates
+     */
+    public int getProvinceColor(int x, int y) {
+        final int pos = y * bufferWidth + x;
+        return provincesBmpBuffer[pos];
+    }
+
     public void initBuffers(final int width, final int height) {
-        bufferWidth = width;
-        bufferHeight = height;
         provincesBmpBuffer = new int[width*height];
         politicalBuffer = new int[width*height];
         religiousBuffer = new int[width*height];
@@ -261,6 +286,243 @@ public class Replay {
      */
     public boolean isAtStart() {
         return !dateGenerator.hasPrev();
+    }
+
+    /**
+     * Loads colonial regions from files inside /common/colonial_regions.
+     */
+    private void loadColRegions() {
+        System.out.printf(l10n("replay.load.colonials"));
+        colRegions.clear();
+        for(final InputStream cultureStream : fileManager.listFiles("common/colonial_regions")) {
+            try (final InputStream is = cultureStream) {
+                final ColRegionParser parser = new ColRegionParser(
+                        colRegions, Long.MAX_VALUE, is,
+                        new EmptyTaskBridge<Map<String, ColRegionInfo>>());
+                parser.run();
+            } catch(Exception e) { e.printStackTrace(); }
+        }
+    }
+
+    /**
+     * Loads countries from files inside /common/country_tags directory
+     * and files mentioned in them.
+     */
+    private void loadCountries() {
+        System.out.printf(l10n("replay.load.countries"));
+        countries.clear();
+
+        for (final InputStream is : fileManager.listFiles("common/country_tags")) {
+            try (final InputStream tagStream = is) {
+                final Properties tags = new Properties();
+                tags.load(tagStream);
+                for (Object key : tags.keySet()) {
+                    String path = ((String) tags.get(key)).trim();
+                    if (path.startsWith("\"")) {
+                        path = path.substring(1, path.length() - 1); //get rid of "
+                    }
+                    try (final InputStream cs = fileManager.getInputStream("common/" + path)) {
+                        final Ref<Integer> color = new Ref<>();
+                        final CountryParser parser = new CountryParser(
+                                color, Long.MAX_VALUE, cs,
+                                new EmptyTaskBridge<Ref<Integer>>());
+                        parser.run();
+                        countries.put((String) key, new CountryInfo((String) key, color.val));
+                    } catch(Exception e) { e.printStackTrace(); }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Loads religion colors from common/religions/*.
+     */
+    private void loadCultures() {
+        System.out.printf(l10n("replay.load.cultures"));
+        cultures.clear();
+        for(final InputStream cultureStream : fileManager.listFiles("common/cultures")) {
+            try (final InputStream is = cultureStream) {
+                final CulturesParser parser = new CulturesParser(
+                        new Pair<>(countries, cultures),
+                        Long.MAX_VALUE, is, new EmptyTaskBridge<Pair<Map<String, CountryInfo>, Map<String, Integer>>>());
+                parser.run();
+            } catch(Exception e) { e.printStackTrace(); }
+        }
+    }
+
+    /**
+     * Loads game data in proper order.
+     * @param finisher gets informed about map loading progress and called when finished
+     */
+    public void loadData(final ITaskBridge<Void> finisher) {
+        System.out.printf(l10n("replay.load.data"));
+        saveGame = null;
+        fileManager.loadMods();
+        loadDefines();
+        loadProvinces();
+        loadColRegions();
+        loadMap(finisher);
+        loadSeas();
+        loadWastelands();
+        loadCountries();
+        loadCultures();
+        loadReligions();
+    }
+
+    /**
+     * Loads defines from common/defines.lua.
+     */
+    private void loadDefines() {
+        System.out.printf(l10n("replay.load.defines"));
+        try (final InputStream is = fileManager.getInputStream("common/defines.lua")) {
+            final DefinesParser parser = new DefinesParser(
+                    defines, Long.MAX_VALUE, is, new EmptyTaskBridge<DefinesInfo>());
+            parser.run();
+        } catch(Exception e) { e.printStackTrace(); }
+    }
+
+    /**
+     * Starts loading the map from map/provinces.bmp.
+     */
+    private void loadMap(final ITaskBridge<?> finisher) {
+        System.out.printf(l10n("replay.map.load"));
+        finisher.updateTitle(l10n("replay.map.load"));
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    BufferedImage map;
+                    try (InputStream is = fileManager.getInputStream("map/provinces.bmp")) {
+                        map = ImageIO.read(is);
+                    } catch (FileNotFoundException e) {
+                        System.err.printf(l10n("replay.map.notfound"));
+                        map = new BufferedImage(1,1, BufferedImage.TYPE_4BYTE_ABGR);
+                    }
+
+                    bufferWidth = map.getWidth();
+                    bufferHeight = map.getHeight();
+
+                    //Copy from source to destination pixel by pixel
+                    initBuffers(bufferWidth, bufferHeight);
+                    for (int y = 0; y < bufferHeight; ++y){
+                        for (int x = 0; x < bufferWidth; ++x){
+                            int color = map.getRGB(x, y);
+                            final int pos = y * bufferWidth + x;
+                            boolean border = false;
+                            if (drawBorders) {
+                                if (x > 0 && map.getRGB(x-1, y) != color) {
+                                    border = true;
+                                } else if (x < bufferWidth - 1 && map.getRGB(x+1, y) != color) {
+                                    border = true;
+                                } else if (y > 0 && map.getRGB(x, y-1) != color) {
+                                    border = true;
+                                } else if (y < bufferHeight - 1 && map.getRGB(x, y+1) != color) {
+                                    border = true;
+                                }
+                            }
+                            if (border) {
+                                color = borderColor;
+                                borders.add(pos);
+                            } else {
+                                final ProvinceInfo province = colors.get(color);
+                                if (province != null) {
+                                    province.points.add(pos);
+                                } else {
+                                    System.err.printf(l10n("replay.map.unknowncolor"), x, y, color);
+                                }
+                            }
+                            provincesBmpBuffer[pos] = color;
+                            politicalBuffer[pos] = color;
+                            religiousBuffer[pos] = color;
+                            culturalBuffer[pos] = color;
+                            technologySeparateBuffer[pos] = color;
+                            technologyCombinedBuffer[pos] = color;
+                            finisher.updateProgress(y * bufferWidth + x, bufferHeight * bufferWidth);
+                        }
+                    }
+
+                    for(ProvinceInfo info : provinces.values()) {
+                        info.calculateCenter(bufferWidth);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                System.out.printf(l10n("replay.map.loaded"));
+                finisher.run();
+            }
+        }, "MapLoader").start();
+    }
+
+    /**
+     * Loads provinces from map/definition.csv.
+     */
+    private void loadProvinces() {
+        System.out.printf(l10n("replay.provinces.load"));
+        provinces.clear();
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(fileManager.getInputStream("map/definition.csv"), StandardCharsets.ISO_8859_1));
+            //skip first line
+            reader.readLine();
+            String line = line = reader.readLine();
+            while (line != null) {
+                if (line.isEmpty()) {
+                    line = reader.readLine();
+                    continue;
+                }
+                final String[] parts = line.split(";");
+                final int color = Utils.toColor(
+                        Integer.parseInt(parts[1]),
+                        Integer.parseInt(parts[2]),
+                        Integer.parseInt(parts[3]));
+                final ProvinceInfo province = new ProvinceInfo(parts[0], parts[4], color);
+                provinces.put(parts[0], province);
+                final ProvinceInfo original = colors.put(color, province);
+                if (original != null) {
+                    throw new RuntimeException(String.format(l10n("replay.provinces.error"), parts[0], original));
+                }
+                line = reader.readLine();
+            }
+        } catch (FileNotFoundException e) {
+            System.err.printf(l10n("replay.provinces.notfound"));
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) { }
+            }
+        }
+        if (rnw) {
+            final ProvinceInfo sea = new ProvinceInfo("SEA", "SEA", Utils.SEA_COLOR);
+            sea.isSea = true;
+            provinces.put(sea.id, sea);
+            colors.put(sea.color, sea);
+            final ProvinceInfo wasteland = new ProvinceInfo("WASTELAND", "WASTELAND", Utils.WASTELAND_COLOR);
+            wasteland.isWasteland = true;
+            provinces.put(wasteland.id, wasteland);
+            colors.put(wasteland.color, wasteland);
+        }
+    }
+
+    /**
+     * Loads religion colors from common/religions/*.
+     */
+    private void loadReligions() {
+        System.out.printf(l10n("replay.load.religions"));
+        religions.clear();
+        for(final InputStream religionStream : fileManager.listFiles("common/religions")) {
+            try (final InputStream is = religionStream) {
+                final ReligionsParser parser = new ReligionsParser(
+                        religions, Long.MAX_VALUE, is,
+                        new EmptyTaskBridge<Map<String, Integer>>());
+                parser.run();
+            } catch(Exception e) { e.printStackTrace(); }
+        }
     }
 
     /**
@@ -382,6 +644,32 @@ public class Replay {
         }
         setEventListener(listenerBackup);
         bridge.updateValue(saveGame);
+    }
+
+    /**
+     * Loads sea provinces from map/default.map.
+     */
+    private void loadSeas() {
+        System.out.printf(l10n("replay.load.seas"));
+        try (final InputStream is = fileManager.getInputStream("/map/default.map")) {
+            final DefaultMapParser parser = new DefaultMapParser(
+                    provinces, Long.MAX_VALUE, is,
+                    new EmptyTaskBridge<Map<String, ProvinceInfo>>());
+            parser.run();
+        } catch(Exception e) { e.printStackTrace(); }
+    }
+
+    /**
+     * Loads wasteland provinces from map/climate.txt.
+     */
+    private void loadWastelands() {
+        System.out.printf(l10n("replay.load.wastelands"));
+        try (final InputStream is =  fileManager.getInputStream("/map/climate.txt")) {
+            final ClimateParser parser = new ClimateParser(
+                    provinces, Long.MAX_VALUE, is,
+                    new EmptyTaskBridge<Map<String, ProvinceInfo>>());
+            parser.run();
+        } catch(Exception e) { e.printStackTrace(); }
     }
 
     /**
