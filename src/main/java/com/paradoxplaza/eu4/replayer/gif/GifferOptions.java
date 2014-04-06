@@ -21,28 +21,48 @@ public class GifferOptions {
     @Parameter(
             arity = 1,
             description = "path to replayer.properties",
-            names = { "-p", "/P", "--properties" })
+            names = { "-s", "/S", "--settings" })
     String properties = "replayer.properties";
 
-    /** Which buffer should be giffed. */
+    /** Flag indicating whether political mapmode should be giffed. */
     @Parameter(
-            arity = 1,
-            description = "which mapmode should be giffed?",
-            names = { "-m", "/M", "--mapmode" })
-    Buffer buffer = Buffer.POLITICAL;
+            description = "should political mapmode be giffed? (default one, if none specified)",
+            names = { "-p", "/P", "--political" })
+    boolean political = false;
+
+    /** Flag indicating whether religious mapmode should be giffed. */
+    @Parameter(
+            description = "should cultural mapmode be giffed?",
+            names = { "-r", "/R", "--religious" })
+    boolean religious = false;
+
+    /** Flag indicating whether religious mapmode should be giffed. */
+    @Parameter(
+            description = "should cultural mapmode be giffed?",
+            names = { "-c", "/C", "--cultural" })
+    boolean cultural = false;
+
+    /** Flag indicating whether separate technological mapmode should be giffed. */
+    @Parameter(
+            description = "should separate technological mapmode be giffed?",
+            names = { "-t1", "/T1", "--technological-separate" })
+    boolean technologicalSeparate = false;
+
+    /** Flag indicating whether combined technological mapmode should be giffed. */
+    @Parameter(
+            description = "should combined technological mapmode be giffed?",
+            names = { "-t2", "/T2", "--technological-combined" })
+    boolean technologicalCombined = false;
+
+    /** Directory containing the saves to be loaded. */
+    @Parameter(
+            description = "directory with saves to load, ignored when list of saves is provided",
+            names = { "-d", "/D", "--directory" })
+    String directory = null;
 
     /** List of saves to load. */
     @Parameter(
             description = "[list of saves to load]",
             converter = StringToFileConverter.class)
     List<File> files = new ArrayList<>();
-
-    /** Which buffer should be giffed. */
-    public enum Buffer {
-        POLITICAL,
-        RELIGIOUS,
-        CULTURAL,
-        TECHNOLOGICAL_COMBINED,
-        TECHNOLOGICAL_SEPARATE
-    };
 }

@@ -8,9 +8,9 @@ import com.paradoxplaza.eu4.replayer.EventProcessor;
 import com.paradoxplaza.eu4.replayer.Replay;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.Utils;
-import com.paradoxplaza.eu4.replayer.gif.GifferOptions.Buffer;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.utils.IgnoreCaseFileNameComparator;
+import com.paradoxplaza.eu4.replayer.utils.Pair;
 import com.paradoxplaza.eu4.replayer.utils.UnclosableStream;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -18,9 +18,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Semaphore;
 import javax.imageio.stream.FileImageOutputStream;
@@ -32,30 +36,6 @@ import javax.imageio.stream.ImageOutputStream;
 public class Giffer {
 
     /**
-     * Returns buffer from replay according to buffer enum.
-     * @param buffer which buffer to chose
-     * @param replay buffer container
-     * @return buffer from replay according to buffer enum
-     */
-    static private int[] choseBuffer(
-            final Buffer buffer, final Replay replay) {
-        switch(buffer) {
-            case POLITICAL:
-                return replay.politicalBuffer;
-            case RELIGIOUS:
-                return replay.religiousBuffer;
-            case CULTURAL:
-                return replay.culturalBuffer;
-            case TECHNOLOGICAL_COMBINED:
-                return replay.technologyCombinedBuffer;
-            case TECHNOLOGICAL_SEPARATE:
-                return replay.technologySeparateBuffer;
-            default:
-                throw new IllegalArgumentException("Uknown buffer type!");
-        }
-    }
-
-    /**
      * Loads specified saves and creates gif.
      * @param args command line arguments
      * @throws InterruptedException should not happen
@@ -64,15 +44,34 @@ public class Giffer {
         final Properties settings = new Properties(Utils.loadDefaultJarProperties());
         Utils.resetDefaultLocale(settings.getProperty("locale.language"));
         //
+        //parse command line options
         final GifferOptions options = new GifferOptions();
         final JCommander jCommander = new JCommander(options, args);
         jCommander.setProgramName("java -cp replayer.jar com.paradoxplaza.eu4.replayer.gif.Giffer"); //set name in usage
-        if (options.help || options.files.isEmpty()) {
+        if (options.help
+                || (options.files.isEmpty() && options.directory == null )) {
             jCommander.usage();
             return;
         }
-        Collections.sort(options.files, new IgnoreCaseFileNameComparator());
+        final List<File> files = new ArrayList<>();
+        if (options.files.isEmpty()) {
+            final File directory = new File(options.directory);
+            if (!directory.isDirectory()) {
+                System.out.printf(l10n("giffer.directory.error"), options.directory);
+                return;
+            }
+            files.addAll(Arrays.asList(directory.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith(".eu4");
+                }
+            })));
+        } else {
+            files.addAll(options.files);
+        }
+        Collections.sort(files, new IgnoreCaseFileNameComparator());
         //
+        //load properties
         System.out.printf(l10n("app.properties.loading"), options.properties);
         try (final InputStream is =
                 options.properties.equals("-") ? new UnclosableStream(System.in)
@@ -99,6 +98,7 @@ public class Giffer {
             }
         }
         //
+        //prepare replay
         final Replay replay = new Replay(settings);
         final Semaphore lock = new Semaphore(1);
         lock.acquire();
@@ -108,20 +108,60 @@ public class Giffer {
                 lock.release();
             }
         });
-        lock.acquire();
-        final int[] buffer = choseBuffer(options.buffer, replay);
-        final String name = options.files.get(options.files.size() - 1).getAbsolutePath();
-        final Giffer giffer = new Giffer(settings, replay.bufferWidth, replay.bufferHeight, name);
+        lock.acquire(); //wait for completation of loading data
         //
-        replay.loadSaves(new EmptyTaskBridge<SaveGame>(), EventProcessor.defaultListener, options.files);
+        //prepare giffers
+        final String name = files.get(files.size() - 1).getAbsolutePath();
+        final List<Pair<int[], Giffer>> giffers = new ArrayList<>();
+        if (options.cultural) {
+            final int[] buffer = replay.culturalBuffer;
+            final Giffer giffer = new Giffer(settings, replay.bufferWidth, replay.bufferHeight, name + ".cultural");
+            final Pair<int[], Giffer> pair = new Pair<>(buffer, giffer);
+            giffers.add(pair);
+        }
+        if (options.religious) {
+            final int[] buffer = replay.religiousBuffer;
+            final Giffer giffer = new Giffer(settings, replay.bufferWidth, replay.bufferHeight, name + ".religious");
+            final Pair<int[], Giffer> pair = new Pair<>(buffer, giffer);
+            giffers.add(pair);
+        }
+        if (options.technologicalCombined) {
+            final int[] buffer = replay.technologyCombinedBuffer;
+            final Giffer giffer = new Giffer(settings, replay.bufferWidth, replay.bufferHeight, name + ".techcombined");
+            final Pair<int[], Giffer> pair = new Pair<>(buffer, giffer);
+            giffers.add(pair);
+        }
+        if (options.technologicalSeparate) {
+            final int[] buffer = replay.technologySeparateBuffer;
+            final Giffer giffer = new Giffer(settings, replay.bufferWidth, replay.bufferHeight, name + ".techseparate");
+            final Pair<int[], Giffer> pair = new Pair<>(buffer, giffer);
+            giffers.add(pair);
+        }
+        if (options.political || giffers.isEmpty()) { //if no mapmode specified, use political
+            final int[] buffer = replay.politicalBuffer;
+            final Giffer giffer = new Giffer(settings, replay.bufferWidth, replay.bufferHeight, name + ".political");
+            final Pair<int[], Giffer> pair = new Pair<>(buffer, giffer);
+            giffers.add(pair);
+        }
+        //
+        replay.loadSaves(new EmptyTaskBridge<SaveGame>() {
+            @Override
+            public void updateTitle(final String title) {
+                System.out.println(title);
+            }
+        }, EventProcessor.defaultListener, files);
         replay.setDateListener(new DateGenerator.IDateListener() {
             @Override
             public void update(Date date, double progress) {
-                giffer.updateGif(buffer, date);
+                for (Pair<int[], Giffer> p : giffers) {
+                    p.getSecond().updateGif(p.getFirst(), date);
+                }
             }
         });
         replay.skipTo(replay.saveGame.date);
-        giffer.endGif();
+        for (Pair<int[], Giffer> p : giffers) {
+            p.getSecond().endGif();
+        }
     }
 
     /**
