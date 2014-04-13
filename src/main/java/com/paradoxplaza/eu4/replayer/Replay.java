@@ -388,7 +388,7 @@ public class Replay {
     private void loadMap(final ITaskBridge<?> finisher) {
         System.out.printf(l10n("replay.map.load"));
         finisher.updateTitle(l10n("replay.map.load"));
-        new Thread(new Runnable() {
+        final Thread mapLoader = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -451,7 +451,9 @@ public class Replay {
                 System.out.printf(l10n("replay.map.loaded"));
                 finisher.run();
             }
-        }, "MapLoader").start();
+        }, "MapLoader");
+        mapLoader.setDaemon(true);
+        mapLoader.start();
     }
 
     /**
