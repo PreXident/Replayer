@@ -323,6 +323,7 @@ public class ReplayerController implements Initializable {
         }
         if (timeline != null) {
             timeline.stop();
+            timeline = null;
             lock.release();
             return;
         }
@@ -552,6 +553,7 @@ public class ReplayerController implements Initializable {
                 progressBar.progressProperty().unbind();
                 progressBar.progressProperty().set(replay.dateGenerator.getProgress());
                 replay.setDateListener(dateListener);
+                replay.setEventListener(standardListener);
                 dateEdit.setText(replay.getDate().toString());
                 imageView.setImage(output);
                 new JavascriptBridge().prov(settings.getProperty("center.id", "1"));
@@ -598,6 +600,7 @@ public class ReplayerController implements Initializable {
         }
         if (timeline != null) {
             timeline.stop();
+            timeline = null;
             lock.release();
             return;
         }
@@ -1374,6 +1377,7 @@ public class ReplayerController implements Initializable {
                     dateEdit.setText(date.toString());
                     statusLabel.textProperty().unbind();
                     statusLabel.setText("");
+                    progressBar.progressProperty().unbind();
                     progressBar.progressProperty().set(progress);
                 }
             });
