@@ -15,6 +15,12 @@ import java.util.Set;
  */
 public class SaveGame {
 
+    /** Year 1 is speacial, we will treat it as null. */
+    static private final Date YEAR1 = new Date((short) 1, (byte) 1, (byte) 1);
+
+    /** Year 2 is speacial, we will treat it as null. */
+    static private final Date YEAR2 = new Date((short) 1, (byte) 1, (byte) 1);
+
     /** Current date, meaning the end date of the SaveGame. */
     public Date date = new Date();
 
@@ -43,7 +49,10 @@ public class SaveGame {
      * @param date date of the event
      * @param event displayable event
      */
-    public void addEvent(final Date date, final Event event) {
+    public void addEvent(Date date, final Event event) {
+        if (YEAR1.equals(date) || YEAR2.equals(date)) {
+            date = null;
+        }
         final List<Event> list = getEventList(date);
         list.add(event);
     }
@@ -53,7 +62,10 @@ public class SaveGame {
      * @param date date if the tagChange
      * @param tagChange TagChange to be added
      */
-    public void addEvent(final Date date, final TagChange tagChange) {
+    public void addEvent(Date date, final TagChange tagChange) {
+        if (YEAR1.equals(date) || YEAR2.equals(date)) {
+            date = null;
+        }
         final List<Event> list = getEventList(date);
         list.add(0, tagChange); //tag changes need to be first on that day
     }
