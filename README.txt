@@ -88,7 +88,10 @@ Feature subjects.as.overlord is not perfect, as it can display only relations th
 Borders and subjects as overlords can be set in settings (restart is needed however)
 Path to EU4 directory can be loaded from environment variable EU4_HOME if not specified in the property file
 Added GUI for controlling gif output
-Gifs can be created from command line without GUI, run "giffer.bat -h" for more info; if you are using java7, you need to add jfxrt.jar to the classpath!
+Gifs can be created from command line without GUI, run "giffer.bat -h" for more info
+When adding events for special dates 2.1.1 and 1.1.1 they are inserted to null dates instead
+Exiting when map loading quits immediately instead of running in background till map is loaded
+New way of handling tag changes, it should be now possible to change tags multiple times, create one nation several times, etc.
 
 1.5
 Batch Saves (thx to Penguintopia) - you can now select multiple saves to be replayed, they will be sorted alphabetically and information from every save above the first one will be added to the first one successively (this is necessary for technology mapmode and others that use information stored in save outside history)

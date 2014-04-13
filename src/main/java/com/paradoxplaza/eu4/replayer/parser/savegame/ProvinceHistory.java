@@ -1,6 +1,5 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
-import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.Building;
@@ -24,10 +23,11 @@ import com.paradoxplaza.eu4.replayer.events.RevoltRisk;
 import com.paradoxplaza.eu4.replayer.events.Tax;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.Empty;
+import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
+import com.paradoxplaza.eu4.replayer.utils.WritableValue;
 import java.util.regex.Pattern;
-import javafx.beans.value.WritableValue;
 
 /**
  * Processes province history.
@@ -360,11 +360,6 @@ class ProvinceHistory extends CompoundState<SaveGame> {
      * Mimicks WritableValue, but adds event to saveGame when value is written.
      */
     abstract class SimpleWriteListener implements WritableValue<String> {
-
-        @Override
-        public final String getValue() {
-            return null; //we remember nothing
-        }
 
         @Override
         public final void setValue(final String word) {

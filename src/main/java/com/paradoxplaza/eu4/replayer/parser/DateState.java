@@ -1,7 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
 import com.paradoxplaza.eu4.replayer.Date;
-import javafx.beans.value.WritableValue;
+import com.paradoxplaza.eu4.replayer.utils.WritableValue;
 
 /**
  * Processes dates in format xxx=Y.M.D.

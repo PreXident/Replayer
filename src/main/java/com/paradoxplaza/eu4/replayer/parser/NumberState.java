@@ -1,6 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
-import javafx.beans.value.WritableValue;
+import com.paradoxplaza.eu4.replayer.utils.WritableValue;
 
 /**
  * Processes string values in format xxx=STRING.

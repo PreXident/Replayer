@@ -10,8 +10,8 @@ import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
+import com.paradoxplaza.eu4.replayer.utils.WritableValue;
 import java.util.regex.Pattern;
-import javafx.beans.value.WritableValue;
 
 /**
  * Processes country history.
@@ -113,11 +113,6 @@ class CountryHistory extends CompoundState<SaveGame> {
      * Mimicks WritableValue, but adds event to saveGame when value is written.
      */
     class TagChangeWriteListener implements WritableValue<String> {
-
-        @Override
-        public final String getValue() {
-            return null; //we remember nothing
-        }
 
         @Override
         public final void setValue(final String word) {

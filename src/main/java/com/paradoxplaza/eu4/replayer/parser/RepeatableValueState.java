@@ -2,7 +2,7 @@ package com.paradoxplaza.eu4.replayer.parser;
 
 import java.util.HashSet;
 import java.util.Set;
-import javafx.beans.value.WritableValue;
+import com.paradoxplaza.eu4.replayer.utils.WritableValue;
 
 /**
  * Stores repeated strings provided in format xxx=VALUE.
@@ -31,11 +31,6 @@ public class RepeatableValueState<Context> extends ValueState<Context, String> i
     @Override
     protected String createOutput(String word) {
         return word;
-    }
-
-    @Override
-    public String getValue() {
-        return null;
     }
 
     /**

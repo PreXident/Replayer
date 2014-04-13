@@ -1,7 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
-import javafx.beans.value.WritableValue;
+import com.paradoxplaza.eu4.replayer.utils.WritableValue;
 
 /**
  * Parent of states processing xxx=VALUE.
