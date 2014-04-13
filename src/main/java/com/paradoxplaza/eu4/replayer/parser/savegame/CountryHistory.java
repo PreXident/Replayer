@@ -1,13 +1,15 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
-import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.Empty;
+import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
+import com.paradoxplaza.eu4.replayer.utils.Pair;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 import java.util.regex.Pattern;
 import javafx.beans.value.WritableValue;
 
@@ -20,7 +22,7 @@ class CountryHistory extends CompoundState<SaveGame> {
     static final Pattern DATE = Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+");
 
     /** Country tag. */
-    String tag;
+    Ref<String> tag;
 
     /** Date of this history. */
     Date date;
@@ -35,19 +37,19 @@ class CountryHistory extends CompoundState<SaveGame> {
     final TagChangeWriteListener tagChange = new TagChangeWriteListener();
 
     /** State processsing simple events. */
-    StringState<SaveGame> stringState = new StringState<>(this);
+    final StringState<SaveGame> stringState = new StringState<>(this);
 
     /** State to ignore uninteresting events. */
-    Ignore<SaveGame> ignore = new Ignore<>(this);
+    final Ignore<SaveGame> ignore = new Ignore<>(this);
 
     /** State to ignore empty { }. */
-    Empty<SaveGame> empty = new Empty<>(this);
+    final Empty<SaveGame> empty = new Empty<>(this);
 
     /**
      * Only constructor.
      * @param parent parent state
      */
-    public CountryHistory(final State<SaveGame> parent) {
+    public CountryHistory(final CompoundState<SaveGame> parent) {
         super(parent);
     }
 
@@ -66,7 +68,7 @@ class CountryHistory extends CompoundState<SaveGame> {
      * @param tag new country tag
      * @return this
      */
-    public CountryHistory withTag(final String tag) {
+    public CountryHistory withTag(final Ref<String> tag) {
         this.tag = tag;
         return this;
     }
@@ -81,7 +83,7 @@ class CountryHistory extends CompoundState<SaveGame> {
 
     @Override
     public void compoundReset() {
-        tag = null;
+        tag = new Ref<>();
         date = null;
     }
 
@@ -119,9 +121,19 @@ class CountryHistory extends CompoundState<SaveGame> {
 
         @Override
         public final void setValue(final String word) {
-            final TagChange tagChange = new TagChange(tag, word);
+            if (word.equals(tag.val)) {
+                return;
+            }
+            final Ref<String> oldTag = tag;
+            final Ref<String> newTag = new Ref<>(oldTag.val);
+            oldTag.val = word;
+            tag = newTag;
+            if (parent instanceof CountryHistory) {
+                ((CountryHistory) parent).tag = newTag;
+            }
+            final TagChange tagChange = new TagChange(newTag, word);
             saveGame.addEvent(date, tagChange);
-            saveGame.tagChanges.put(tag, date);
+            saveGame.tagChanges.add(new Pair<>(date, tagChange));
         }
     }
 }

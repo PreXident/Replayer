@@ -3,6 +3,7 @@ package com.paradoxplaza.eu4.replayer;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.FreeSubject;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
+import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,8 +31,8 @@ public class SaveGame {
     /** Timeline containing displayable events. */
     public final Map<Date, List<Event>> timeline = new HashMap<>();
 
-    /** Set of country tags that appeard during game through tag changes. */
-    public final Map<String, Date> tagChanges = new HashMap<>();
+    /** List of country tags that appeared during game through tag changes. */
+    public final List<Pair<Date, TagChange>> tagChanges = new ArrayList<>();
 
     /** Colors of dynamic countries. */
     public final Map<String, Integer> dynamicCountriesColors = new HashMap<>();
@@ -83,7 +84,7 @@ public class SaveGame {
      * @param other the other save game
      */
     public void concatenate(final SaveGame other) {
-        tagChanges.putAll(other.tagChanges);
+        tagChanges.addAll(other.tagChanges);
         dynamicCountriesColors.putAll(other.dynamicCountriesColors);
         for (Date d : new DateGenerator(date.prev(), other.date)) {
             getEventList(d).addAll(other.getEventList(d));

@@ -64,7 +64,8 @@ public class EventProcessor {
     IEventListener listener = defaultListener;
 
     /**
-     * Sets listener to default one.
+     * Only constructor.
+     * @param replay replaying replay
      */
     public EventProcessor(final Replay replay) {
         this.replay = replay;
@@ -112,9 +113,6 @@ public class EventProcessor {
     public boolean changeController(final Date date,
             final String provinceID, final String newControllerTag) {
         final CountryInfo newController = replay.countries.get(newControllerTag);
-        if (newController != null && newController.expectingTagChange != null && newController.expectingTagChange.compareTo(date) > 0) {
-            return false;
-        }
         final ProvinceInfo province = replay.provinces.get(provinceID);
         final String prevControllerTag = province.controller;
         final CountryInfo previousController = replay.countries.get(province.controller);
@@ -236,9 +234,6 @@ public class EventProcessor {
         final CountryInfo previousController = replay.countries.get(province.controller);
         final CountryInfo newOwner = replay.countries.get(newOwnerTag);
         final CountryInfo newController = replay.countries.get(newControllerTag);
-        if (newOwner != null && newOwner.expectingTagChange != null && newOwner.expectingTagChange.compareTo(date) > 0) {
-            return false;
-        }
         if (previousOwner != null) {
             previousOwner.owns.remove(province.id);
         }
@@ -525,9 +520,7 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean process(final Date date, final TagChange tagChange) {
-        final CountryInfo to = replay.countries.get(tagChange.toTag);
-        to.expectingTagChange = null;
-        return changeTag(date, tagChange.toTag, tagChange.fromTag);
+        return changeTag(date, tagChange.tag.val, tagChange.fromTag);
     }
 
     /**
@@ -683,9 +676,7 @@ public class EventProcessor {
      * @return true if event should be logged, false otherwise
      */
     public boolean unprocess(final Date date, final TagChange tagChange) {
-        final CountryInfo to = replay.countries.get(tagChange.toTag);
-        to.expectingTagChange = date;
-        return changeTag(date, tagChange.fromTag, tagChange.toTag);
+        return changeTag(date, tagChange.fromTag, tagChange.tag.val);
     }
 
     /**

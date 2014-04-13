@@ -6,6 +6,7 @@ import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.SimpleProvinceEvent;
+import com.paradoxplaza.eu4.replayer.events.TagChange;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.climate.ClimateParser;
 import com.paradoxplaza.eu4.replayer.parser.colregion.ColRegionParser;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import javax.imageio.ImageIO;
@@ -570,13 +572,14 @@ public class Replay {
         for (Map.Entry<String, Integer> c : saveGame.dynamicCountriesColors.entrySet()) {
             countries.put(c.getKey(), new CountryInfo(c.getKey(), c.getValue()));
         }
-        for (Map.Entry<String, Date> change : saveGame.tagChanges.entrySet()) {
-            final String tag = change.getKey();
-            final CountryInfo country = countries.get(tag);
+        for (Pair<Date, TagChange> pair : saveGame.tagChanges) {
+            final CountryInfo country = countries.get(pair.getSecond().tag.val);
             if (country != null) {
-                country.expectingTagChange = change.getValue();
+//                country.expectingTagChange = pair.getFirst();
+//                country.tagChangeFrom = pair.getSecond().fromTag;
+                country.tagChangeFrom.add(pair.getSecond().fromTag);
             } else {
-                System.err.printf(l10n("replay.tagchange.unknowntag"), tag);
+                System.err.printf(l10n("replay.tagchange.unknowntag"), pair.getSecond().tag.val);
             }
         }
 
@@ -738,13 +741,64 @@ public class Replay {
      */
     class DateListener implements IDateListener {
 
+        List<Event> filter(List<Event> events) {
+            if (events == null) {
+                return null;
+            }
+            final List<Event> result = new ArrayList<>();
+            final Map<String, List<Owner>> newOwners = new HashMap<>();
+            //get owner events
+            for (Event event : events) {
+                if (event instanceof Owner) {
+                    final Owner owner = (Owner) event;
+                    List<Owner> list = newOwners.get(owner.id);
+                    if (list == null) {
+                        list = new ArrayList<>();
+                        newOwners.put(owner.id, list);
+                    }
+                    list.add(owner);
+                    newOwners.put(owner.id, list);
+                } else {
+                    result.add(event);
+                }
+            }
+            //filter owner changes
+            for (Entry<String, List<Owner>> entry : newOwners.entrySet()) {
+                final List<Owner> list = entry.getValue();
+                if (list.size() < 2) {
+                    result.addAll(list);
+                } else {
+                    final Set<String> others = new HashSet<>();
+                    for (Owner owner : list) {
+                        final CountryInfo newOwner = countries.get(owner.value);
+                        if (newOwner == null) {
+                            continue;
+                        }
+                        boolean ignore = false;
+                        for (String from : newOwner.tagChangeFrom) {
+                            if (others.contains(from)) {
+                                ignore = true;
+                                break;
+                            }
+                        }
+                        if (!ignore) {
+                            result.add(owner);
+                        }
+                        others.add(owner.value);
+                    }
+                }
+            }
+            return result;
+        }
+
         @Override
         public void update(final Date date, final double progress) {
             assert direction != null : l10n("replay.direction.unknown");
             switch (direction) {
                 case FORWARD:
                     final List<Event> forwardsEvents = saveGame.timeline.get(date);
-                    eventProcessor.processEvents(date, forwardsEvents);
+                    //filterForTagChanges(forwardsEvents);
+                    eventProcessor.processEvents(date, filter(forwardsEvents));
                     break;
                 case BACKWARD:
                     final Date backwardDate = date.next();

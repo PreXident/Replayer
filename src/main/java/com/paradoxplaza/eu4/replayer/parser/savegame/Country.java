@@ -2,9 +2,15 @@ package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
+import com.paradoxplaza.eu4.replayer.events.Event;
+import com.paradoxplaza.eu4.replayer.events.TagChange;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.parser.State;
+import com.paradoxplaza.eu4.replayer.utils.Pair;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Processed TAG={...}.
@@ -66,7 +72,7 @@ class Country extends CompoundState<SaveGame> {
     public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         switch (word) {
             case "history":
-                return history.withTag(tag);
+                return history.withTag(new Ref<>(tag));
             case "map_color":
                 return countryColor.withCountry(tag);
             case "technology":

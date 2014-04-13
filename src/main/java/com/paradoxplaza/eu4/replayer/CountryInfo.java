@@ -1,6 +1,8 @@
 package com.paradoxplaza.eu4.replayer;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -23,8 +25,8 @@ public class CountryInfo {
     /** Set of provinces owned by this country. */
     public final Set<String> owns = new HashSet<>();
 
-    /** Date the country will be created by tag change. */
-    public Date expectingTagChange = null;
+    /** Country tags changing to this country. */
+    public List<String> tagChangeFrom = new ArrayList<>();
 
     /** Set of subject nations' tags. */
     public final Set<String> subjects = new HashSet<>();
@@ -54,7 +56,7 @@ public class CountryInfo {
     public void reset() {
         controls.clear();
         owns.clear();
-        expectingTagChange = null;
+        tagChangeFrom.clear();
         overlord = null;
         subjects.clear();
         adm = 0;

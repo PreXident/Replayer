@@ -1,17 +1,15 @@
 package com.paradoxplaza.eu4.replayer.events;
 
-import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.EventProcessor;
+import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 
 /**
  * Represents country tag change.
  */
 @AlwaysNotable
-public class TagChange extends Event {
-
-    /** Target tag. */
-    public final String toTag;
+public class TagChange extends CountryEvent {
 
     /** Source tag. */
     public final String fromTag;
@@ -21,8 +19,8 @@ public class TagChange extends Event {
      * @param toTag target tag
      * @param fromTag what tag changes
      */
-    public TagChange(final String toTag, final String fromTag) {
-        this.toTag = toTag;
+    public TagChange(final Ref<String> toTag, final String fromTag) {
+        super(toTag);
         this.fromTag = fromTag;
     }
 
@@ -38,6 +36,6 @@ public class TagChange extends Event {
 
     @Override
     public String toString() {
-        return String.format(l10n("event.tagchange"), toTag, fromTag);
+        return String.format(l10n("event.tagchange"), tag.val, fromTag);
     }
 }
