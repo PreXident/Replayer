@@ -5,6 +5,7 @@ import com.paradoxplaza.eu4.replayer.EventProcessor.IEventListener;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
+import com.paradoxplaza.eu4.replayer.events.ProvinceEvent;
 import com.paradoxplaza.eu4.replayer.events.SimpleProvinceEvent;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
@@ -28,6 +29,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -262,6 +264,79 @@ public class Replay {
     public int getProvinceColor(int x, int y) {
         final int pos = y * bufferWidth + x;
         return provincesBmpBuffer[pos];
+    }
+
+    /**
+     * Copies contents of lists unless they are duplicite in terms of tag changes.
+     * @param result target list
+     * @param lists lists to filter
+     */
+    private void addNonDuplicates(final List<Event> result, Collection<List<SimpleProvinceEvent>> lists) {
+        for (List<SimpleProvinceEvent> list : lists) {
+            if (list.size() < 2) {
+                result.addAll(list);
+            } else {
+                final Set<String> others = new HashSet<>();
+                for (SimpleProvinceEvent event : list) {
+                    final CountryInfo newController = countries.get(event.value);
+                    if (newController == null) {
+                        continue;
+                    }
+                    boolean ignore = false;
+                    for (String from : newController.tagChangeFrom) {
+                        if (others.contains(from)) {
+                            ignore = true;
+                            break;
+                        }
+                    }
+                    if (!ignore) {
+                        result.add(event);
+                    }
+                    others.add(event.value);
+                }
+            }
+        }
+    }
+
+    /**
+     * Filters excessed Controller and Owner events related to tag changing.
+     * @param events list of events to filter
+     * @return filtered list
+     */
+    private List<Event> filterExcessEvents(List<Event> events) {
+        if (events == null) {
+            return null;
+        }
+        final List<Event> result = new ArrayList<>();
+        final Map<String, List<SimpleProvinceEvent>> newOwners = new HashMap<>();
+        final Map<String, List<SimpleProvinceEvent>> newControllers = new HashMap<>();
+        //get owner events
+        for (Event event : events) {
+            if (event instanceof Owner) {
+                final Owner owner = (Owner) event;
+                List<SimpleProvinceEvent> list = newOwners.get(owner.id);
+                if (list == null) {
+                    list = new ArrayList<>();
+                    newOwners.put(owner.id, list);
+                }
+                list.add(owner);
+                newOwners.put(owner.id, list);
+            } else if (event instanceof Controller) {
+                final Controller controller = (Controller) event;
+                List<SimpleProvinceEvent> list = newControllers.get(controller.id);
+                if (list == null) {
+                    list = new ArrayList<>();
+                    newControllers.put(controller.id, list);
+                }
+                list.add(controller);
+                newControllers.put(controller.id, list);
+            } else {
+                result.add(event);
+            }
+        }
+        addNonDuplicates(result, newControllers.values()); //filter controller changes
+        addNonDuplicates(result, newOwners.values()); //filter owner changes
+        return result;
     }
 
     public void initBuffers(final int width, final int height) {
@@ -575,8 +650,6 @@ public class Replay {
         for (Pair<Date, TagChange> pair : saveGame.tagChanges) {
             final CountryInfo country = countries.get(pair.getSecond().tag.val);
             if (country != null) {
-//                country.expectingTagChange = pair.getFirst();
-//                country.tagChangeFrom = pair.getSecond().fromTag;
                 country.tagChangeFrom.add(pair.getSecond().fromTag);
             } else {
                 System.err.printf(l10n("replay.tagchange.unknowntag"), pair.getSecond().tag.val);
@@ -588,7 +661,7 @@ public class Replay {
         bridge.updateTitle(l10n("replay.world.init"));
         final IEventListener listenerBackup = getEventListener();
         setEventListener(initializationListener);
-        eventProcessor.processEvents(null, new ProgressIterable<>(saveGame.timeline.get(null), bridge));
+        eventProcessor.processEvents(null, new ProgressIterable<>(filterExcessEvents(saveGame.timeline.get(null)), bridge));
         //
         bridge.updateTitle(l10n("replay.progressing"));
         final Date maxDate = saveGame.startDate;
@@ -597,7 +670,7 @@ public class Replay {
         final int distance = Date.calculateDistance(date, saveGame.startDate) + 1;
         while (date.compareTo(maxDate) <= 0) {
             final List<Event> events = saveGame.timeline.get(date);
-            eventProcessor.processEvents(date, events);
+            eventProcessor.processEvents(date, filterExcessEvents(events));
             bridge.updateProgress(++day, distance);
             date = date.next();
         }
@@ -741,69 +814,18 @@ public class Replay {
      */
     class DateListener implements IDateListener {
 
-        List<Event> filter(List<Event> events) {
-            if (events == null) {
-                return null;
-            }
-            final List<Event> result = new ArrayList<>();
-            final Map<String, List<Owner>> newOwners = new HashMap<>();
-            //get owner events
-            for (Event event : events) {
-                if (event instanceof Owner) {
-                    final Owner owner = (Owner) event;
-                    List<Owner> list = newOwners.get(owner.id);
-                    if (list == null) {
-                        list = new ArrayList<>();
-                        newOwners.put(owner.id, list);
-                    }
-                    list.add(owner);
-                    newOwners.put(owner.id, list);
-                } else {
-                    result.add(event);
-                }
-            }
-            //filter owner changes
-            for (Entry<String, List<Owner>> entry : newOwners.entrySet()) {
-                final List<Owner> list = entry.getValue();
-                if (list.size() < 2) {
-                    result.addAll(list);
-                } else {
-                    final Set<String> others = new HashSet<>();
-                    for (Owner owner : list) {
-                        final CountryInfo newOwner = countries.get(owner.value);
-                        if (newOwner == null) {
-                            continue;
-                        }
-                        boolean ignore = false;
-                        for (String from : newOwner.tagChangeFrom) {
-                            if (others.contains(from)) {
-                                ignore = true;
-                                break;
-                            }
-                        }
-                        if (!ignore) {
-                            result.add(owner);
-                        }
-                        others.add(owner.value);
-                    }
-                }
-            }
-            return result;
-        }
-
         @Override
         public void update(final Date date, final double progress) {
             assert direction != null : l10n("replay.direction.unknown");
             switch (direction) {
                 case FORWARD:
                     final List<Event> forwardsEvents = saveGame.timeline.get(date);
-                    //filterForTagChanges(forwardsEvents);
-                    eventProcessor.processEvents(date, filter(forwardsEvents));
+                    eventProcessor.processEvents(date, filterExcessEvents(forwardsEvents));
                     break;
                 case BACKWARD:
                     final Date backwardDate = date.next();
                     final List<Event> backwardEvents = saveGame.timeline.get(backwardDate);
-                    eventProcessor.unprocessEvents(backwardDate, backwardEvents);
+                    eventProcessor.unprocessEvents(backwardDate, filterExcessEvents(backwardEvents));
                     break;
                 default:
                     assert false : l10n("replay.direction.unknown");
