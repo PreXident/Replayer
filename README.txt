@@ -69,6 +69,13 @@ common/defines.lua
 
 In province history there's sometimes missing record of regaining province control from rebels. So in the end there are more rebel controlled provinces than there should be. If you have any idea why this is happening or how to detect this, please share!
 Feature subjects.as.overlord is not perfect, as it can display only relations that exist at save game end because others are not stored in saves. It means that a vassal who broke free later on is not displayed as part of his temporary overlord. The issue could be less serious if you replay batch of saves instead of only one file.
+There can be information loss on tag changes, history is transfered to new tag and old tag is left history-less. Consider this scenario:
+FRA accumulates some history
+FRA changes to RFR - FRA history is transfered to RFR which now contains also 'changed_tag_from="FRA"'
+RFR changes back to FRA - RFR history is transfered back to FRA and now contains 'changed_tag_from="RFR"' (this also means that FRA history contains 'changed_tag_from="FRA"' which is kind of funny)
+FRA is completely crushed and wiped from the face of Earth
+ORL (or other French minor) forms FRA - ORL history now replaces the original FRA history, so information about FRA changing to RFR and back (and also original FRA monarchs and RFR monarchs) is lost forever :-/
+In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay cannot be accurate. Multiple saves replay could help to solve this.
 
 ##################
 #Planned features#
