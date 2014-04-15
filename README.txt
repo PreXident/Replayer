@@ -95,7 +95,7 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 Borders and subjects as overlords can be set in settings (restart is needed however)
 Path to EU4 directory can be loaded from environment variable EU4_HOME if not specified in the property file
 Added GUI for controlling gif output
-Gifs can be created from command line without GUI, run "giffer.bat -h" for more info
+Gifs can be created from command line without GUI, run "giffer.bat -h" for more info, it creates giffer.log containing instructions
 When adding events for special dates 2.1.1 and 1.1.1 they are inserted to null dates instead
 Exiting when map loading quits immediately instead of running in background till map is loaded
 New way of handling tag changes, it should be now possible to change tags multiple times, create one nation several times, etc.
