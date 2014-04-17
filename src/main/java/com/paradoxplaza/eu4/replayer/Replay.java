@@ -394,6 +394,11 @@ public class Replay {
                 tags.load(tagStream);
                 for (Object key : tags.keySet()) {
                     String path = ((String) tags.get(key)).trim();
+                    //get rid of comments
+                    final int sharpPos = path.indexOf('#');
+                    if (sharpPos != -1) {
+                        path = path.substring(0, sharpPos).trim();
+                    }
                     if (path.startsWith("\"")) {
                         path = path.substring(1, path.length() - 1); //get rid of "
                     }

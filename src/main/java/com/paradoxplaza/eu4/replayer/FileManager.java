@@ -184,6 +184,7 @@ public class FileManager {
                 continue;
             }
             final String modPath = modDirPath + "/" + desc;
+            System.out.printf(l10n("mod.loading"), modPath);
             try (final InputStream is = new FileInputStream(modPath)) {
                 final ModParser parser =
                         new ModParser(mods, Long.MAX_VALUE, is, new EmptyTaskBridge<List<ModInfo>>());

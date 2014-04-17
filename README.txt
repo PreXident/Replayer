@@ -91,6 +91,10 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 #Change log#
 ############
 
+1.7
+Info is now printed when mod is about to be loaded
+Files common/country_tags/* can now contain # comments on non-separate lines
+
 1.6
 Borders and subjects as overlords can be set in settings (restart is needed however)
 Path to EU4 directory can be loaded from environment variable EU4_HOME if not specified in the property file
