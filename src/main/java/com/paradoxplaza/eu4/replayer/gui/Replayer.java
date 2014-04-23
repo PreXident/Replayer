@@ -2,7 +2,7 @@ package com.paradoxplaza.eu4.replayer.gui;
 
 import com.paradoxplaza.eu4.replayer.localization.Localizator;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
-import com.paradoxplaza.eu4.replayer.utils.UnclosableStream;
+import com.paradoxplaza.eu4.replayer.utils.UnclosableInputStream;
 import com.paradoxplaza.eu4.replayer.Utils;
 import java.io.File;
 import java.io.FileInputStream;
@@ -69,7 +69,7 @@ public class Replayer extends Application {
             propertyFile = args.get(0);
             System.out.printf(l10n("app.properties.loading"), propertyFile);
             try (final InputStream is =
-                    propertyFile.equals("-") ? new UnclosableStream(System.in)
+                    propertyFile.equals("-") ? new UnclosableInputStream(System.in)
                         : new FileInputStream(propertyFile)) {
             	 settings.load(is);
             } catch(Exception e) {

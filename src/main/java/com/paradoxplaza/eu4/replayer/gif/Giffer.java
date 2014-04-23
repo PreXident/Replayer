@@ -11,7 +11,7 @@ import com.paradoxplaza.eu4.replayer.Utils;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.utils.IgnoreCaseFileNameComparator;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
-import com.paradoxplaza.eu4.replayer.utils.UnclosableStream;
+import com.paradoxplaza.eu4.replayer.utils.UnclosableInputStream;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -74,7 +74,7 @@ public class Giffer {
         //load properties
         System.out.printf(l10n("app.properties.loading"), options.properties);
         try (final InputStream is =
-                options.properties.equals("-") ? new UnclosableStream(System.in)
+                options.properties.equals("-") ? new UnclosableInputStream(System.in)
                     : new FileInputStream(options.properties)) {
              settings.load(is);
         } catch(Exception e) {

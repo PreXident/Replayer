@@ -33,7 +33,7 @@ public class Date implements Comparable<Date> {
      * @throws IllegalArgumentException if date is invalid
      */
     static void checkDate(short year, byte month, byte day) {
-        if (year < 1 || month < 1 || month > 12 || day < 1 || day > monthsDays[month-1]) {
+        if (month < 1 || month > 12 || day < 1 || day > monthsDays[month-1]) {
             throw new IllegalArgumentException(String.format(l10n("date.invalid.3"), year, month, day));
         }
     }

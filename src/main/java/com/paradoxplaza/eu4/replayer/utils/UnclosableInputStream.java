@@ -6,7 +6,7 @@ import java.io.InputStream;
 /**
  * Simple wrapper to prevent accidantal closing of System.in.
  */
-public class UnclosableStream extends InputStream {
+public class UnclosableInputStream extends InputStream {
 
     /** Decorated stream. */
     private final InputStream stream;
@@ -15,7 +15,7 @@ public class UnclosableStream extends InputStream {
      * Only constructor.
      * @param stream InputStream to decorate
      */
-    public UnclosableStream(final InputStream stream) {
+    public UnclosableInputStream(final InputStream stream) {
         this.stream = stream;
     }
 

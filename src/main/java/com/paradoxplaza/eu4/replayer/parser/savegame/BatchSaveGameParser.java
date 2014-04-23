@@ -5,7 +5,6 @@ import com.paradoxplaza.eu4.replayer.SaveGame;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -68,7 +67,6 @@ public class BatchSaveGameParser implements Runnable {
      * @param saveGame store parse result here
      * @param index which file to process
      * @return processed save game
-     * @throws FileNotFoundException if file is not found
      */
     private SaveGame runParser(final SaveGame saveGame, final int index) {
         try {
@@ -79,7 +77,7 @@ public class BatchSaveGameParser implements Runnable {
                     saveGame, currentFile.length(), is, decoratedBridge);
             parser.run();
             return saveGame;
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return saveGame;
         }
