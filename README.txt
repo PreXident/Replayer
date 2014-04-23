@@ -84,8 +84,7 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 - saving replay to avoid parsing tens/hundreds of saves repeatedly
 - monarchs, wars, ...
 - nation focus to display PUs (properly, not only from active_relations)
-- display battles 
-- binary saves
+- display battles
 
 ############
 #Change log#
