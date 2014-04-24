@@ -961,10 +961,13 @@ public class IronmanStream extends InputStream {
             return;
         }
         final short token = (short) ((b1 << 8) + b2);
-        final TokenInfo info = tokens.get(token);
+        TokenInfo info = tokens.get(token);
         if (info == null) {
-            throw new IOException(String.format(
-                    l10n("parser.binary.token.unknown"), token & 0xFFFF));
+//            throw new IOException(String.format(
+//                    l10n("parser.binary.token.unknown"), token & 0xFFFF));
+            final String hexa = "0x" + Integer.toHexString(token & 0xFFFF).toUpperCase();
+            System.err.println("Encountered unknown token " + hexa + ", trying to recover...");
+            info = new TokenInfo("UNKNOWN_" + hexa);
         }
         if (info.output != null) {
             output = info.output == Output.NONE ? null : info.output;
