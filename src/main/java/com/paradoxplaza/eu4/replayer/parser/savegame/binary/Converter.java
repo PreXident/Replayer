@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer.parser.savegame.binary;
 
 import com.beust.jcommander.JCommander;
 import com.paradoxplaza.eu4.replayer.utils.UnclosableOutputStream;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -47,7 +48,7 @@ public class Converter {
         }
         //convert files
         for (String path : args) {
-            try (IronmanStream is = new IronmanStream(new FileInputStream(path));
+            try (IronmanStream is = new IronmanStream(new BufferedInputStream(new FileInputStream(path)));
                     OutputStream os = !options.test ?
                             new FileOutputStream(path + "txt.eu4")
                             : new UnclosableOutputStream(System.out)) {

@@ -5,6 +5,7 @@ import com.paradoxplaza.eu4.replayer.SaveGame;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.TextParser;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.IronmanStream;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
@@ -28,7 +29,8 @@ public class SaveGameParser extends TextParser<SaveGame> {
      */
     static private InputStream chooseStream(final InputStream stream)
             throws IOException {
-        final PushbackInputStream push = new PushbackInputStream(stream, 6);
+        final BufferedInputStream buff = new BufferedInputStream(stream);
+        final PushbackInputStream push = new PushbackInputStream(buff, 6);
         final byte[] bytes = new byte[6];
         push.read(bytes);
         push.unread(bytes);

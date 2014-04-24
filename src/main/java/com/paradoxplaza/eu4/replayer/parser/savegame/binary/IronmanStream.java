@@ -795,10 +795,22 @@ public class IronmanStream extends InputStream {
     static private byte[] readBytes(final InputStream is, final int count)
             throws IOException {
         final byte[] bytes = new byte[count];
-        if (is.read(bytes) != count) {
+        readBytes(is, bytes);
+        return bytes;
+    }
+
+    /**
+     * Reads count bytes from is.
+     * @param is input stream to read from
+     * @param out array to store read bytes
+     * @throws IOException when IOException occurs during reading
+     * or not enough bytes are read
+     */
+    static private void readBytes(final InputStream is, final byte[] out)
+            throws IOException {
+        if (is.read(out) != out.length) {
             throw new IOException(l10n("parser.eof.unexpected"));
         }
-        return bytes;
     }
 
     /**
@@ -856,6 +868,9 @@ public class IronmanStream extends InputStream {
 
     /** Context of the save game. */
     final LinkedList<Context> context = new LinkedList<>();
+
+    /** Accumulator of the output. */
+    final StringBuilder builder = new StringBuilder();
 
     /** Output buffer.
      * Strings to be sent up are stored here.
@@ -957,12 +972,12 @@ public class IronmanStream extends InputStream {
         if (info.list) {
             inList = true;
         }
-        final StringBuilder builder = new StringBuilder(info.text);
+        builder.setLength(0);
+        builder.append(info.text);
         if (info.processor != null) {
             info.processor.processToken(this, builder);
         }
         builder.append(' ');
-        //builder.append("\r\n");
         buff = builder.toString().getBytes(charset);
         bufPos = 0;
     }
@@ -1000,11 +1015,15 @@ public class IronmanStream extends InputStream {
      * Processes booleans.
      */
     static class BooleanProcessor extends SingleValueProcessor {
+
         @Override
         public void processValue(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            final byte[] bytes = readBytes(is.in, 1);
-            builder.append(bytes[0] > 0 ? "yes" : "no");
+            final int flag = is.in.read();
+            if (flag == -1) {
+                throw new IOException(l10n("parser.eof.unexpected"));
+            }
+            builder.append(flag > 0 ? "yes" : "no");
         }
     }
 
@@ -1037,15 +1056,19 @@ public class IronmanStream extends InputStream {
      * Processes discovered_by token.
      */
     static class DiscoveredByProcessor implements ITokenProcessor {
+
+        /** Here the next two tokens will be read. */
+        final byte[] bytes = new byte[4];
+
         @Override
         public void processToken(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            final byte[] bytes = readBytes(is.in, 4);
+            readBytes(is.in, bytes);
             final short token1 = (short) ((bytes[0] << 8) + bytes[1]);
             final short token2 = (short) ((bytes[2] << 8) + bytes[3]);
             //does the list follow?
-            if (token1 == (short) 0x0100
-                    && token2 == (short) 0x0300) {
+            if (token1 == (short) 0x0100 /*=*/
+                    && token2 == (short) 0x0300 /*{*/) {
                 is.inList = true;
                 is.output = Output.STRING;
             }
@@ -1057,14 +1080,18 @@ public class IronmanStream extends InputStream {
      * Processes closing brace }.
      */
     static class EnvoyProcessor implements ITokenProcessor {
+
+        /** Here the next two tokens will be read. */
+        final byte[] bytes = new byte[4];
+
         @Override
         public void processToken(IronmanStream is, StringBuilder builder) throws IOException {
-            final byte[] bytes = readBytes(is.in, 4);
+            readBytes(is.in, bytes);
             final short token1 = (short) ((bytes[0] << 8) + bytes[1]);
             final short token2 = (short) ((bytes[2] << 8) + bytes[3]);
             //does the list follow?
-            if (token1 == (short) 0x0100
-                    && token2 == (short) 0x0300) {
+            if (token1 == (short) 0x0100 /*=*/
+                    && token2 == (short) 0x0300 /*{*/) {
                 is.context.push(Context.ACTION_INT);
             }
             is.in.unread(bytes);
@@ -1075,15 +1102,18 @@ public class IronmanStream extends InputStream {
      * Processes floats.
      */
     static class FloatProcessor extends SingleValueProcessor {
+
+        /** Here the float bytes will be read. */
+        final byte[] bytes = new byte[4];
+
         @Override
         public void processValue(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            final byte[] bytes = readBytes(is.in, 4);
-            for(int i = 0; i < bytes.length / 2; i++) {
-                final int other = bytes.length - 1 - i;
+            readBytes(is.in, bytes);
+            for(int i = 0, o = bytes.length -1; i < bytes.length / 2; ++i, --o) {
                 final byte swap = bytes[i];
-                bytes[i] = bytes[other];
-                bytes[other] = swap;
+                bytes[i] = bytes[o];
+                bytes[o] = swap;
             }
             final ByteBuffer bb = ByteBuffer.wrap(bytes);
             final float f = bb.getFloat();
@@ -1110,15 +1140,14 @@ public class IronmanStream extends InputStream {
         /** Numeric dates are represented as number of hours since this date. */
         static final Date start = new Date((short) -5000, (byte) 1, (byte) 1);
 
+        /** Here the number bytes will be read. */
+        final byte[] bytes = new byte[4];
+
         @Override
         public void processValue(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            final byte[] bytes = readBytes(is.in, 4);
-            int number = 0;
-            for(int i = bytes.length - 1; i >= 0; --i) {
-                number <<= 8;
-                number += bytes[i] & 0xff;
-            }
+            readBytes(is.in, bytes);
+            final int number = toNumber(bytes);
             if (is.output == null) {
                 //throw new IllegalStateException(l10n("parser.binary.output.none"));
                 builder.append(number);
@@ -1155,15 +1184,19 @@ public class IronmanStream extends InputStream {
      * Processes power token.
      */
     static class PowerProcessor implements ITokenProcessor {
+
+        /** Here the next two tokens will be read. */
+        final byte[] bytes = new byte[4];
+
         @Override
         public void processToken(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            final byte[] bytes = readBytes(is.in, 4);
+            readBytes(is.in, bytes);
             final short token1 = (short) ((bytes[0] << 8) + bytes[1]);
             final short token2 = (short) ((bytes[2] << 8) + bytes[3]);
             //does the list follow?
-            if (token1 == (short) 0x0100
-                    && token2 == (short) 0x0300) {
+            if (token1 == (short) 0x0100 /*=*/
+                    && token2 == (short) 0x0300 /*{*/) {
                 is.context.push(Context.TOTAL_DECIMAL);
             }
             is.in.unread(bytes);
@@ -1175,15 +1208,19 @@ public class IronmanStream extends InputStream {
      * Processes discovered_by token.
      */
     static class RivalProcessor implements ITokenProcessor {
+
+        /** Here the next two tokens will be read. */
+        final byte[] bytes = new byte[4];
+
         @Override
         public void processToken(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            final byte[] bytes = readBytes(is.in, 4);
+            readBytes(is.in, bytes);
             final short token1 = (short) ((bytes[0] << 8) + bytes[1]);
             final short token2 = (short) ((bytes[2] << 8) + bytes[3]);
             //does the list follow?
-            if (token1 == (short) 0x0100
-                    && token2 == (short) 0x0300) {
+            if (token1 == (short) 0x0100 /*=*/
+                    && token2 == (short) 0x0300 /*{*/) {
                 is.context.push(Context.VALUE_INT);
             }
             is.in.unread(bytes);
@@ -1195,6 +1232,21 @@ public class IronmanStream extends InputStream {
      * If not in a list, clears the is.output.
      */
     static abstract class SingleValueProcessor implements ITokenProcessor {
+
+        /**
+         * Converts byte array to integer it represents.
+         * @param bytes convert these bytes
+         * @return converted integer
+         */
+        static protected int toNumber(final byte[] bytes) {
+            int number = 0;
+            for(int i = bytes.length - 1; i >= 0; --i) {
+                number <<= 8;
+                number += bytes[i] & 0xff;
+            }
+            return number;
+        }
+
         @Override
         public final void processToken(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
@@ -1218,15 +1270,15 @@ public class IronmanStream extends InputStream {
      * Processes strings.
      */
     static class StringProcessor extends SingleValueProcessor {
+
+        /** Here the string size will be read. */
+        final byte[] lengthBytes = new byte[2];
+
         @Override
         public void processValue(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            final byte[] bytes = readBytes(is.in, 2);
-            int number = 0;
-            for(int i = bytes.length - 1; i >= 0; --i) {
-                number <<= 8;
-                number += bytes[i] & 0xff;
-            }
+            readBytes(is.in, lengthBytes);
+            final int number = toNumber(lengthBytes);
             final byte[] stringBytes = readBytes(is.in, number);
             final String string = new String(stringBytes, charset);
             if (is.output == null) {

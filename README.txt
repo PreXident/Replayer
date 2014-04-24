@@ -93,7 +93,7 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 1.7
 Info is now printed when mod is about to be loaded
 Files common/country_tags/* can now contain # comments on non-separate lines
-Added experimental support for binary saves, not very fast though! The testing sample was quite small, so many tokens may be missing, please report any problems ASAP. To just convert saves from binary format to plain text run converter.bat
+Added experimental support for binary saves, quite slow though! The testing sample was quite small, so many tokens may be missing, please report any problems ASAP. To just convert saves from binary format to plain text run converter.bat
 
 
 1.6
