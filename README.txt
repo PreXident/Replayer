@@ -92,6 +92,7 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 
 1.8
 Focus can now target multiple tags, just list them separated by non-letter character
+Added GUI controls to edit gif.width and gif.height (thx to yahiko for reporting)
 
 1.7
 Info is now printed when mod is about to be loaded

@@ -204,6 +204,12 @@ public class ReplayerController implements Initializable {
     CheckMenuItem gifLoopCheckMenuItem;
 
     @FXML
+    TextField gifWidthEdit;
+
+    @FXML
+    TextField gifHeightEdit;
+
+    @FXML
     TextField gifBreakEdit;
 
     @FXML
@@ -913,6 +919,40 @@ public class ReplayerController implements Initializable {
             }
         });
 
+        gifWidthEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifWidthEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                int gifWidth;
+                try {
+                    gifWidth = Integer.parseInt(newVal);
+                    if (gifWidth < 0) {
+                        gifWidth = 0;
+                    }
+                } catch (NumberFormatException e) {
+                    gifWidth = 0;
+                }
+                settings.setProperty("gif.width", Integer.toString(gifWidth));
+            }
+        });
+
+        gifHeightEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
+        gifHeightEdit.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
+                int gifHeight;
+                try {
+                    gifHeight = Integer.parseInt(newVal);
+                    if (gifHeight < 0) {
+                        gifHeight = 0;
+                    }
+                } catch (NumberFormatException e) {
+                    gifHeight = 0;
+                }
+                settings.setProperty("gif.height", Integer.toString(gifHeight));
+            }
+        });
+
         gifBreakEdit.addEventFilter(MouseEvent.MOUSE_CLICKED, filter);
         gifBreakEdit.textProperty().addListener(new ChangeListener<String>() {
             @Override
@@ -1209,6 +1249,8 @@ public class ReplayerController implements Initializable {
 
         gifMenu.setVisible(!settings.getProperty("gif", "false").equals("true"));
         gifLoopCheckMenuItem.setSelected(settings.getProperty("gif.loop", "true").equals("true"));
+        gifWidthEdit.setText(settings.getProperty("gif.width", "0"));
+        gifHeightEdit.setText(settings.getProperty("gif.height", "0"));
         gifBreakEdit.setText(settings.getProperty("gif.new.file", "0"));
         gifStepEdit.setText(settings.getProperty("gif.step", "100"));
         gifDateCheckMenuItem.setSelected(settings.getProperty("gif.date", "true").equals("true"));

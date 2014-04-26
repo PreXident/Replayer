@@ -269,6 +269,38 @@
 						<CustomMenuItem hideOnClick="false">
 							<content>
 								<HBox alignment="CENTER_LEFT" >
+									<Label styleClass="menu-label" text="%fxml.gif.width">
+										<tooltip>
+											<Tooltip text="%fxml.gif.restart.hint" />
+										</tooltip>
+									</Label>
+									<TextField fx:id="gifWidthEdit" prefWidth="45">
+										<tooltip>
+											<Tooltip text="%fxml.gif.restart.hint" />
+										</tooltip>
+									</TextField>
+								</HBox>
+							</content>
+						</CustomMenuItem>
+						<CustomMenuItem hideOnClick="false">
+							<content>
+								<HBox alignment="CENTER_LEFT" >
+									<Label styleClass="menu-label" text="%fxml.gif.height">
+										<tooltip>
+											<Tooltip text="%fxml.gif.restart.hint" />
+										</tooltip>
+									</Label>
+									<TextField fx:id="gifHeightEdit" prefWidth="45">
+										<tooltip>
+											<Tooltip text="%fxml.gif.restart.hint" />
+										</tooltip>
+									</TextField>
+								</HBox>
+							</content>
+						</CustomMenuItem>
+						<CustomMenuItem hideOnClick="false">
+							<content>
+								<HBox alignment="CENTER_LEFT" >
 									<Label styleClass="menu-label" text="%fxml.gif.step">
 										<tooltip>
 											<Tooltip text="%fxml.gif.restart.hint" />
