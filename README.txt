@@ -90,6 +90,9 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 #Change log#
 ############
 
+1.8
+Focus can now target multiple tags, just list them separated by non-letter character
+
 1.7
 Info is now printed when mod is about to be loaded
 Files common/country_tags/* can now contain # comments on non-separate lines

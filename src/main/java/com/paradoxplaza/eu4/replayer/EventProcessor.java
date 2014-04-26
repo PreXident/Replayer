@@ -127,19 +127,19 @@ public class EventProcessor {
             if (newController.overlord != null
                     && replay.subjectsAsOverlords
                     && (!replay.focusing
-                        || overlord.tag.equals(replay.focusTag)
-                        || newController.tag.equals(replay.focusTag))) {
+                        || replay.focusTags.contains(overlord.tag)
+                        || replay.focusTags.contains(newController.tag))) {
                 color = overlord.color;
             } else if (!replay.focusing
-                    || newController.tag.equals(replay.focusTag)) {
+                    || replay.focusTags.contains(newController.tag)) {
                 color = newController.color;
             }
         }
         if (replay.focusing
-                && !replay.focusTag.equals(newControllerTag)
-                && !replay.focusTag.equals(prevControllerTag)
-                && (newController == null || !replay.focusTag.equals(overlord.tag))
-                && (previousController == null || !replay.focusTag.equals(topOverlord(previousController).tag))) {
+                && !replay.focusTags.contains(newControllerTag)
+                && !replay.focusTags.contains(prevControllerTag)
+                && (newController == null || !replay.focusTags.contains(overlord.tag))
+                && (previousController == null || !replay.focusTags.contains(topOverlord(previousController).tag))) {
             return false;
         }
         for(int p : province.points) {
@@ -182,7 +182,7 @@ public class EventProcessor {
             final CountryInfo topOverlord = topOverlord(subject);
             if (overlord != null
                     && (!replay.focusing
-                        || replay.focusTag.equals(topOverlord.tag))) {
+                        || replay.focusTags.contains(topOverlord.tag))) {
                 color = topOverlord.color;
             }
             final List<String> controlled = new ArrayList<>(subject.controls);
@@ -249,11 +249,11 @@ public class EventProcessor {
             if (newOwner.overlord != null
                     && replay.subjectsAsOverlords
                     && (!replay.focusing
-                        || topOverlord.tag.equals(replay.focusTag)
-                        || newOwner.tag.equals(replay.focusTag))) {
+                        || replay.focusTags.contains(topOverlord.tag)
+                        || replay.focusTags.contains(newOwner.tag))) {
                 ownerColor = topOverlord.color;
             } else if (!replay.focusing
-                    || newOwner.tag.equals(replay.focusTag)) {
+                    || replay.focusTags.contains(newOwner.tag)) {
                 ownerColor = newOwner.color;
             }
         }
@@ -264,19 +264,19 @@ public class EventProcessor {
             if (newController.overlord != null
                     && replay.subjectsAsOverlords
                     && (!replay.focusing
-                        || topOverlord.tag.equals(replay.focusTag)
-                        || newController.tag.equals(replay.focusTag))) {
+                        || replay.focusTags.contains(topOverlord.tag)
+                        || replay.focusTags.contains(newController.tag))) {
                 controllerColor = topOverlord.color;
             } else if (!replay.focusing
-                    || newController.tag.equals(replay.focusTag)) {
+                    || replay.focusTags.contains(newController.tag)) {
                 controllerColor = newController.color;
             }
         }
         if (replay.focusing
-                && !replay.focusTag.equals(newOwnerTag)
-                && !replay.focusTag.equals(previousOwnerTag)
-                && (newController == null || !replay.focusTag.equals(newController.overlord))
-                && (previousOwner == null || !replay.focusTag.equals(topOverlord(previousOwner).tag))) {
+                && !replay.focusTags.contains(newOwnerTag)
+                && !replay.focusTags.contains(previousOwnerTag)
+                && (newController == null || !replay.focusTags.contains(newController.overlord))
+                && (previousOwner == null || !replay.focusTags.contains(topOverlord(previousOwner).tag))) {
             return false;
         }
         final int techCombinedColor = newOwner == null ? replay.landColor : getCombinedTechColor(newOwner.adm, newOwner.dip, newOwner.mil);
@@ -342,9 +342,10 @@ public class EventProcessor {
         to.dip = from.dip;
         to.mil = from.mil;
         if (replay.focusing) {
-            if (replay.focusTag.equals(oldTag)) {
-                replay.focusTag = newTag;
-            } else if (!replay.focusTag.equals(newTag)) {
+            if (replay.focusTags.contains(oldTag)) {
+                replay.focusTags.remove(oldTag);
+                replay.focusTags.add(newTag);
+            } else if (!replay.focusTags.contains(newTag)) {
                 return false;
             }
         }

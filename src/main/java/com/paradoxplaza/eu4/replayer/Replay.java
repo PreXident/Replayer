@@ -114,13 +114,13 @@ public class Replay {
     public int[] technologyCombinedBuffer;
 
     /**
-     * Flag indicating whether {@link #focusTag} is be used.
+     * Flag indicating whether {@link #focusTags} is be used.
      * If true, focusTag is not empty, but contains country tag in focus.
      */
     public boolean focusing = false;
 
     /** Tag of state in focus. Never null. */
-    public String focusTag = "";
+    public Set<String> focusTags = new HashSet<>();
 
     /** Flag indication whether borders should be drawn. */
     public boolean drawBorders;
@@ -200,8 +200,7 @@ public class Replay {
                 Integer.parseInt(settings.getProperty("border.color.green", "0")),
                 Integer.parseInt(settings.getProperty("border.color.blue", "0")));
 
-        focusTag = settings.getProperty("focus", "");
-        focusing = !focusTag.isEmpty();
+        setFocus(settings.getProperty("focus", ""));
 
         subjectsAsOverlords = settings.getProperty("subjects.as.overlord", "false").equals("true");
     }
@@ -253,6 +252,22 @@ public class Replay {
      */
     public void setEventListener(final IEventListener eventListener) {
         eventProcessor.setListener(eventListener);
+    }
+
+    /**
+     * Splits focus string and fills {@link #focusTags}.
+     * @param focus string to parse
+     */
+    public void setFocus(final String focus) {
+        focusTags.clear();
+        if (focus != null) {
+            for (String tag : focus.toUpperCase().split("[^A-Z]")) {
+                if (!tag.isEmpty()) {
+                    focusTags.add(tag);
+                }
+            }
+        }
+        focusing = !focusTags.isEmpty();
     }
 
     /**
@@ -786,8 +801,8 @@ public class Replay {
         for (ProvinceInfo pi : provinces.values()) {
             pi.reset();
         }
-        focusTag = settings.getProperty("focus", ""); //this needs to be reset as tag changes are followed during replaying
-        focusing = !focusTag.isEmpty();
+        //focus needs to be reset as tag changes are followed during replaying
+        setFocus(settings.getProperty("focus", ""));
     }
 
     /**

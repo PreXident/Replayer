@@ -852,8 +852,7 @@ public class ReplayerController implements Initializable {
         focusEdit.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> ov, String oldVal, String newVal) {
-                replay.focusTag = newVal;
-                replay.focusing = !"".equals(newVal);
+                replay.setFocus(newVal);
                 settings.setProperty("focus", newVal);
             }
         });
@@ -1196,7 +1195,7 @@ public class ReplayerController implements Initializable {
 
         replay.drawBorders = "true".equals(settings.getProperty("borders", "false"));
 
-        focusEdit.setText(replay.focusTag);
+        focusEdit.setText(settings.getProperty("focus", ""));
 
         saveDirectory = new File(settings.getProperty("save.dir", ""));
         if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
