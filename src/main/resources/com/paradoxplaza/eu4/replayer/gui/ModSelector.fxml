@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.input.*?>
+<?import java.net.URL ?>
+<?import javafx.scene.web.WebView?>
+<?import javafx.collections.FXCollections?>
+<?import com.paradoxplaza.eu4.replayer.gui.*?>
+
+<BorderPane fx:id="root" prefHeight="600" prefWidth="800" xmlns:fx="http://javafx.com/fxml"
+			fx:controller="com.paradoxplaza.eu4.replayer.gui.ModSelectorController" styleClass="root" >
+	<stylesheets >
+		<URL value="@ModSelector.css" />
+	</stylesheets>
+	<center>
+		<ListView fx:id="listView" >
+
+		</ListView>
+	</center>
+	<bottom>
+		<HBox alignment="CENTER_RIGHT" >
+			<Button text="%selector.cancel" onAction="#cancel" />
+			<Button text="%selector.exit" onAction="#exit" />
+			<Button text="%selector.run" onAction="#run" />
+		</HBox>
+	</bottom>
+</BorderPane>

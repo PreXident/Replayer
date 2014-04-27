@@ -1,16 +1,14 @@
 package com.paradoxplaza.eu4.replayer.gui;
 
+import com.paradoxplaza.eu4.replayer.Utils;
 import com.paradoxplaza.eu4.replayer.localization.Localizator;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.utils.UnclosableInputStream;
-import com.paradoxplaza.eu4.replayer.Utils;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import javafx.application.Application;
@@ -18,19 +16,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 /**
- * Replayer application.
+ * Simple application to select mods without editing the property file.
  */
-public class Replayer extends Application {
-
-    /** Path to default property file. The file should be inside the jar. */
-    public static final String DEFAULT_JAR_PROPERTIES = "replayer.defprops";
-
-    /** Default path to property file. */
-    public static final String DEFAULT_PROPERTIES = "replayer.properties";
+public class ModSelector extends Application {
 
     /**
      * The main() method is ignored in correctly deployed JavaFX application.
@@ -44,9 +35,6 @@ public class Replayer extends Application {
         launch(args);
     }
 
-    /** Arguments passed from ModSelector. */
-    final List<String> outerArgs;
-
     /** Settings of the Replayer. */
     Properties settings;
 
@@ -54,34 +42,32 @@ public class Replayer extends Application {
     String propertyFile;
 
     /** Application controller. */
-    ReplayerController controller;
+    ModSelectorController controller;
+
+    /** Application main stage. */
+    Stage stage;
 
     /**
-     * Default contructor.
+     * Launched replayer.
+     * We need to stop it, as ModSelector is registered to stop event.
      */
-    public Replayer() {
-        outerArgs = null;
-    }
+    Replayer replayer;
 
-    /**
-     * Constructor used by ModSelector to pass application arguments.
-     * @param args application arguments
-     */
-    public Replayer(final List<String> args) {
-        outerArgs = args;
-    }
+    /** Application arguments. We must pass it manually to launched replayer. */
+    List<String>  args;
 
     @Override
     public void start(final Stage stage) throws Exception {
+        this.stage = stage;
+        args = getParameters().getRaw();
         System.out.printf(l10n("app.starting"));
         //load default properties
         settings = new Properties(Utils.loadDefaultJarProperties());
         Utils.resetDefaultLocale(settings.getProperty("locale.language"));
         //parse arguments from command line, ie. load property file
-        final Parameters params = getParameters();
-        final List<String> args = params != null ? params.getRaw() : outerArgs;
+        final List<String> args = getParameters().getRaw();
         if (helpNeeded(args)) {
-            System.out.printf(l10n("app.usage"), DEFAULT_PROPERTIES);
+            System.out.printf(l10n("app.usage"), Replayer.DEFAULT_PROPERTIES);
             System.exit(0);
         }
         if (args.size() == 1) {
@@ -96,9 +82,9 @@ public class Replayer extends Application {
                 e.printStackTrace();
             }
         } else /*if (args.length == 0)*/ { //no property file provided
-            propertyFile = DEFAULT_PROPERTIES;
+            propertyFile = Replayer.DEFAULT_PROPERTIES;
             System.out.printf(l10n("app.properties.default"), propertyFile);
-            try (final InputStream is = new FileInputStream(DEFAULT_PROPERTIES)) {
+            try (final InputStream is = new FileInputStream(Replayer.DEFAULT_PROPERTIES)) {
                 settings.load(is);
             } catch(Exception e) {
                 System.err.printf(l10n("app.properties.error"), propertyFile);
@@ -107,31 +93,12 @@ public class Replayer extends Application {
         }
         Utils.resetDefaultLocale(settings.getProperty("locale.language"));
 
-        //ask for eu4 directory if property is not valid
-        final String eu4dir = settings.getProperty("eu4.dir");
-        if (eu4dir == null || !new File(eu4dir).exists()) {
-            File dir = null;
-            if (System.getenv("EU4_HOME") != null) {
-                dir = new File(System.getenv("EU4_HOME"));
-            }
-            if (dir == null || !dir.exists()) {
-                final DirectoryChooser directoryChooser = new DirectoryChooser();
-                directoryChooser.setTitle(l10n("app.eu4dir.select"));
-                dir = directoryChooser.showDialog(null);
-            }
-            if (dir == null || !dir.exists()) {
-                System.out.printf(l10n("app.eu4dir.error"));
-                System.exit(-1);
-            } else {
-                settings.put("eu4.dir", dir.getPath());
-            }
-        }
-
         //create javafx controls
-        final FXMLLoader loader = new FXMLLoader(getClass().getResource("Replayer.fxml"), Localizator.getInstance().getResourceBundle());
+        final FXMLLoader loader = new FXMLLoader(getClass().getResource("ModSelector.fxml"), Localizator.getInstance().getResourceBundle());
         final Parent root = (Parent) loader.load();
         controller = loader.getController();
         controller.setSettings(settings);
+        controller.setModSelector(this);
         final Scene scene = new Scene(root);
         stage.setScene(scene);
         stage.titleProperty().bind(controller.titleProperty());
@@ -158,16 +125,29 @@ public class Replayer extends Application {
 
     @Override
     public void stop() {
-        System.out.printf(l10n("app.closing"));
-        controller.stop();
-        if (!propertyFile.equals("-")) {
-            System.out.printf(l10n("app.properties.store"), propertyFile);
-            try (final OutputStream os = new FileOutputStream(propertyFile)) {
-                settings.store(os, null);
-            } catch(IOException e) {
-                System.err.printf(l10n("app.properties.store.error"), propertyFile);
-                e.printStackTrace();
+        if (replayer == null) { //we have not launched replayer yet
+            System.out.printf(l10n("app.closing"));
+            ModSelectorController.Result result = controller.getResult();
+            if (result == ModSelectorController.Result.EXIT) {
+                return;
             }
+            if (!propertyFile.equals("-")) {
+                System.out.printf(l10n("app.properties.store"), propertyFile);
+                try (final OutputStream os = new FileOutputStream(propertyFile)) {
+                    settings.store(os, null);
+                } catch(IOException e) {
+                    System.err.printf(l10n("app.properties.store.error"), propertyFile);
+                    e.printStackTrace();
+                }
+            }
+            if (result == ModSelectorController.Result.SAVE_RUN) {
+                try {
+                    replayer = new Replayer(args);
+                    replayer.start(stage);
+                } catch (Exception e) { }
+            }
+        } else { //inform replayer about stopping
+            replayer.stop();
         }
     }
 }

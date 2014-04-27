@@ -8,16 +8,16 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
  */
 public class ModInfo {
     /** Mod name. */
-    final String name;
+    public final String name;
 
     /** Path to mod directory. */
-    final String dir;
+    public final String dir;
 
     /** Zip archive containing the mod. */
-    final String archive;
+    public final String archive;
 
     /** Set of dirs that should not be loaded from the game's directory. */
-    final Set<String> replacePath;
+    public final Set<String> replacePath;
 
     ZipFile zip = null;
 

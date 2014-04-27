@@ -1,0 +1,1 @@
+@start javaw -Xms1024m -Xmx1024m -cp replayer.jar com.paradoxplaza.eu4.replayer.gui.ModSelector %*
