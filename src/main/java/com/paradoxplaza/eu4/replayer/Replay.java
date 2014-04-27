@@ -579,7 +579,9 @@ public class Replay {
                 provinces.put(parts[0], province);
                 final ProvinceInfo original = colors.put(color, province);
                 if (original != null) {
-                    throw new RuntimeException(String.format(l10n("replay.provinces.error"), parts[0], original));
+                    System.err.println(String.format(l10n("replay.provinces.error"), parts[0], original.id));
+                    colors.put(color, original); //first one matters
+                    //throw new RuntimeException(String.format(l10n("replay.provinces.error"), parts[0], original.id));
                 }
                 line = reader.readLine();
             }
