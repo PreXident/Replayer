@@ -117,6 +117,7 @@
 											<FXCollections fx:factory="observableArrayList">
 												<String fx:value="en" />
 												<String fx:value="cs" />
+												<String fx:value="fr" />
 											</FXCollections>
 										</items>
 										<value>

@@ -95,6 +95,7 @@ Focus can now target multiple tags, just list them separated by non-letter chara
 Added GUI controls to edit gif.width and gif.height (thx to yahiko for reporting)
 If provinces share their color in map/definition.csv, only warning is printed instead of throwing an exception. Only the first province is registered, others are ignored.
 Added ModSelector, so you do not need to edit replayer.properties for setting mod.list. Just run mod-selector.bat
+French translation - many thanks to Yahiko!
 
 1.7
 Info is now printed when mod is about to be loaded
@@ -228,6 +229,7 @@ Check the repository PreXident/Replayer at Bitbucket.
 
 PreXident
 Lateralus (Hottemax at Bitbucket)
+Yahiko - French localization
 
 ################
 #Used Libraries#
