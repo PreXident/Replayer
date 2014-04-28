@@ -27,6 +27,16 @@
 								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP"  code="L"/>
 							</accelerator>
 						</MenuItem>
+						<MenuItem text="%fxml.file.deserialize" onAction="#deserialize">
+							<accelerator>
+								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="DOWN" shortcut="UP"  code="L"/>
+							</accelerator>
+						</MenuItem>
+						<MenuItem text="%fxml.file.serialize" onAction="#serialize">
+							<accelerator>
+								<KeyCodeCombination alt="UP" control="DOWN" meta="UP" shift="UP" shortcut="UP"  code="S"/>
+							</accelerator>
+						</MenuItem>
 						<SeparatorMenuItem />
 						<MenuItem text="%fxml.file.close" onAction="#close">
 							<accelerator>

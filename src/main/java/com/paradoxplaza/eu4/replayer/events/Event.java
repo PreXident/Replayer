@@ -8,7 +8,7 @@ import java.util.Formatter;
 /**
  * Ancestor of all displayable events.
  */
-public abstract class Event implements Formattable {
+public abstract class Event implements Formattable, java.io.Serializable {
 
     /**
      * Accepts processor and let it process this event.

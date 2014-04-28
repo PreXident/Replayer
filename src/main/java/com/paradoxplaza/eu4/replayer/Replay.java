@@ -5,7 +5,6 @@ import com.paradoxplaza.eu4.replayer.EventProcessor.IEventListener;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Owner;
-import com.paradoxplaza.eu4.replayer.events.ProvinceEvent;
 import com.paradoxplaza.eu4.replayer.events.SimpleProvinceEvent;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
@@ -22,10 +21,14 @@ import com.paradoxplaza.eu4.replayer.utils.Ref;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +37,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import javax.imageio.ImageIO;
@@ -379,6 +381,14 @@ public class Replay {
         return !dateGenerator.hasPrev();
     }
 
+    public void deserializeSave(final ITaskBridge<SaveGame> bridge,
+            final IEventListener initializationListener, final String file) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(file))) {
+            saveGame = (SaveGame) in.readObject();
+        }
+        processSaveGame(bridge, initializationListener);
+    }
+    
     /**
      * Loads colonial regions from files inside /common/colonial_regions.
      */
@@ -634,6 +644,63 @@ public class Replay {
     public void loadSaves(final ITaskBridge<SaveGame> bridge,
             final IEventListener initializationListener, final List<File> files) {
         saveGame = new SaveGame();
+        //parsing saves
+        final BatchSaveGameParser parser = new BatchSaveGameParser(rnw, saveGame, files, bridge);
+        parser.run();
+        //
+        processSaveGame(bridge, initializationListener);
+    }
+
+    /**
+     * Loads sea provinces from map/default.map.
+     */
+    private void loadSeas() {
+        System.out.printf(l10n("replay.load.seas"));
+        try (final InputStream is = fileManager.getInputStream("/map/default.map")) {
+            final DefaultMapParser parser = new DefaultMapParser(
+                    provinces, Long.MAX_VALUE, is,
+                    new EmptyTaskBridge<Map<String, ProvinceInfo>>());
+            parser.run();
+        } catch(Exception e) { e.printStackTrace(); }
+    }
+
+    /**
+     * Loads wasteland provinces from map/climate.txt.
+     */
+    private void loadWastelands() {
+        System.out.printf(l10n("replay.load.wastelands"));
+        try (final InputStream is =  fileManager.getInputStream("/map/climate.txt")) {
+            final ClimateParser parser = new ClimateParser(
+                    provinces, Long.MAX_VALUE, is,
+                    new EmptyTaskBridge<Map<String, ProvinceInfo>>());
+            parser.run();
+        } catch(Exception e) { e.printStackTrace(); }
+    }
+
+    /**
+     * Jumps forward in replay.
+     * @param target target date
+     */
+    protected void nextTo(final Date target) {
+        direction = Direction.FORWARD;
+        while (dateGenerator.hasNext() && !target.equals(dateGenerator.date)) {
+            dateGenerator.next();
+        }
+    }
+
+    /**
+     * Jumps backwards in replay.
+     * @param target target date
+     */
+    protected void prevTo(final Date target) {
+        direction = Direction.BACKWARD;
+        while (dateGenerator.hasPrev() && !target.equals(dateGenerator.date)) {
+            dateGenerator.prev();
+        }
+    }
+
+    protected void processSaveGame(final ITaskBridge<SaveGame> bridge,
+            final IEventListener initializationListener) {
         reset();
 
         //map initialization
@@ -660,10 +727,6 @@ public class Replay {
                 bridge.updateProgress(pos, size);
             }
         }
-
-        //parsing saves
-        final BatchSaveGameParser parser = new BatchSaveGameParser(rnw, saveGame, files, bridge);
-        parser.run();
 
         //process dynamic stuff from saves
         for (Map.Entry<String, Integer> c : saveGame.dynamicCountriesColors.entrySet()) {
@@ -746,54 +809,6 @@ public class Replay {
     }
 
     /**
-     * Loads sea provinces from map/default.map.
-     */
-    private void loadSeas() {
-        System.out.printf(l10n("replay.load.seas"));
-        try (final InputStream is = fileManager.getInputStream("/map/default.map")) {
-            final DefaultMapParser parser = new DefaultMapParser(
-                    provinces, Long.MAX_VALUE, is,
-                    new EmptyTaskBridge<Map<String, ProvinceInfo>>());
-            parser.run();
-        } catch(Exception e) { e.printStackTrace(); }
-    }
-
-    /**
-     * Loads wasteland provinces from map/climate.txt.
-     */
-    private void loadWastelands() {
-        System.out.printf(l10n("replay.load.wastelands"));
-        try (final InputStream is =  fileManager.getInputStream("/map/climate.txt")) {
-            final ClimateParser parser = new ClimateParser(
-                    provinces, Long.MAX_VALUE, is,
-                    new EmptyTaskBridge<Map<String, ProvinceInfo>>());
-            parser.run();
-        } catch(Exception e) { e.printStackTrace(); }
-    }
-
-    /**
-     * Jumps forward in replay.
-     * @param target target date
-     */
-    protected void nextTo(final Date target) {
-        direction = Direction.FORWARD;
-        while (dateGenerator.hasNext() && !target.equals(dateGenerator.date)) {
-            dateGenerator.next();
-        }
-    }
-
-    /**
-     * Jumps backwards in replay.
-     * @param target target date
-     */
-    protected void prevTo(final Date target) {
-        direction = Direction.BACKWARD;
-        while (dateGenerator.hasPrev() && !target.equals(dateGenerator.date)) {
-            dateGenerator.prev();
-        }
-    }
-
-    /**
      * Reset the state of Replay to load a new SaveGame.
      */
     public void reset() {
@@ -805,6 +820,17 @@ public class Replay {
         }
         //focus needs to be reset as tag changes are followed during replaying
         setFocus(settings.getProperty("focus", ""));
+    }
+
+    /**
+     * Serializes the saveGame to given path.
+     * @param savePath path to saved replay
+     * @throws java.io.IOException when IO error occurs
+     */
+    public void serializeSave(final String savePath) throws IOException {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(savePath))) {
+            out.writeObject(saveGame);
+        }
     }
 
     /**

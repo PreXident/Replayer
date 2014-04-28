@@ -263,6 +263,9 @@ public class ReplayerController implements Initializable {
     /** Directory containing save games. */
     File saveDirectory;
 
+    /** Directory containing serialized games. */
+    File serDirectory;
+
     /** Path to save game file. */
     String saveFileName;
 
@@ -385,6 +388,76 @@ public class ReplayerController implements Initializable {
     private void culturalMapMode() {
         buffer = replay.culturalBuffer;
         output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
+    }
+
+    @FXML
+    private void deserialize() {
+        if (!lock.tryAcquire()) {
+           return;
+        }
+        pause();
+        endGif();
+        final FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(serDirectory);
+        fileChooser.setTitle(l10n("replay.eu4ser.select"));
+
+        //Set extension filter
+        final FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(l10n("replay.eu4ser.ext"), "*.ser");
+        fileChooser.getExtensionFilters().add(extFilter);
+        //Show open file dialog
+        final File file = fileChooser.showOpenDialog(getWindow());
+        if (file == null) {
+            lock.release();
+            return;
+        }
+        serDirectory = file.getParentFile();
+        settings.setProperty("ser.dir", serDirectory.getPath());
+        titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
+
+        final Task<SaveGame> deser = new Task<SaveGame>() {
+            @Override
+            protected SaveGame call() throws Exception {
+                replay.deserializeSave(this, logAppendOnlyListener, file.getAbsolutePath());
+                return replay.saveGame;
+            }
+        };
+
+        deser.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(WorkerStateEvent t) {
+                if ("true".equals(settings.getProperty("gif"))) {
+                    giffer = new Giffer(settings, replay.bufferWidth, replay.bufferHeight, file.getAbsolutePath());
+                    giffer.updateGif(buffer, replay.saveGame.startDate);
+                }
+                output.getPixelWriter().setPixels(0, 0, replay.bufferWidth, replay.bufferHeight, PixelFormat.getIntArgbPreInstance(), buffer, 0, replay.bufferWidth);
+                log.getEngine().loadContent(String.format(LOG_INIT_FORMAT, logContent.toString()));
+                logContent.setLength(LOG_HEADER.length());
+                progressBar.progressProperty().unbind();
+                progressBar.progressProperty().set(replay.dateGenerator.getProgress());
+                replay.setDateListener(dateListener);
+                replay.setEventListener(standardListener);
+                dateEdit.setText(replay.getDate().toString());
+                imageView.setImage(output);
+                new JavascriptBridge().prov(settings.getProperty("center.id", "1"));
+                statusLabel.textProperty().unbind();
+                statusLabel.setText(l10n("replay.save.loaded"));
+                lock.release();
+            }
+        });
+
+        deser.setOnFailed(new EventHandler<WorkerStateEvent>() {
+            @Override
+            public void handle(final WorkerStateEvent t) {
+                final Throwable e = t.getSource().getException();
+                if (e != null) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        statusLabel.textProperty().bind(deser.titleProperty());
+        progressBar.progressProperty().bind(deser.progressProperty());
+        new Thread(deser, "SaveGameDeserializer").start();
     }
 
     @FXML
@@ -534,8 +607,6 @@ public class ReplayerController implements Initializable {
         saveDirectory = file.getParentFile();
         settings.setProperty("save.dir", saveDirectory.getPath());
         titleProperty.setValue(String.format(TITLE_SAVEGAME, file.getName()));
-        replay.saveGame = new SaveGame();
-        replay.reset();
 
         final Task<SaveGame> loader = new Task<SaveGame>() {
             @Override
@@ -667,6 +738,40 @@ public class ReplayerController implements Initializable {
         //again if needed
         scrollPane.setContent(null);
         scrollPane.setContent(imageView);
+    }
+
+    @FXML
+    private void serialize() {
+        if (replay.saveGame == null) {
+            return;
+        }
+        if (!lock.tryAcquire()) {
+           return;
+        }
+        final FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(serDirectory);
+        fileChooser.setInitialFileName(file.getName() + ".ser");
+        fileChooser.setTitle(l10n("replay.eu4ser.select"));
+
+        //Set extension filter
+        final FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(l10n("replay.eu4ser.ext"), "*.ser");
+        fileChooser.getExtensionFilters().add(extFilter);
+        //Show open file dialog
+        final File file = fileChooser.showSaveDialog(getWindow());
+        if (file == null) {
+            lock.release();
+            return;
+        }
+        serDirectory = file.getParentFile();
+        settings.setProperty("ser.dir", serDirectory.getPath());
+
+        try {
+            replay.serializeSave(file.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            statusLabel.setText(e.getLocalizedMessage());
+        }
+        lock.release();
     }
 
     @FXML
@@ -1242,6 +1347,14 @@ public class ReplayerController implements Initializable {
             saveDirectory = new File(Replay.DEFAULT_SAVE_DIR);
             if (!saveDirectory.exists() || !saveDirectory.isDirectory()) {
                 saveDirectory = new File(System.getProperty("user.home"), "/");
+            }
+        }
+
+        serDirectory = new File(settings.getProperty("ser.dir", ""));
+        if (!serDirectory.exists() || !serDirectory.isDirectory()) {
+            serDirectory = new File(Replay.DEFAULT_SAVE_DIR);
+            if (!serDirectory.exists() || !serDirectory.isDirectory()) {
+                serDirectory = new File(System.getProperty("user.home"), "/");
             }
         }
 

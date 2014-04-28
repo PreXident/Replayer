@@ -14,7 +14,7 @@ import java.util.Set;
 /**
  * Represents parsed save game.
  */
-public class SaveGame {
+public class SaveGame implements java.io.Serializable {
 
     /** Year 1 is speacial, we will treat it as null. */
     static private final Date YEAR1 = new Date((short) 1, (byte) 1, (byte) 1);

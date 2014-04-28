@@ -3,7 +3,7 @@ package com.paradoxplaza.eu4.replayer.utils;
 /**
  * Holder for (in)out parameters.
  */
-public class Ref<T> implements WritableValue<T> {
+public class Ref<T> implements WritableValue<T>, java.io.Serializable {
 
     /** Held value. */
     public T val;

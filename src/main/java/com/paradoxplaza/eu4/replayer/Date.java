@@ -5,7 +5,7 @@ import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 /**
  * Represents one date.
  */
-public class Date implements Comparable<Date> {
+public class Date implements Comparable<Date>, java.io.Serializable {
 
     /** Enum representing different time periods. */
     public enum Period { DAY, MONTH, YEAR }
