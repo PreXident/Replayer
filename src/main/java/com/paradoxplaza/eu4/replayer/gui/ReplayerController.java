@@ -776,7 +776,7 @@ public class ReplayerController implements Initializable {
 
     @FXML
     private void subjectsAsOverlords() {
-        settings.setProperty("subjects.as.overlord", bordersCheckMenuItem.isSelected() ? "true" : "false");
+        settings.setProperty("subjects.as.overlord", subjectsCheckMenuItem.isSelected() ? "true" : "false");
     }
 
     @FXML

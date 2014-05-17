@@ -91,6 +91,7 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 
 1.9
 Added option to save replays for later replaying. Useful when you spent a lot of time parsing tens/hundreds of saves. There is no guarantee that old replays will work when newer version of the replayer is released.
+Fixed control for Subjects as overlords.
 
 1.8
 Focus can now target multiple tags, just list them separated by non-letter character
