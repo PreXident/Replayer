@@ -226,6 +226,9 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     /** State processsing simple events. */
     StringState<SaveGame> stringState = new StringState<>(this);
 
+    /** State processing province name changes. */
+    NameState nameState = new NameState(this);
+
     /** State processing controller changes. */
     Controller controller = new Controller(this);
 
@@ -345,7 +348,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
             case "remove_claim":
                 return stringState.withOutput(removeClaim);
             case "name":
-                return stringState.withOutput(provName);
+                return nameState.withOutput(provName);
             case "advisor":
             case "revolt":
             case "discovered_by":
@@ -372,5 +375,58 @@ class ProvinceHistory extends CompoundState<SaveGame> {
          * @return event to add to saveGame
          */
         protected abstract Event createEvent(final String word);
+    }
+
+    /**
+     * State for handling province names in a compound way too.
+     */
+//				name=
+//				{
+//					name="Warszawa"
+//					old_name="Warszawa"
+//				}
+    static class NameState extends CompoundState<SaveGame> {
+
+        /** State to ignore uninteresting values. */
+        final Ignore<SaveGame> ignore = new Ignore<>(this);
+
+        /** State processsing simple events. */
+        StringState<SaveGame> stringState = new StringState<>(this);
+
+        /** Where to set the name. */
+         WritableValue<String> output;
+
+        /**
+         * Only constructor.
+         * @param parent
+         */
+        public NameState(State<SaveGame> parent) {
+            super(parent);
+        }
+
+        /**
+         * Mimicks ValueState's withOutput.
+         * @param output where to store output value
+         * @return this
+         * @see StringState#withOutput(com.paradoxplaza.eu4.replayer.utils.WritableValue)
+         */
+        public NameState withOutput(final WritableValue<String> output) {
+            this.output = output;
+            return this;
+        }
+
+        @Override
+        public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
+            if (expecting == Expecting.OPENING) {
+                output.setValue(word);
+                return parent;
+            }
+            switch (word) {
+                case "name":
+                    return stringState.withOutput(output);
+                default:
+                    return ignore;
+            }
+        }
     }
 }
