@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import com.paradoxplaza.eu4.replayer.utils.Ref;
+
 /**
  * New garrison of a province.
  */
@@ -11,7 +13,7 @@ public class Garrison extends SimpleProvinceEvent {
      * @param name province name
      * @param garrison new base garrison
      */
-    public Garrison(final String id, final String name, final String garrison) {
+    public Garrison(final String id, final Ref<String> name, final String garrison) {
         super(id, name, "Garrison", garrison);
     }
 }

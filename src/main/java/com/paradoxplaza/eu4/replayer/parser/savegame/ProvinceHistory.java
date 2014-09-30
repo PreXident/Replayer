@@ -26,6 +26,7 @@ import com.paradoxplaza.eu4.replayer.parser.Empty;
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 import com.paradoxplaza.eu4.replayer.utils.WritableValue;
 import java.util.regex.Pattern;
 
@@ -41,7 +42,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     String id;
 
     /** Province name. */
-    String name;
+    Ref<Ref<String>> name;
 
     /** Date of this history. */
     Date date;
@@ -59,7 +60,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener addCore = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Core(id, name, word, Core.ADDED);
+            return new Core(id, name.val, word, Core.ADDED);
         }
     };
 
@@ -67,7 +68,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener owner = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Owner(id, name, word);
+            return new Owner(id, name.val, word);
         }
     };
 
@@ -75,7 +76,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener building = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Building(id, name, processing, word);
+            return new Building(id, name.val, processing, word);
         }
     };
 
@@ -83,7 +84,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener culture = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Culture(id, name, word);
+            return new Culture(id, name.val, word);
         }
     };
 
@@ -91,7 +92,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener religion = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new com.paradoxplaza.eu4.replayer.events.Religion(id, name, word);
+            return new com.paradoxplaza.eu4.replayer.events.Religion(id, name.val, word);
         }
     };
 
@@ -99,7 +100,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener hre = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Hre(id, name, word);
+            return new Hre(id, name.val, word);
         }
     };
 
@@ -107,7 +108,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener tax = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Tax(id, name, word);
+            return new Tax(id, name.val, word);
         }
     };
 
@@ -115,7 +116,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener goods = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Goods(id, name, word);
+            return new Goods(id, name.val, word);
         }
     };
 
@@ -123,7 +124,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener manpower = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Manpower(id, name, word);
+            return new Manpower(id, name.val, word);
         }
     };
 
@@ -131,7 +132,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener capital = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Capital(id, name, word);
+            return new Capital(id, name.val, word);
         }
     };
 
@@ -139,7 +140,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener city = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new City(id, name, word);
+            return new City(id, name.val, word);
         }
     };
 
@@ -147,7 +148,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener garrison = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Garrison(id, name, word);
+            return new Garrison(id, name.val, word);
         }
     };
 
@@ -155,7 +156,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener nativeSize = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new NativeSize(id, name, word);
+            return new NativeSize(id, name.val, word);
         }
     };
 
@@ -163,7 +164,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener nativeFerocity = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new NativeFerocity(id, name, word);
+            return new NativeFerocity(id, name.val, word);
         }
     };
 
@@ -171,7 +172,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener nativeHostileness = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new NativeHostileness(id, name, word);
+            return new NativeHostileness(id, name.val, word);
         }
     };
 
@@ -179,7 +180,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener colonySize = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new ColonySize(id, name, word);
+            return new ColonySize(id, name.val, word);
         }
     };
 
@@ -187,7 +188,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener revoltRisk = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new RevoltRisk(id, name, word);
+            return new RevoltRisk(id, name.val, word);
         }
     };
 
@@ -195,7 +196,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener removeCore = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Core(id, name, word, Core.REMOVED);
+            return new Core(id, name.val, word, Core.REMOVED);
         }
     };
 
@@ -203,7 +204,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener addClaim = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Claim(id, name, word, Claim.ADDED);
+            return new Claim(id, name.val, word, Claim.ADDED);
         }
     };
 
@@ -211,7 +212,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener removeClaim = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Claim(id, name, word, Claim.REMOVED);
+            return new Claim(id, name.val, word, Claim.REMOVED);
         }
     };
 
@@ -219,7 +220,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     final SimpleWriteListener provName = new SimpleWriteListener() {
         @Override
         protected Event createEvent(final String word) {
-            return new Name(id, name, word);
+            return new Name(id, name.val, word);
         }
     };
 
@@ -269,7 +270,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
      * @param name new province name
      * @return this
      */
-    public ProvinceHistory withName(final String name) {
+    public ProvinceHistory withName(final Ref<Ref<String>> name) {
         this.name = name;
         return this;
     }
@@ -312,7 +313,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
             case "owner":
                 return stringState.withOutput(owner);
             case "controller":
-                return controller.withID(id).withName(name).withDate(date);
+                return controller.withID(id).withName(name.val).withDate(date);
             case "culture":
                 return stringState.withOutput(culture);
             case "religion":
@@ -348,7 +349,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
             case "remove_claim":
                 return stringState.withOutput(removeClaim);
             case "name":
-                return nameState.withOutput(provName);
+                return nameState;
             case "advisor":
             case "revolt":
             case "discovered_by":
@@ -380,21 +381,39 @@ class ProvinceHistory extends CompoundState<SaveGame> {
     /**
      * State for handling province names in a compound way too.
      */
-//				name=
-//				{
-//					name="Warszawa"
-//					old_name="Warszawa"
-//				}
-    static class NameState extends CompoundState<SaveGame> {
+//name=
+//{
+//	name="Warszawa"
+//	old_name="Warszawa"
+//}
+    class NameState extends CompoundState<SaveGame> {
 
         /** State to ignore uninteresting values. */
         final Ignore<SaveGame> ignore = new Ignore<>(this);
 
         /** State processsing simple events. */
-        StringState<SaveGame> stringState = new StringState<>(this);
+        final StringState<SaveGame> stringState = new StringState<>(this);
 
-        /** Where to set the name. */
-         WritableValue<String> output;
+        /** Holds new name, so oldName can use it. */
+        String newProvName = "";
+
+        /** Handles new_name token. */
+        final WritableValue<String> newName = new WritableValue<String>() {
+            @Override
+            public final void setValue(final String word) {
+                provName.setValue(word);
+                newProvName = word;
+            }
+        };
+
+        /** Handles old_name token. */
+        final WritableValue<String> oldName = new WritableValue<String>() {
+            @Override
+            public final void setValue(final String word) {
+                name.val.val = word;
+                name.val = new Ref<>(newProvName);
+            }
+        };
 
         /**
          * Only constructor.
@@ -404,26 +423,17 @@ class ProvinceHistory extends CompoundState<SaveGame> {
             super(parent);
         }
 
-        /**
-         * Mimicks ValueState's withOutput.
-         * @param output where to store output value
-         * @return this
-         * @see StringState#withOutput(com.paradoxplaza.eu4.replayer.utils.WritableValue)
-         */
-        public NameState withOutput(final WritableValue<String> output) {
-            this.output = output;
-            return this;
-        }
-
         @Override
         public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
             if (expecting == Expecting.OPENING) {
-                output.setValue(word);
+                provName.setValue(word);
                 return parent;
             }
             switch (word) {
                 case "name":
-                    return stringState.withOutput(output);
+                    return stringState.withOutput(newName);
+                case "old_name":
+                    return stringState.withOutput(oldName);
                 default:
                     return ignore;
             }

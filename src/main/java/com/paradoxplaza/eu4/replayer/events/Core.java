@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 import java.util.Formattable;
 import static java.util.FormattableFlags.ALTERNATE;
 import java.util.Formatter;
@@ -52,7 +53,7 @@ public class Core extends ProvinceEvent {
      * @param tag country tag
      * @param type core event type
      */
-    public Core(final String id, final String name, final String tag, final Type type) {
+    public Core(final String id, final Ref<String> name, final String tag, final Type type) {
         super(id, name);
         this.tag = tag;
         this.type = type;
@@ -65,12 +66,12 @@ public class Core extends ProvinceEvent {
         } else {
             formatter.format(
                     l10n("event.province.Core"),
-                    tag, "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name, type);
+                    tag, "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name.val, type);
         }
     }
 
     @Override
     public String toString() {
-        return String.format(l10n("event.province.Claim"), tag, id, name, type);
+        return String.format(l10n("event.province.Claim"), tag, id, name.val, type);
     }
 }

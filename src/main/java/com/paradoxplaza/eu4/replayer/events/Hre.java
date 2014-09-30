@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 import java.util.Formattable;
 import static java.util.FormattableFlags.ALTERNATE;
 import java.util.Formatter;
@@ -53,7 +54,7 @@ public class Hre extends ProvinceEvent {
      * @param name province name
      * @param type hre event type
      */
-    public Hre(final String id, final String name, final String type) {
+    public Hre(final String id, final Ref<String> name, final String type) {
         super(id, name);
         this.type = Type.fromString(type);
     }
@@ -65,12 +66,12 @@ public class Hre extends ProvinceEvent {
         } else {
             formatter.format(
                     l10n("event.province.Hre"),
-                    "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name, type);
+                    "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name.val, type);
         }
     }
 
     @Override
     public String toString() {
-        return String.format(l10n("event.province.Hre"), id, name, type);
+        return String.format(l10n("event.province.Hre"), id, name.val, type);
     }
 }

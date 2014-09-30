@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer.events;
 
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.EventProcessor;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 
 /**
  * New culture of a province.
@@ -14,7 +15,7 @@ public class Religion extends SimpleProvinceEvent {
      * @param name province name
      * @param religion new religion
      */
-    public Religion(final String id, final String name, final String religion) {
+    public Religion(final String id, final Ref<String> name, final String religion) {
         super(id, name, "Religion", religion);
     }
 

@@ -23,8 +23,13 @@ class Province extends CompoundState<SaveGame> {
     /** Current date in save game. */
     Date currentDate;
 
-    /** Province name. */
-    Ref<String> name = new Ref<>();
+    /**
+     * Province name.
+     * It needs to be this crazy reference to reference to string because of
+     * province possible province name changes that are parsed after some events
+     * are already created.
+     */
+    Ref<Ref<String>> name = new Ref<>(new Ref<String>());
 
     /** Province owner. */
     Ref<String> owner = new Ref<>();
@@ -80,7 +85,7 @@ class Province extends CompoundState<SaveGame> {
         id = null;
         //value could be null because reset() is called in super constructor
         if (name != null) {
-            name.val = null;
+            name.val = new Ref<>();
         }
         if (owner != null) {
             owner.val = null;
@@ -110,9 +115,9 @@ class Province extends CompoundState<SaveGame> {
     public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         switch (word) {
             case "name":
-                return stringState.withOutput(name);
+                return stringState.withOutput(name.val);
             case "history":
-                return history.withID(id).withName(name.val);
+                return history.withID(id).withName(name);
             case "owner":
                 return stringState.withOutput(owner);
             case "controller":

@@ -17,7 +17,7 @@ class Controller extends CompoundState<SaveGame> {
     String id;
 
     /** Province name. */
-    String name;
+    Ref<String> name;
 
     /** Controller change date. */
     Date date;
@@ -50,7 +50,7 @@ class Controller extends CompoundState<SaveGame> {
      * @param name new province name
      * @return this
      */
-    public Controller withName(final String name) {
+    public Controller withName(final Ref<String> name) {
         this.name = name;
         return this;
     }

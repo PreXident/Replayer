@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer.events;
 
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.EventProcessor;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 
 /**
  * Event associated with province.
@@ -12,14 +13,14 @@ public abstract class ProvinceEvent extends Event {
     final public String id;
 
     /** Province name. */
-    final public String name;
+    final public Ref<String> name;
 
     /**
      * Only constructor.
      * @param id province id
      * @param name province name
      */
-    public ProvinceEvent(final String id, final String name) {
+    public ProvinceEvent(final String id, final Ref<String> name) {
         this.id = id;
         this.name = name;
     }

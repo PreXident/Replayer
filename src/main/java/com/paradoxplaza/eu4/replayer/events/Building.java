@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.utils.Ref;
 import static java.util.FormattableFlags.ALTERNATE;
 import java.util.Formatter;
 
@@ -48,7 +49,7 @@ public class Building extends ProvinceEvent {
      * @param building building name
      * @param type building event type
      */
-    public Building(final String id, final String name, final String building, final String type) {
+    public Building(final String id, final Ref<String> name, final String building, final String type) {
         super(id, name);
         this.building = building;
         this.type = Type.fromString(type);
@@ -59,12 +60,12 @@ public class Building extends ProvinceEvent {
         if ((flags & ALTERNATE) != ALTERNATE) {
             formatter.format(toString());
         } else {
-            formatter.format(l10n("event.province.Building"), building, type, "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name);
+            formatter.format(l10n("event.province.Building"), building, type, "<a href='#' onclick='return java.prov(this.textContent)'>" + id + "</a>", name.val);
         }
     }
 
     @Override
     public String toString() {
-        return String.format(l10n("event.province.Building"), building, type, id, name);
+        return String.format(l10n("event.province.Building"), building, type, id, name.val);
     }
 }

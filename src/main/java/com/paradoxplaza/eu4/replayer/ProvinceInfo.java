@@ -15,8 +15,11 @@ public class ProvinceInfo {
     /** Province id. */
     public final String id;
 
+    /** Original province name. */
+    public final String origName;
+
     /** Province id. */
-    public final String name;
+    public String name;
 
     /** Pixel color of this province. */
     public final int color;
@@ -59,6 +62,7 @@ public class ProvinceInfo {
      */
     public ProvinceInfo(final String id, final String name, final int color) {
         this.id = id;
+        this.origName = name;
         this.name = name;
         this.color = color;
     }
@@ -138,6 +142,7 @@ public class ProvinceInfo {
         owner = null;
         culture = null;
         religion = null;
+        name = origName;
         events.clear();
     }
 

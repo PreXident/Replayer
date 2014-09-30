@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import com.paradoxplaza.eu4.replayer.utils.Ref;
+
 /**
  * New native ferocity of a province.
  */
@@ -11,7 +13,7 @@ public class NativeFerocity extends SimpleProvinceEvent {
      * @param name province name
      * @param ferocity new ferocity
      */
-    public NativeFerocity(final String id, final String name, final String ferocity) {
+    public NativeFerocity(final String id, final Ref<String> name, final String ferocity) {
         super(id, name, "NativeFerocity", ferocity);
     }
 }

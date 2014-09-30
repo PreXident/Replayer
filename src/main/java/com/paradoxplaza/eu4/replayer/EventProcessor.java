@@ -4,6 +4,7 @@ import com.paradoxplaza.eu4.replayer.events.AlwaysNotable;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Culture;
 import com.paradoxplaza.eu4.replayer.events.Event;
+import com.paradoxplaza.eu4.replayer.events.Name;
 import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.ProvinceEvent;
 import com.paradoxplaza.eu4.replayer.events.Religion;
@@ -460,6 +461,20 @@ public class EventProcessor {
     }
 
     /**
+     * Processes province name changed event.
+     * @param date date of the event
+     * @param name province name changed event
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean process(final Date date, final Name name) {
+        final ProvinceInfo province = replay.provinces.get(name.id);
+        name.previousValue = province.name;
+        province.name = name.value;
+        province.addEvent(date, name);
+        return true;
+    }
+
+    /**
      * Processes Owner event.
      * @param date date of the event
      * @param owner owner change event
@@ -618,6 +633,19 @@ public class EventProcessor {
         final ProvinceInfo province = replay.provinces.get(culture.id);
         province.remove(culture);
         return changeCulture(date, culture.id, culture.previousValue);
+    }
+
+    /**
+     * Unprocesses province name changed event.
+     * @param date date of the event
+     * @param name province name changed event
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean unprocess(final Date date, final Name name) {
+        final ProvinceInfo province = replay.provinces.get(name.id);
+        province.name = name.previousValue;
+        province.remove(name);
+        return true;
     }
 
     /**
