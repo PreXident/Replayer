@@ -1,11 +1,13 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame.binary;
 
 import com.beust.jcommander.JCommander;
+import static com.paradoxplaza.eu4.replayer.parser.savegame.Utils.chooseStream;
 import com.paradoxplaza.eu4.replayer.utils.UnclosableOutputStream;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -48,7 +50,7 @@ public class Converter {
         }
         //convert files
         for (String path : options.files) {
-            try (IronmanStream is = new IronmanStream(new BufferedInputStream(new FileInputStream(path)));
+            try (InputStream is = chooseStream(new FileInputStream(path));
                     OutputStream os = !options.test ?
                             new FileOutputStream(path + "txt.eu4")
                             : new UnclosableOutputStream(System.out)) {
