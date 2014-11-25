@@ -21,6 +21,7 @@ import com.paradoxplaza.eu4.replayer.events.NativeSize;
 import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.RevoltRisk;
 import com.paradoxplaza.eu4.replayer.events.Tax;
+import com.paradoxplaza.eu4.replayer.events.Unrest;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.Empty;
 import com.paradoxplaza.eu4.replayer.parser.Ignore;
@@ -224,6 +225,14 @@ class ProvinceHistory extends CompoundState<SaveGame> {
         }
     };
 
+    /** Adds change of unrest to savegame. */
+    final SimpleWriteListener unrest = new SimpleWriteListener() {
+        @Override
+        protected Event createEvent(final String word) {
+            return new Unrest(id, name.val, word);
+        }
+    };
+
     /** State processsing simple events. */
     StringState<SaveGame> stringState = new StringState<>(this);
 
@@ -350,6 +359,8 @@ class ProvinceHistory extends CompoundState<SaveGame> {
                 return stringState.withOutput(removeClaim);
             case "name":
                 return nameState;
+            case "unrest":
+                return stringState.withOutput(unrest);
             case "advisor":
             case "revolt":
             case "discovered_by":

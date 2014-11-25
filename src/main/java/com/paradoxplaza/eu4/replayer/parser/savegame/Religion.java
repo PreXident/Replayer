@@ -7,6 +7,7 @@ import com.paradoxplaza.eu4.replayer.events.EnableReligion;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.DateState;
+import com.paradoxplaza.eu4.replayer.parser.Ignore;
 import com.paradoxplaza.eu4.replayer.parser.State;
 import com.paradoxplaza.eu4.replayer.parser.StringState;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
@@ -33,6 +34,9 @@ class Religion extends CompoundState<SaveGame> {
 
     /** State to process enable and defender_date keywords. */
     final DateState<SaveGame> dateState = new DateState<>(this);
+
+    /** State ignoring everything till matching }. */
+    final Ignore<SaveGame> ignore = new Ignore<>(this);
 
     /**
      * Only constructor.
@@ -79,6 +83,14 @@ class Religion extends CompoundState<SaveGame> {
     @Override
     public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         switch (word) {
+            case "league":
+            case "papacy":
+            case "invest_in_cardinal":
+            case "hre_religion":
+            case "total_centers":
+            case "reformation_center":
+            case "hre_heretic_religion":
+                return ignore;
             case "defender":
                 return defenderState;
             case "defender_date":
