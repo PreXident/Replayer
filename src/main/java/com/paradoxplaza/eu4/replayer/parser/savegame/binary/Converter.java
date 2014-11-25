@@ -44,10 +44,10 @@ public class Converter {
                 return;
             }
             final File save = chooser.getSelectedFile();
-            args = new String[] { save.getAbsolutePath() };
+            options.files.add(save.getAbsolutePath());
         }
         //convert files
-        for (String path : args) {
+        for (String path : options.files) {
             try (IronmanStream is = new IronmanStream(new BufferedInputStream(new FileInputStream(path)));
                     OutputStream os = !options.test ?
                             new FileOutputStream(path + "txt.eu4")
