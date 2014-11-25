@@ -72,11 +72,12 @@ public class BatchSaveGameParser implements Runnable {
         try {
             currentIndex = index;
             final File currentFile = files.get(index);
-            final InputStream is = new FileInputStream(currentFile);
-            final SaveGameParser parser = new SaveGameParser(
-                    saveGame, currentFile.length(), is, decoratedBridge);
-            parser.run();
-            return saveGame;
+            try (InputStream is = new FileInputStream(currentFile)) {
+                final SaveGameParser parser = new SaveGameParser(
+                        saveGame, currentFile.length(), is, decoratedBridge);
+                parser.run();
+                return saveGame;
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return saveGame;
