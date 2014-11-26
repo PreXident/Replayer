@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.IronmanStream;
+import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +11,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
- *
+ * Set of static methods useful for manupulation with save games.
  */
 public class Utils {
 
@@ -41,12 +42,14 @@ public class Utils {
 
     /**
      * Wraps stream into IronmanStream/ZipStream if needed.
+     * Long part of returned pair is the size of the zip stream, or -1.
      * @param stream save game stream
-     * @return stream wrapped to IronmanStream if needed
+     * @return stream wrapped to IronmanStream if needed, size of zip stream
      * @throws IOException if IO error occurs
      */
-    static public InputStream chooseStream(final InputStream stream)
+    static public Pair<InputStream, Long> chooseStream(final InputStream stream)
             throws IOException {
+        long size = -1;
         final BufferedInputStream buff = new BufferedInputStream(stream);
         PushbackInputStream push = new PushbackInputStream(buff, 6);
         final byte[] bytes = new byte[6];
@@ -57,6 +60,7 @@ public class Utils {
             ZipEntry entry = zip.getNextEntry();
             while (entry != null) {
                 if (!"meta".equals(entry.getName())) {
+                    size = entry.getSize();
                     push = new PushbackInputStream(zip, 6);
                     push.read(bytes);
                     push.unread(bytes);
@@ -66,12 +70,12 @@ public class Utils {
             }
         }
         if (startsWith(bytes, EU4BIN_PREFIX)) {
-            return new IronmanStream(push); //it's ok, this stream's buffer is 6
+            return new Pair<InputStream, Long>(new IronmanStream(push), size); //it's ok, this stream's buffer is 6
         } else if (startsWith(bytes, EU4TXT_PREFIX)) {
-            return push;
+            return new Pair<InputStream, Long>(push, size);
         } else {
             System.err.println(l10n("parser.savegame.unknown"));
-            return push;
+            return new Pair<InputStream, Long>(push, size);
         }
     }
 
