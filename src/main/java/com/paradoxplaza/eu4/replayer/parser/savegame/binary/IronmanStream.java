@@ -45,6 +45,7 @@ public class IronmanStream extends InputStream {
         processors.put("RivalProcessor", new RivalProcessor());
         processors.put("StringProcessor", new StringProcessor());
         processors.put("TotalProcessor", new TotalProcessor());
+        processors.put("TreasuryProcessor", new TreasuryProcessor());
         processors.put("ValueIntProcessor", new ValueIntProcessor());
         processors.put("ValueProcessor", new ValueProcessor());
         //
@@ -120,6 +121,8 @@ public class IronmanStream extends InputStream {
         STRING,
         /** Output quoted string. */
         QUOTED_STRING,
+        /** Output quoted string, dash instead of empty. */
+        QUOTED_STRING_DASH,
         /** Output integer. */
         INT,
         /** Output decimal number with 3 decimal places. */
@@ -264,6 +267,7 @@ public class IronmanStream extends InputStream {
             info.processor.processToken(this, builder);
         }
         builder.append(' ');
+        builder.append("\r\n");
         buff = builder.toString().getBytes(charset);
         bufPos = 0;
     }
@@ -460,6 +464,7 @@ public class IronmanStream extends InputStream {
                     builder.append(String.format(Locale.ENGLISH, "%.3f", f));
                     break;
                 default:
+//                    builder.append("XXX");
                     throw new IllegalStateException(String.format(
                             l10n("parser.binary.output.invalid"), is.output));
             }
@@ -566,12 +571,17 @@ public class IronmanStream extends InputStream {
             readBytes(is.in, lengthBytes);
             final int number = toNumber(lengthBytes);
             final byte[] stringBytes = readBytes(is.in, number);
-            final String string = new String(stringBytes, charset);
+            String string = new String(stringBytes, charset);
             if (is.output == null) {
                 builder.append(string);
                 return;
             }
             switch (is.output) {
+                case QUOTED_STRING_DASH:
+                    if (string.isEmpty()) {
+                        string = "---";
+                    }
+                    //intended fallthrough
                 case QUOTED_STRING:
                 case AMBIGUOUS_INT_QSTRING:
                 case AMBIGUOUS_DECIMAL_QSTRING:
@@ -597,6 +607,19 @@ public class IronmanStream extends InputStream {
                 final StringBuilder builder) throws IOException {
             if (is.context.contains(Context.TOTAL_DECIMAL)) {
                 is.output = Output.DECIMAL;
+            }
+        }
+    }
+
+    /**
+     * Processes treasury keyword.
+     */
+    static class TreasuryProcessor implements ITokenProcessor {
+        @Override
+        public final void processToken(final IronmanStream is,
+                final StringBuilder builder) throws IOException {
+            if (is.context.contains(Context.VALUE_INT)) {
+                is.output = Output.INT;
             }
         }
     }
