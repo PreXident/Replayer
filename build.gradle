@@ -6,6 +6,7 @@ compileJava.options.encoding = 'UTF-8'
 
 defaultTasks 'run'
 ext.mainClassName = 'com.paradoxplaza.eu4.replayer.gui.Replayer'
+//ext.mainClassName = 'com.paradoxplaza.eu4.replayer.parser.savegame.binary.Converter'
 archivesBaseName = 'replayer'
 version= ext.projectVersion //property from file version.properties
 

@@ -1,7 +1,7 @@
 0x0100;=;null;false;null;
 0x0300;{;null;false;null;
 0x0400;};null;false;CloseBraceProcessor;
-0x0B00;id;AMBIGUOUS_INT_QSTRING;false;null;
+0x0B00;id;AMBIGUOUS_INT_QSTRING;false;IdProcessor;
 0x0C00;;null;false;NumberProcessor;
 0x0D00;;null;false;FloatProcessor;
 0x0E00;;null;false;BooleanProcessor;
@@ -33,7 +33,7 @@
 0x8201;diplomacy_construction;null;false;DiplomacyConstructionProcessor;
 0x8301;merchant_construction;null;false;null;
 0xA001;end;null;false;null;
-0xA101;amount;INT;false;null;
+0xA101;amount;INT;false;AmountProcessor;
 0xB101;roll;INT;false;null;
 0xB801;event;QUOTED_STRING;false;null;
 0x1927;war_exhaustion;DECIMAL;false;null;
@@ -74,7 +74,7 @@
 0x3C28;accepted_culture;STRING;false;null;
 0x3E28;religion;QUOTED_STRING;false;null;
 0x3F28;manpower;DECIMAL;false;null;
-0x4028;monarch;INT;false;null;
+0x4028;monarch;INT;false;MonarchProcessor;
 0x4128;owner;QUOTED_STRING;false;null;
 0x4228;controller;QUOTED_STRING;false;null;
 0x4328;province;INT;false;null;
@@ -289,7 +289,7 @@
 0xC729;papacy;null;false;null;
 0xC829;cardinal;INT;false;null;
 0xCC29;flags;STRING;false;null;
-0xDE29;terms;null;false;ValueIntProcessor;
+0xDE29;terms;null;false;TermsProcessor;
 0xDF29;demand;QUOTED_STRING;false;null;
 0xE329;front;null;false;null;
 0xE429;back;null;false;null;
@@ -307,7 +307,7 @@
 0x022A;warning;null;false;null;
 0x052A;tag;QUOTED_STRING;false;null;
 0x0B2A;mercenary;null;false;null;
-0x152A;total;INT;false;TotalProcessor;
+0x152A;total;INT;false;TotalProcessor;TODO DECIMAL in node->TAG
 0x182A;female;null;false;null;
 0x1B2A;advisor_cost;DECIMAL;false;null;
 0x222A;winter;INT;false;null;
@@ -537,7 +537,7 @@
 0xA22D;province_trade_power_value;DECIMAL;false;null;
 0xA52D;local_value;DECIMAL;false;null;
 0xA62D;retention;DECIMAL;false;null;
-0xA72D;steer_power;DECIMAL;false;null;
+0xA72D;steer_power;DECIMAL;false;null;TODO INTEGRAL in node->TAG
 0xA82D;pull_power;DECIMAL;false;null;
 0xA92D;retain_power;DECIMAL;false;null;
 0xAA2D;highest_power;DECIMAL;false;null;
@@ -844,3 +844,21 @@
 0x4C30;full_ally;null;false;null;
 0xD82F;capped_opinion_value;INT;false;null;
 0x682F;is_enforced;null;false;null;
+0x3F2F;players;QUOTED_STRING;true;null;TODO ???
+0x5A30;reformation_center;null;false;null;
+0x322C;any_target_province;INT;false;null;
+0xC72B;province_id;INT;false;null;
+0x7A2C;max_speed;DECIMAL;false;null;
+0xF62F;support_heir;null;false;null;
+0x7630;allow_foreign_armies;null;false;null;
+0x6D30;mothball_command;null;false;null;
+0x5930;auto_transfer_mode;null;false;null;
+0xC529;who;QUOTED_STRING;false;null;
+0xEF2F;foreign_heir;null;false;MonarchProcessor;
+0xF32F;SOMETHING_PLC_RELATED;null;false;null;TODO ???
+0xF22C;SOMETHING_AI_PROVINCE_RELATED;null;false;null;TODO ???
+0x0C2F;federation_leader;QUOTED_STRING;false;null;
+0x0D2F;federation_friends;QUOTED_STRING;false;null;
+0x0F2F;invite_to_federation;null;false;null;
+0x3128;NO_IDEA;null;false;null;TODO ???
+0xE32F;statists_vs_orangists;null;false;null;

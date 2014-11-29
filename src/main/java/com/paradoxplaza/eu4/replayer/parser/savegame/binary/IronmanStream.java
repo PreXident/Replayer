@@ -48,6 +48,10 @@ public class IronmanStream extends InputStream {
         processors.put("TreasuryProcessor", new TreasuryProcessor());
         processors.put("ValueIntProcessor", new ValueIntProcessor());
         processors.put("ValueProcessor", new ValueProcessor());
+        processors.put("MonarchProcessor", new MonarchProcessor());
+        processors.put("AmountProcessor", new AmountProcessor());
+        processors.put("IdProcessor", new IdProcessor());
+        processors.put("TermsProcessor", new TermsProcessor());
         //
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(IronmanStream.class.getResourceAsStream("/tokens.csv")))) {
             for (String line = reader.readLine(); line != null; line = reader.readLine()) {
@@ -143,10 +147,16 @@ public class IronmanStream extends InputStream {
         ACTION_INT,
         /** Content of action token should be quoted string. */
         ACTION_STRING,
-        /** Content of total token should be decimal. */
-        TOTAL_DECIMAL,
-        /** Content of value token should be int. */
-        VALUE_INT
+        /** Content of number tokens should be decimal. */
+        DECIMAL_NUMBER,
+        /** Dummy context. */
+        DUMMY,
+        /** Content of number tokens should be int. */
+        INT_NUMBER,
+        /** Now in monarch token. */
+        MONARCH,
+        /** Content of treasury tokens should be int. */
+        TREASURY_INT
     }
 
     /** Underlaying input stream with binary save. */
@@ -302,6 +312,19 @@ public class IronmanStream extends InputStream {
     }
 
     /**
+     * Processes amount keyword.
+     */
+    static class AmountProcessor implements ITokenProcessor {
+        @Override
+        public final void processToken(final IronmanStream is,
+                final StringBuilder builder) throws IOException {
+            if (is.context.contains(Context.MONARCH)) {
+                is.output = Output.DECIMAL;
+            }
+        }
+    }
+
+    /**
      * Processes booleans.
      */
     static class BooleanProcessor extends SingleValueProcessor {
@@ -412,13 +435,37 @@ public class IronmanStream extends InputStream {
     }
 
     /**
+     * Processes id token.
+     */
+    static class IdProcessor implements ITokenProcessor {
+        @Override
+        public void processToken(final IronmanStream is,
+                final StringBuilder builder) throws IOException {
+            if (is.context.contains(Context.MONARCH)) {
+                is.context.push(Context.DUMMY);
+            }
+        }
+    }
+
+    /**
+     * Processes monarch token.
+     */
+    static class MonarchProcessor implements ITokenProcessor {
+        @Override
+        public void processToken(final IronmanStream is,
+                final StringBuilder builder) throws IOException {
+            is.context.push(Context.MONARCH);
+        }
+    }
+
+    /**
      * Processes node token.
      */
     static class NodeProcessor implements ITokenProcessor {
         @Override
         public void processToken(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            is.context.push(Context.TOTAL_DECIMAL);
+            is.context.push(Context.DECIMAL_NUMBER);
         }
     }
 
@@ -488,7 +535,7 @@ public class IronmanStream extends InputStream {
             //does the list follow?
             if (token1 == (short) 0x0100 /*=*/
                     && token2 == (short) 0x0300 /*{*/) {
-                is.context.push(Context.TOTAL_DECIMAL);
+                is.context.push(Context.DECIMAL_NUMBER);
             }
             is.in.unread(bytes);
         }
@@ -512,7 +559,7 @@ public class IronmanStream extends InputStream {
             //does the list follow?
             if (token1 == (short) 0x0100 /*=*/
                     && token2 == (short) 0x0300 /*{*/) {
-                is.context.push(Context.VALUE_INT);
+                is.context.push(Context.INT_NUMBER);
             }
             is.in.unread(bytes);
         }
@@ -599,13 +646,23 @@ public class IronmanStream extends InputStream {
     }
 
     /**
+     * Processes tokens that switches context to VALUE_INT.
+     */
+    static class TermsProcessor implements ITokenProcessor {
+        @Override
+        public void processToken(IronmanStream is, StringBuilder builder) throws IOException {
+            is.context.push(Context.TREASURY_INT);
+        }
+    }
+
+    /**
      * Processes total keyword.
      */
     static class TotalProcessor implements ITokenProcessor {
         @Override
         public final void processToken(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            if (is.context.contains(Context.TOTAL_DECIMAL)) {
+            if (is.context.contains(Context.DECIMAL_NUMBER)) {
                 is.output = Output.DECIMAL;
             }
         }
@@ -618,7 +675,7 @@ public class IronmanStream extends InputStream {
         @Override
         public final void processToken(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            if (is.context.contains(Context.VALUE_INT)) {
+            if (is.context.contains(Context.TREASURY_INT)) {
                 is.output = Output.INT;
             }
         }
@@ -630,7 +687,7 @@ public class IronmanStream extends InputStream {
     static class ValueIntProcessor implements ITokenProcessor {
         @Override
         public void processToken(IronmanStream is, StringBuilder builder) throws IOException {
-            is.context.push(Context.VALUE_INT);
+            is.context.push(Context.INT_NUMBER);
         }
     }
 
@@ -641,7 +698,7 @@ public class IronmanStream extends InputStream {
         @Override
         public final void processToken(final IronmanStream is,
                 final StringBuilder builder) throws IOException {
-            if (is.context.contains(Context.VALUE_INT)) {
+            if (is.context.contains(Context.INT_NUMBER)) {
                 is.output = Output.INT;
             }
         }
