@@ -55,6 +55,9 @@ public class Converter {
                     OutputStream os = !options.test ?
                             new FileOutputStream(path + "txt.eu4")
                             : new UnclosableOutputStream(System.out)) {
+                if (is instanceof IronmanStream) {
+                    ((IronmanStream)is).setPrettyPrint(options.prettyPrint);
+                }
                 final byte[] bytes = new byte[READ_BLOCK_SIZE];
                 int length;
                 while ((length = is.read(bytes)) == READ_BLOCK_SIZE) {

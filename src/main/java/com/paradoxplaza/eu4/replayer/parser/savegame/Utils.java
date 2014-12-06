@@ -27,7 +27,7 @@ public class Utils {
     /**
      * Checks whether array starts with given prefix.
      * @param array array to check
-     * @param match prefix to search for
+     * @param prefix prefix to search for
      * @return true if array starts with prefix, false otherwise
      */
     static private boolean startsWith(final byte[] array, final byte[] prefix) {

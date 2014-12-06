@@ -92,6 +92,9 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 #Change log#
 ############
 
+1.11
+Rewritten conversion of binary saves
+
 1.10
 Updated to work with 1.8 saves
 Support for compressed saves
@@ -241,6 +244,7 @@ Check the repository PreXident/Replayer at Bitbucket.
 PreXident
 Lateralus (Hottemax at Bitbucket)
 Yahiko - French localization
+PreXident's Dad - cracking float5 format
 
 ################
 #Used Libraries#

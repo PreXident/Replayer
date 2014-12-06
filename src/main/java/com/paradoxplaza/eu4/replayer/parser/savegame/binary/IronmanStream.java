@@ -1,110 +1,49 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame.binary;
 
-import com.paradoxplaza.eu4.replayer.Date;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.DefaultHandler;
+import com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.IHandler;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PushbackInputStream;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Locale;
 import java.util.Map;
 
 /**
  * Transforms binary eu4 save game stream to text eu4 save game stream.
  */
-public class IronmanStream extends InputStream {
+public class IronmanStream extends InputStream implements IParserContext {
+
+    /** Initial size of the buffer. */
+    static protected final int INITIAL_BUFFER_SIZE = 64;
 
     /** Minimal size of PushbackInputStream. */
-    static final int PUSH_BACK_BUFFER_SIZE = 4;
+    static protected final int PUSH_BACK_BUFFER_SIZE = 4;
 
     /** Charset to use. Both input and output. */
-    static final Charset charset = StandardCharsets.ISO_8859_1;
+    static public final Charset charset = StandardCharsets.ISO_8859_1;
 
-    /** Token occuring in EU4bin. */
-    static final TokenInfo[] tokens = new TokenInfo[0xFFFF + 1];
+    /** Bytes representing system's line separator. */
+    static public final byte[] NEW_LINE = System.lineSeparator().getBytes(charset);
 
-    /** Initialization of tokens. */
-    static {
-        final Map<String, ITokenProcessor> processors = new HashMap<>();
-        processors.put("ActionProcessor", new ActionProcessor());
-        processors.put("BooleanProcessor", new BooleanProcessor());
-        processors.put("CloseBraceProcessor", new CloseBraceProcessor());
-        processors.put("DiplomacyConstructionProcessor", new DiplomacyConstructionProcessor());
-        processors.put("DiscoveredByProcessor", new DiscoveredByProcessor());
-        processors.put("EnvoyProcessor", new EnvoyProcessor());
-        processors.put("FloatProcessor", new FloatProcessor());
-        processors.put("NodeProcessor", new NodeProcessor());
-        processors.put("NumberProcessor", new NumberProcessor());
-        processors.put("PowerProcessor", new PowerProcessor());
-        processors.put("RivalProcessor", new RivalProcessor());
-        processors.put("StringProcessor", new StringProcessor());
-        processors.put("TotalProcessor", new TotalProcessor());
-        processors.put("TreasuryProcessor", new TreasuryProcessor());
-        processors.put("ValueIntProcessor", new ValueIntProcessor());
-        processors.put("ValueProcessor", new ValueProcessor());
-        processors.put("MonarchProcessor", new MonarchProcessor());
-        processors.put("AmountProcessor", new AmountProcessor());
-        processors.put("IdProcessor", new IdProcessor());
-        processors.put("TermsProcessor", new TermsProcessor());
-        //
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(IronmanStream.class.getResourceAsStream("/tokens.csv")))) {
-            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-                final String[] parts = line.split(";");
-                final int index = Integer.parseInt(parts[0].substring(2), 16);
-                final String text = parts[1].equals("null") ? null : parts[1].replace("\\n", "\n");
-                final Output output = parts[2].equals("null") ? null : Output.valueOf(parts[2]);
-                final boolean list = parts[3].equals("true");
-                final ITokenProcessor processor = processors.get(parts[4]);
-                if (processor == null && !parts[4].equals("null")) {
-                    System.err.println("Unknown processor: " + parts[4]);
-                }
-                tokens[index] = new TokenInfo(text, output, list, processor);
-            }
-        } catch (Exception e) {
-            System.err.println("Error while initializing the IronmanStream!");
-            e.printStackTrace();
-        }
-    }
+    /** Bytes representing token separator. */
+    static public final byte[] SPACE = " ".getBytes(charset);
 
-    /**
-     * Reads count bytes from is.
-     * @param is input stream to read from
-     * @param count read this number of bytes
-     * @return read bytes
-     * @throws IOException when IOException occurs during reading
-     * or not enough bytes are read
-     */
-    static private byte[] readBytes(final InputStream is, final int count)
-            throws IOException {
-        final byte[] bytes = new byte[count];
-        readBytes(is, bytes);
-        return bytes;
-    }
-
-    /**
-     * Reads count bytes from is.
-     * @param is input stream to read from
-     * @param out array to store read bytes
-     * @throws IOException when IOException occurs during reading
-     * or not enough bytes are read
-     */
-    static private void readBytes(final InputStream is, final byte[] out)
-            throws IOException {
-        if (is.read(out) != out.length) {
-            throw new IOException(l10n("parser.eof.unexpected"));
-        }
-    }
+    /** Bytes representing first token in textual save. */
+    static public final byte[] EU4txt = "EU4txt".getBytes(charset);
 
     /**
      * Indicator what is about to be read now.
      */
-    enum State {
+    protected enum State {
         /** Read the header "EU4bin". */
         START,
         /** Read next token. */
@@ -113,93 +52,129 @@ public class IronmanStream extends InputStream {
         END
     }
 
-    /**
-     * Context for ITokenProcessors.
-     */
-    enum Output {
-        /** Output date. */
-        DATE,
-        /** Output quoted date. */
-        QUOTED_DATE,
-        /** Output string. */
-        STRING,
-        /** Output quoted string. */
-        QUOTED_STRING,
-        /** Output quoted string, dash instead of empty. */
-        QUOTED_STRING_DASH,
-        /** Output integer. */
-        INT,
-        /** Output decimal number with 3 decimal places. */
-        DECIMAL,
-        /** AMBIGUOUS can be followed by INT or QUOTED_STRING. */
-        AMBIGUOUS_INT_QSTRING,
-        /** AMBIGUOUS can be followed by DECIMAL or QUOTED_STRING. */
-        AMBIGUOUS_DECIMAL_QSTRING,
-        /** Indicator to clear the output to null. */
-        NONE
-    }
-
-    /**
-     * Context of the save game.
-     */
-    enum Context {
-        /** Content of action token should be int. */
-        ACTION_INT,
-        /** Content of action token should be quoted string. */
-        ACTION_STRING,
-        /** Content of number tokens should be decimal. */
-        DECIMAL_NUMBER,
-        /** Dummy context. */
-        DUMMY,
-        /** Content of number tokens should be int. */
-        INT_NUMBER,
-        /** Now in monarch token. */
-        MONARCH,
-        /** Content of treasury tokens should be int. */
-        TREASURY_INT
-    }
+    /** Token occuring in EU4bin. */
+    protected final Token[] tokens = new Token[0xFFFF + 1];
 
     /** Underlaying input stream with binary save. */
-    final PushbackInputStream in;
+    protected final PushbackInputStream in;
 
     /** Context of the save game. */
-    final LinkedList<Context> context = new LinkedList<>();
+    protected final Deque<Token> context = new ArrayDeque<>(16);
 
-    /** Accumulator of the output. */
-    final StringBuilder builder = new StringBuilder();
-
-    /** Output buffer.
-     * Strings to be sent up are stored here.
-     */
-    byte[] buff = new byte[0];
+    /** Output buffer. */
+    protected final ByteArrayOutputStream buff = new ByteArrayOutputStream(INITIAL_BUFFER_SIZE);
 
     /** Next byte should be return from buff on this position. */
-    int bufPos = 0;
+    protected int bufPos = 0;
 
     /** Indicator what is about to be read now. */
-    State state = State.START;
+    protected State state = State.START;
 
-    /** Context for ITokenProcessors. */
-    Output output = null;
+    /** Flag indicating whether output should be nice. */
+    protected boolean prettyPrint = false;
 
-    /** Flag indicating whether list of values is being processed. */
-    boolean inList = false;
+    /** Current indendation level. */
+    protected int indent = 0;
+
+    /** Previous handled token. */
+    protected Token lastToken = null;
+
+    /** Currently handled token. */
+    protected Token currentToken = null;
 
     /**
      * Creates IronmanStream from underlaying PushbackInputStream.
      * It's buffer's size must be at least {@link #PUSH_BACK_BUFFER_SIZE}.
      * @param in EU4bin stream to be converted
+     * @throws java.io.IOException if any IO error occurs
      */
-    public IronmanStream(final PushbackInputStream in) {
+    public IronmanStream(final PushbackInputStream in) throws IOException {
         this.in = in;
+        //initialize tokens
+        final Map<String, IHandler> handlers = new HashMap<>();
+        handlers.put("", DefaultHandler.INSTANCE);
+        //
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(IronmanStream.class.getResourceAsStream("/tokens.csv")))) {
+            reader.readLine(); //skip header
+            for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+                final String[] parts = line.split(";", -1);
+                final int index = Integer.parseInt(parts[0].substring(2), 16);
+                final String text = parts[1];
+                final EnumSet<Flag> flags = Flag.parse(parts[2]);
+                IHandler handler = handlers.get(parts[3]);
+                if (handler == null) {
+                    try {
+                        handler = (IHandler) Class.forName(parts[3]).newInstance();
+                    } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+                        System.err.println("Cannot instantiate handler: " + parts[3]);
+                        e.printStackTrace(System.err);
+                    }
+                }
+                if (tokens[index] != null) {
+                    System.err.println("Token " + parts[0] + " redefined!");
+                }
+                tokens[index] = new Token(index, text, flags, handler);
+            }
+        }
     }
 
     /**
      * Creates IronmanStream from ordinary stream.
      * @param in EU4bin stream to be converted
+     * @throws java.io.IOException if any IO error occurs
      */
-    public IronmanStream(final InputStream in) {
-        this.in = new PushbackInputStream(in, PUSH_BACK_BUFFER_SIZE);
+    public IronmanStream(final InputStream in) throws IOException {
+        this(new PushbackInputStream(in, PUSH_BACK_BUFFER_SIZE));
+    }
+
+    @Override
+    public PushbackInputStream getInputStream() {
+        return in;
+    }
+
+    @Override
+    public OutputStream getOutputStream() {
+        return buff;
+    }
+
+    @Override
+    public Deque<Token> getContext() {
+        return context;
+    }
+
+    @Override
+    public Token getLastToken() {
+        return lastToken;
+    }
+
+    @Override
+    public Token getCurrentToken() {
+        return currentToken;
+    }
+
+    @Override
+    public boolean getPrettyPrint() {
+        return prettyPrint;
+    }
+
+    @Override
+    public void setPrettyPrint(final boolean prettyPrint) {
+        this.prettyPrint = prettyPrint;
+    }
+
+    @Override
+    public int getIndent() {
+        return indent;
+    }
+
+    @Override
+    public int increaseIndent() {
+        return ++indent;
+    }
+
+    @Override
+    public int decreaseIndent() {
+        return --indent;
     }
 
     @Override
@@ -209,24 +184,29 @@ public class IronmanStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        if (bufPos < buff.length) {
-            return buff[bufPos++];
+        if (bufPos < buff.size()) {
+            return buff.getByte(bufPos++);
         }
         switch (state) {
             case START:
                 readStart();
                 break;
             case TOKEN:
-                readToken();
+                buff.reset();
+                bufPos = 0;
+                //read until something is in buffer or eof
+                while (buff.size() == 0 && state != State.END) {
+                    readToken();
+                }
                 break;
             case END:
                 return -1;
         }
-        return state == State.END ? -1 : buff[bufPos++];
+        return state == State.END ? -1 : buff.getByte(bufPos++);
     }
 
     /**
-     * Reads header.
+     * Reads header, prepares context for reading tokens.
      * @throws IOException if something goes wrong
      */
     private void readStart() throws IOException {
@@ -235,9 +215,17 @@ public class IronmanStream extends InputStream {
         if (count != 6 || !new String(header, charset).equals("EU4bin")) {
             throw new IOException(l10n("parser.binary.notEU4"));
         }
-        buff = "EU4txt ".getBytes(charset);
-        bufPos = 0;
         state = State.TOKEN;
+        lastToken = tokens[0x0000];
+        currentToken = tokens[0x0100];
+        currentToken.handler.handleToken(this);
+        lastToken = currentToken;
+        currentToken = tokens[0x0300];
+        currentToken.handler.handleToken(this);
+        lastToken = currentToken;
+        buff.reset(); //throw away bytes from auxilliary context
+        indent = 0;
+        buff.write(EU4txt);
     }
 
     /**
@@ -249,508 +237,24 @@ public class IronmanStream extends InputStream {
         final int b1 = in.read();
         if (b1 == -1) {
             state = State.END;
+            bufPos = Integer.MAX_VALUE;
             return;
         }
         final int b2 = in.read();
         if (b2 == -1) {
             state = State.END;
+            bufPos = Integer.MAX_VALUE;
             return;
         }
         final int token = (b1 << 8) + b2;
-        TokenInfo info = tokens[token];
-        if (info == null) {
-//            throw new IOException(String.format(
-//                    l10n("parser.binary.token.unknown"), token & 0xFFFF));
+        currentToken = tokens[token];
+        if (currentToken == null) {
             final String hexa = String.format("0x%04X", token & 0xFFFF);
             System.err.println("Encountered unknown token " + hexa + ", trying to recover...");
-            info = new TokenInfo("UNKNOWN_" + hexa);
+            currentToken = new Token(token & 0xFFFF, "UNKNOWN_" + hexa);
+            tokens[token] = currentToken;
         }
-        if (info.output != null) {
-            output = info.output == Output.NONE ? null : info.output;
-        }
-        if (info.list) {
-            inList = true;
-        }
-        builder.setLength(0);
-        builder.append(info.text);
-        if (info.processor != null) {
-            info.processor.processToken(this, builder);
-        }
-        builder.append(' ');
-        builder.append("\r\n");
-        buff = builder.toString().getBytes(charset);
-        bufPos = 0;
-    }
-
-    /**
-     * Simple interface called when specific token should be processed.
-     */
-    interface ITokenProcessor {
-
-        /**
-         * Reads is.in and appends to builder.
-         * @param is calling IronmanStream
-         * @param builder EU4txt output
-         * @throws IOException when something goes wrong
-         */
-        void processToken(IronmanStream is, StringBuilder builder) throws IOException;
-    }
-
-    /**
-     * Processes action keyword.
-     */
-    static class ActionProcessor implements ITokenProcessor {
-        @Override
-        public final void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            if (is.context.contains(Context.ACTION_INT)) {
-                is.output = Output.INT;
-            } else if (is.context.contains(Context.ACTION_STRING)) {
-                is.output = Output.QUOTED_STRING;
-            }
-        }
-    }
-
-    /**
-     * Processes amount keyword.
-     */
-    static class AmountProcessor implements ITokenProcessor {
-        @Override
-        public final void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            if (is.context.contains(Context.MONARCH)) {
-                is.output = Output.DECIMAL;
-            }
-        }
-    }
-
-    /**
-     * Processes booleans.
-     */
-    static class BooleanProcessor extends SingleValueProcessor {
-
-        @Override
-        public void processValue(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            final int flag = is.in.read();
-            if (flag == -1) {
-                throw new IOException(l10n("parser.eof.unexpected"));
-            }
-            builder.append(flag > 0 ? "yes" : "no");
-        }
-    }
-
-    /**
-     * Processes closing brace }.
-     */
-    static class CloseBraceProcessor implements ITokenProcessor {
-        @Override
-        public void processToken(IronmanStream is, StringBuilder builder) throws IOException {
-            is.inList = false;
-            is.output = null;
-            if (!is.context.isEmpty()) {
-                is.context.pop();
-            }
-        }
-    }
-
-    /**
-     * Processes diplomacy_construction token.
-     */
-    static class DiplomacyConstructionProcessor implements ITokenProcessor {
-        @Override
-        public void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            is.context.push(Context.ACTION_STRING);
-        }
-    }
-
-    /**
-     * Processes discovered_by token.
-     */
-    static class DiscoveredByProcessor implements ITokenProcessor {
-
-        /** Here the next two tokens will be read. */
-        final byte[] bytes = new byte[4];
-
-        @Override
-        public void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            readBytes(is.in, bytes);
-            final short token1 = (short) ((bytes[0] << 8) + bytes[1]);
-            final short token2 = (short) ((bytes[2] << 8) + bytes[3]);
-            //does the list follow?
-            if (token1 == (short) 0x0100 /*=*/
-                    && token2 == (short) 0x0300 /*{*/) {
-                is.inList = true;
-                is.output = Output.STRING;
-            }
-            is.in.unread(bytes);
-        }
-    }
-
-    /**
-     * Processes closing brace }.
-     */
-    static class EnvoyProcessor implements ITokenProcessor {
-
-        /** Here the next two tokens will be read. */
-        final byte[] bytes = new byte[4];
-
-        @Override
-        public void processToken(IronmanStream is, StringBuilder builder) throws IOException {
-            readBytes(is.in, bytes);
-            final short token1 = (short) ((bytes[0] << 8) + bytes[1]);
-            final short token2 = (short) ((bytes[2] << 8) + bytes[3]);
-            //does the list follow?
-            if (token1 == (short) 0x0100 /*=*/
-                    && token2 == (short) 0x0300 /*{*/) {
-                is.context.push(Context.ACTION_INT);
-            }
-            is.in.unread(bytes);
-        }
-    }
-
-    /**
-     * Processes floats.
-     */
-    static class FloatProcessor extends SingleValueProcessor {
-
-        /** Here the float bytes will be read. */
-        final byte[] bytes = new byte[4];
-
-        @Override
-        public void processValue(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            readBytes(is.in, bytes);
-            for(int i = 0, o = bytes.length -1; i < bytes.length / 2; ++i, --o) {
-                final byte swap = bytes[i];
-                bytes[i] = bytes[o];
-                bytes[o] = swap;
-            }
-            final ByteBuffer bb = ByteBuffer.wrap(bytes);
-            final float f = bb.getFloat();
-            builder.append(String.format(Locale.ENGLISH, "%.3f", f));
-        }
-    }
-
-    /**
-     * Processes id token.
-     */
-    static class IdProcessor implements ITokenProcessor {
-        @Override
-        public void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            if (is.context.contains(Context.MONARCH)) {
-                is.context.push(Context.DUMMY);
-            }
-        }
-    }
-
-    /**
-     * Processes monarch token.
-     */
-    static class MonarchProcessor implements ITokenProcessor {
-        @Override
-        public void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            is.context.push(Context.MONARCH);
-        }
-    }
-
-    /**
-     * Processes node token.
-     */
-    static class NodeProcessor implements ITokenProcessor {
-        @Override
-        public void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            is.context.push(Context.DECIMAL_NUMBER);
-        }
-    }
-
-    /**
-     * Processes numbers and numeric dates.
-     */
-    static class NumberProcessor extends SingleValueProcessor {
-
-        /** Numeric dates are represented as number of hours since this date. */
-        static final Date start = new Date((short) -5000, (byte) 1, (byte) 1);
-
-        /** Here the number bytes will be read. */
-        final byte[] bytes = new byte[4];
-
-        @Override
-        public void processValue(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            readBytes(is.in, bytes);
-            final int number = toNumber(bytes);
-            if (is.output == null) {
-                //throw new IllegalStateException(l10n("parser.binary.output.none"));
-                builder.append(number);
-                return;
-            }
-            switch (is.output) {
-                case DATE:
-                    final Date date = start.skip(Date.Period.DAY, number / 24);
-                    builder.append(date);
-                    break;
-                case QUOTED_DATE:
-                    final Date qdate = start.skip(Date.Period.DAY, number / 24);
-                    builder.append('"');
-                    builder.append(qdate);
-                    builder.append('"');
-                    break;
-                case INT:
-                case AMBIGUOUS_INT_QSTRING:
-                    builder.append(number);
-                    break;
-                case DECIMAL:
-                case AMBIGUOUS_DECIMAL_QSTRING:
-                    float f = number / 1000f;
-                    builder.append(String.format(Locale.ENGLISH, "%.3f", f));
-                    break;
-                default:
-//                    builder.append("XXX");
-                    throw new IllegalStateException(String.format(
-                            l10n("parser.binary.output.invalid"), is.output));
-            }
-        }
-    }
-
-    /**
-     * Processes power token.
-     */
-    static class PowerProcessor implements ITokenProcessor {
-
-        /** Here the next two tokens will be read. */
-        final byte[] bytes = new byte[4];
-
-        @Override
-        public void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            readBytes(is.in, bytes);
-            final short token1 = (short) ((bytes[0] << 8) + bytes[1]);
-            final short token2 = (short) ((bytes[2] << 8) + bytes[3]);
-            //does the list follow?
-            if (token1 == (short) 0x0100 /*=*/
-                    && token2 == (short) 0x0300 /*{*/) {
-                is.context.push(Context.DECIMAL_NUMBER);
-            }
-            is.in.unread(bytes);
-        }
-    }
-
-
-    /**
-     * Processes discovered_by token.
-     */
-    static class RivalProcessor implements ITokenProcessor {
-
-        /** Here the next two tokens will be read. */
-        final byte[] bytes = new byte[4];
-
-        @Override
-        public void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            readBytes(is.in, bytes);
-            final short token1 = (short) ((bytes[0] << 8) + bytes[1]);
-            final short token2 = (short) ((bytes[2] << 8) + bytes[3]);
-            //does the list follow?
-            if (token1 == (short) 0x0100 /*=*/
-                    && token2 == (short) 0x0300 /*{*/) {
-                is.context.push(Context.INT_NUMBER);
-            }
-            is.in.unread(bytes);
-        }
-    }
-
-    /**
-     * Common ancestor for Processors of values.
-     * If not in a list, clears the is.output.
-     */
-    static abstract class SingleValueProcessor implements ITokenProcessor {
-
-        /**
-         * Converts byte array to integer it represents.
-         * @param bytes convert these bytes
-         * @return converted integer
-         */
-        static protected int toNumber(final byte[] bytes) {
-            int number = 0;
-            for(int i = bytes.length - 1; i >= 0; --i) {
-                number <<= 8;
-                number += bytes[i] & 0xff;
-            }
-            return number;
-        }
-
-        @Override
-        public final void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            processValue(is, builder);
-            if (!is.inList) {
-                is.output = null;
-            }
-        }
-
-        /**
-         * Processes the value.
-         * @param is calling IronmanStream
-         * @param builder EU4txt output
-         * @throws IOException when something goes wrong
-         */
-        protected abstract void processValue(IronmanStream is,
-                StringBuilder builder) throws IOException;
-    }
-
-    /**
-     * Processes strings.
-     */
-    static class StringProcessor extends SingleValueProcessor {
-
-        /** Here the string size will be read. */
-        final byte[] lengthBytes = new byte[2];
-
-        @Override
-        public void processValue(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            readBytes(is.in, lengthBytes);
-            final int number = toNumber(lengthBytes);
-            final byte[] stringBytes = readBytes(is.in, number);
-            String string = new String(stringBytes, charset);
-            if (is.output == null) {
-                builder.append(string);
-                return;
-            }
-            switch (is.output) {
-                case QUOTED_STRING_DASH:
-                    if (string.isEmpty()) {
-                        string = "---";
-                    }
-                    //intended fallthrough
-                case QUOTED_STRING:
-                case AMBIGUOUS_INT_QSTRING:
-                case AMBIGUOUS_DECIMAL_QSTRING:
-                    builder.append('"');
-                    builder.append(string);
-                    builder.append('"');
-                    break;
-                default:
-                case STRING:
-                    builder.append(string);
-                    break;
-                    //throw new IllegalStateException(String.format(l10n("parser.binary.output.invalid"), is.output));
-            }
-        }
-    }
-
-    /**
-     * Processes tokens that switches context to VALUE_INT.
-     */
-    static class TermsProcessor implements ITokenProcessor {
-        @Override
-        public void processToken(IronmanStream is, StringBuilder builder) throws IOException {
-            is.context.push(Context.TREASURY_INT);
-        }
-    }
-
-    /**
-     * Processes total keyword.
-     */
-    static class TotalProcessor implements ITokenProcessor {
-        @Override
-        public final void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            if (is.context.contains(Context.DECIMAL_NUMBER)) {
-                is.output = Output.DECIMAL;
-            }
-        }
-    }
-
-    /**
-     * Processes treasury keyword.
-     */
-    static class TreasuryProcessor implements ITokenProcessor {
-        @Override
-        public final void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            if (is.context.contains(Context.TREASURY_INT)) {
-                is.output = Output.INT;
-            }
-        }
-    }
-
-    /**
-     * Processes tokens that switches context to VALUE_INT.
-     */
-    static class ValueIntProcessor implements ITokenProcessor {
-        @Override
-        public void processToken(IronmanStream is, StringBuilder builder) throws IOException {
-            is.context.push(Context.INT_NUMBER);
-        }
-    }
-
-    /**
-     * Processes value keyword.
-     */
-    static class ValueProcessor implements ITokenProcessor {
-        @Override
-        public final void processToken(final IronmanStream is,
-                final StringBuilder builder) throws IOException {
-            if (is.context.contains(Context.INT_NUMBER)) {
-                is.output = Output.INT;
-            }
-        }
-    }
-
-    /**
-     * Information how the token should be processed.
-     */
-    static class TokenInfo {
-
-        /** Output text. Is not null. */
-        public final String text;
-
-        /** Output expected after the token. */
-        public final Output output;
-
-        /** If non-static token, processor handles further reading and converting. */
-        public final ITokenProcessor processor;
-
-        /** Flag indicating whether the token is followed by list of values.  */
-        public final boolean list;
-
-        public TokenInfo(final String text) {
-            this(text, (Output) null);
-        }
-
-        public TokenInfo(final String text,
-                final Output expectedOutput) {
-            this(text, expectedOutput, false);
-        }
-
-        public TokenInfo(final String text,
-                final Output expectedOutput, final boolean list) {
-            this(text, expectedOutput, list, null);
-        }
-
-        public TokenInfo(final String text, final ITokenProcessor processor) {
-            this(text, null, false, processor);
-        }
-
-        public TokenInfo(final ITokenProcessor processor) {
-            this("", null, false, processor);
-        }
-
-        public TokenInfo(final String text,
-                final Output expectedOutput, final boolean list,
-                final ITokenProcessor processor) {
-            assert text != null : "text cannot be null, use empty string instead!";
-            this.text = text;
-            this.output = expectedOutput;
-            this.list = list;
-            this.processor = processor;
-        }
+        currentToken.handler.handleToken(this);
+        lastToken = currentToken;
     }
 }

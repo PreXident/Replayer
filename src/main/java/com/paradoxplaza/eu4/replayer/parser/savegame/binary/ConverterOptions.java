@@ -22,6 +22,12 @@ public class ConverterOptions {
             names = { "-t", "/T", "--test-output" })
     boolean test = false;
 
+    /** Print the converted saves formatted. */
+    @Parameter(
+            description = "should converted saves be formatted?",
+            names = { "-p", "/P", "--pretty-print" })
+    boolean prettyPrint = true;
+
     /** List of saves to convert. */
     @Parameter(description = "[list of saves to convert]")
     List<String> files = new ArrayList<>();

@@ -11,7 +11,7 @@ public class Date implements Comparable<Date>, java.io.Serializable {
     public enum Period { DAY, MONTH, YEAR }
 
     /** Number of days in each month ignoring leap years. */
-    static byte[] monthsDays = new byte[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    static public byte[] monthsDays = new byte[] { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
     /** Number of days in a year. */
     static short yearDays = 365;
