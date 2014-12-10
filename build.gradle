@@ -112,3 +112,10 @@ task dist(dependsOn: distCopy, type: Zip) {
 	exclude '*.zip'
 	destinationDir file('build/dist')
 }
+
+dist.doLast {
+	println '##########################################################'
+	println '#DO NOT USE GRADLE FOR DISTRIBUTION YET! RUN ANT INSTEAD!#'
+	println '##########################################################'
+	throw new RuntimeException('DO NOT USE GRADLE FOR DISTRIBUTION YET! RUN ANT INSTEAD!')
+}
