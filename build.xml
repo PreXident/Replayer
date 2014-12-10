@@ -2,7 +2,8 @@
 	<property file="version.properties" />
 	<property name="project.version" value="${ext.projectVersion}"/>
 	<property environment="env"/>
-	<property name="jar.javafx" value="${env.JAVA_HOME}/jre/lib/jfxrt.jar" />
+	<property name="dir.javafx" value="${env.JAVA_HOME}/jre/lib" />
+	<property name="jar.javafx" value="${dir.javafx}/jfxrt.jar" />
 	<property name="jar.ant-javafx" value="${env.JAVA_HOME}/lib/ant-javafx.jar" />
 	<property name="dir.build" value="build/classes/main" />
 	<property name="dir.src" value="src/main/java" />
