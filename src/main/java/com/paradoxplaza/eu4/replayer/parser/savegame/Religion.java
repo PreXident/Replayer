@@ -90,6 +90,8 @@ class Religion extends CompoundState<SaveGame> {
             case "total_centers":
             case "reformation_center":
             case "hre_heretic_religion":
+            case "original_hre_religion":
+            case "original_hre_heretic_religion":
                 return ignore;
             case "defender":
                 return defenderState;

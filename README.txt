@@ -92,6 +92,9 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 #Change log#
 ############
 
+1.12
+Improved compatibility with EU4 1.9
+
 1.11
 Rewritten conversion of binary saves
 

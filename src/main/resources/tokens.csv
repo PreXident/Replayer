@@ -489,7 +489,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xBF2C;tolerance_heretic;F;;
 0xC02C;tolerance_heathen;F;;
 0xC72C;rebel_faction;;;
-0xD02C;defection;;;
+0xD02C;defection;QS;;
 0xD22C;independence;I,QS;;
 0xD72C;crusade_target;QS;;
 0xD82C;crusade_start;QD;;
@@ -791,6 +791,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xB12F;power_projection;;;
 0xB22F;company_cache;QS;;
 0xB32F;strong_company;;;
+0xB52F;go_home_at_war;;;
 0xB62F;army_strength;F5;;
 0xBE2F;personal_deity;QS;;
 0xC62F;blockaded_percent;F;;
@@ -818,6 +819,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x1E30;marches;QS;;
 0x1F30;num_of_marches;I;;
 0x1430;local_autonomy;F;;
+0x1930;subject_focus;I;;
 0x2030;is_march;;;
 0x2A30;unit_naming;;;
 0x2E30;enforce_rebel_demands;;;
@@ -863,3 +865,20 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xD430;is_small_march;;;
 0xD730;last_war_status;I;;
 0xDC30;joined_war;QS;;
+0xDF30;t_in;F;;
+0xE030;t_out;F;;
+0xE130;max_pow;F;;
+0xE230;val;F;;
+0xE330;t_to;F,S;;
+0xE430;t_from;S;;
+0xE530;add;F;;
+0xE630;p_pow;F;;
+0xF230;active_disaster;S;;
+0xFA30;num_ships_privateering;I;;
+0xFC30;average_autonomy;F;;
+0xFD30;average_home_autonomy;F;;
+0xF630;unit_template_id;I;;
+0xF830;disaster_progress;F;;
+0x0231;original_hre_religion;;;
+0x0331;original_hre_heretic_religion;;;
+0x0F31;update_overseas_cores;;;

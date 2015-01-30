@@ -88,11 +88,12 @@ class Controller extends CompoundState<SaveGame> {
     public State<SaveGame> processWord(final SaveGame saveGame, final String word) {
         switch (word) {
             case "controller":
+            case "tag":
                 return inner.withOutput(tag);
             case "rebel":
                 return inner.withOutput(rebel);
             default:
-                throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), word, "controller|rebel"));
+                throw new RuntimeException(String.format(l10n(INVALID_TOKEN_EXPECTED_KEYWORD), word, "controller|rebel|tag"));
         }
     }
 }
