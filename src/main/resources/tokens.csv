@@ -168,7 +168,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xC928;missionary_construction;;;
 0xCC28;colonist_placement_chance;F;;
 0xCD28;local_colonist_placement_chance;F;;
-0xD228;native_size;F;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.TestHandler;
+0xD228;native_size;F;;
 0xD328;native_ferocity;I;;
 0xD428;native_hostileness;I;;
 0xD828;skill;I;;
