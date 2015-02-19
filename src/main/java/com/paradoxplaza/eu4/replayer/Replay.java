@@ -388,7 +388,7 @@ public class Replay {
         }
         processSaveGame(bridge, initializationListener);
     }
-    
+
     /**
      * Loads colonial regions from files inside /common/colonial_regions.
      */
@@ -574,24 +574,30 @@ public class Replay {
             reader = new BufferedReader(new InputStreamReader(fileManager.getInputStream("map/definition.csv"), StandardCharsets.ISO_8859_1));
             //skip first line
             reader.readLine();
-            String line = line = reader.readLine();
+            String line = reader.readLine();
             while (line != null) {
                 if (line.isEmpty()) {
                     line = reader.readLine();
                     continue;
                 }
-                final String[] parts = line.split(";");
-                final int color = Utils.toColor(
-                        Integer.parseInt(parts[1]),
-                        Integer.parseInt(parts[2]),
-                        Integer.parseInt(parts[3]));
-                final ProvinceInfo province = new ProvinceInfo(parts[0], parts[4], color);
-                provinces.put(parts[0], province);
-                final ProvinceInfo original = colors.put(color, province);
-                if (original != null) {
-                    System.err.println(String.format(l10n("replay.provinces.error"), parts[0], original.id));
-                    colors.put(color, original); //first one matters
-                    //throw new RuntimeException(String.format(l10n("replay.provinces.error"), parts[0], original.id));
+                final String[] parts = line.split(";", -1);
+                try {
+                    final int color = Utils.toColor(
+                            Integer.parseInt(parts[1]),
+                            Integer.parseInt(parts[2]),
+                            Integer.parseInt(parts[3]));
+                    final String name = parts.length >= 5 ? parts[4] : "";
+                    final ProvinceInfo province = new ProvinceInfo(parts[0], name, color);
+                    provinces.put(parts[0], province);
+                    final ProvinceInfo original = colors.put(color, province);
+                    if (original != null) {
+                        System.err.println(String.format(l10n("replay.provinces.error"), parts[0], original.id));
+                        colors.put(color, original); //first one matters
+                        //throw new RuntimeException(String.format(l10n("replay.provinces.error"), parts[0], original.id));
+                    }
+                } catch (IndexOutOfBoundsException | NumberFormatException e) {
+                    System.err.printf(l10n("replay.provinces.invalid"), line);
+                    e.printStackTrace();
                 }
                 line = reader.readLine();
             }
