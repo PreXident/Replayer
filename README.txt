@@ -92,6 +92,10 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 #Change log#
 ############
 
+1.13
+Less strict requirements on definition.csv format
+
+
 1.12
 Improved compatibility with EU4 1.9
 
