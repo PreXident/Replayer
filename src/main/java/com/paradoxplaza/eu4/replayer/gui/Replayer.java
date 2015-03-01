@@ -1,9 +1,9 @@
 package com.paradoxplaza.eu4.replayer.gui;
 
+import com.paradoxplaza.eu4.replayer.Utils;
 import com.paradoxplaza.eu4.replayer.localization.Localizator;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.utils.UnclosableInputStream;
-import com.paradoxplaza.eu4.replayer.Utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -125,6 +125,13 @@ public class Replayer extends Application {
                 settings.put("eu4.dir", dir.getPath());
             }
         }
+
+        //displaying the most important properties information
+//        final String message =
+//                "Property file: " + new File(propertyFile).getAbsolutePath() + "\n" +
+//                "mod.list=" + settings.getProperty("mod.list") + "\n" +
+//                "init.start=" + settings.getProperty("init.start");
+//        JOptionPane.showMessageDialog(null, message);
 
         //create javafx controls
         final FXMLLoader loader = new FXMLLoader(getClass().getResource("Replayer.fxml"), Localizator.getInstance().getResourceBundle());
