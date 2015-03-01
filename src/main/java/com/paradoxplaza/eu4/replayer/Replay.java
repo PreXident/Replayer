@@ -130,6 +130,9 @@ public class Replay {
     /** Flag indicating that subject nations should be rendered as part of their overlords. */
     public boolean subjectsAsOverlords = false;
 
+    /** Flag indicating that adding core to non-owner should change province ownership. */
+    public boolean fixCore2Owner = false;
+
     /** Flag whether the Random New World feature is on. */
     public final boolean rnw;
 
@@ -205,6 +208,7 @@ public class Replay {
         setFocus(settings.getProperty("focus", ""));
 
         subjectsAsOverlords = settings.getProperty("subjects.as.overlord", "false").equals("true");
+        fixCore2Owner = settings.getProperty("fix.core2owner", "false").equals("true");
     }
 
     /**

@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer;
 
 import com.paradoxplaza.eu4.replayer.events.AlwaysNotable;
 import com.paradoxplaza.eu4.replayer.events.Controller;
+import com.paradoxplaza.eu4.replayer.events.Core;
 import com.paradoxplaza.eu4.replayer.events.Culture;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Name;
@@ -448,6 +449,26 @@ public class EventProcessor {
     }
 
     /**
+     * Processes Core event. Handles core2owner fix.
+     * @param date date of the event
+     * @param core core change
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean process(final Date date, final Core core) {
+        if (replay.fixCore2Owner && replay.notableEvents.contains("Owner")
+                && core.type == Core.ADDED) {
+            final ProvinceInfo province = replay.provinces.get(core.id);
+            if (!core.tag.equals(province.owner)) {
+                if (core.owner == null) {
+                    core.owner = new Owner(core.id, core.name, core.tag);
+                }
+                core.owner.beProcessed(date, this);
+            }
+        }
+        return true;
+    }
+
+    /**
      * Processes Culture event.
      * @param date date of the event
      * @param culture culture change
@@ -621,6 +642,19 @@ public class EventProcessor {
         final ProvinceInfo province = replay.provinces.get(controller.id);
         province.remove(controller);
         return changeController(date, controller.id, controller.previousValue);
+    }
+
+    /**
+     * Unprocesses Core event. Handles core2owner fix.
+     * @param date date of the event
+     * @param core core change
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean unprocess(final Date date, final Core core) {
+        if (core.owner != null) {
+            core.owner.beUnprocessed(date, this);
+        }
+        return true;
     }
 
     /**

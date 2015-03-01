@@ -1,5 +1,7 @@
 package com.paradoxplaza.eu4.replayer.events;
 
+import com.paradoxplaza.eu4.replayer.Date;
+import com.paradoxplaza.eu4.replayer.EventProcessor;
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
 import com.paradoxplaza.eu4.replayer.utils.Ref;
 import java.util.Formattable;
@@ -41,10 +43,13 @@ public class Core extends ProvinceEvent {
     static public Type REMOVED = Type.REMOVED;
 
     /** New core owner. */
-    final String tag;
+    public final String tag;
 
     /** Type of core event. */
-    final Type type;
+    public final Type type;
+
+    /** Owner event generated as part of core2owner fix. */
+    public Owner owner;
 
     /**
      * Only constructor
@@ -60,6 +65,16 @@ public class Core extends ProvinceEvent {
     }
 
     @Override
+    public boolean beProcessed(final Date date, final EventProcessor processor) {
+        return processor.process(date, this);
+    }
+
+    @Override
+    public boolean beUnprocessed(final Date date, final EventProcessor processor) {
+        return processor.unprocess(date, this);
+    }
+
+    @Override
     public void formatTo(final Formatter formatter, final int flags, final int width, final int precision) {
         if ((flags & ALTERNATE) != ALTERNATE) {
             formatter.format(toString());
@@ -72,6 +87,6 @@ public class Core extends ProvinceEvent {
 
     @Override
     public String toString() {
-        return String.format(l10n("event.province.Claim"), tag, id, name.val, type);
+        return String.format(l10n("event.province.Core"), tag, id, name.val, type);
     }
 }
