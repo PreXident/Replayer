@@ -365,6 +365,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
             case "revolt":
             case "discovered_by":
             case "citysize":
+            case "extra_cost":
                 return ignore;
             default:
                 return stringState.withOutput(building);

@@ -44,6 +44,8 @@ class CultureGroup extends CompoundState<Pair<Map<String, CountryInfo>, Map<Stri
         switch (word) {
             case "dynasty_names":
             case "graphical_culture":
+            case "male_names":
+            case "female_names":
                 return ignore;
             default:
                 return culture.withName(word);
