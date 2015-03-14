@@ -990,7 +990,8 @@ public class ReplayerController implements Initializable {
                 int x = (int) (t.getX() * replay.bufferWidth / imageBounds.getWidth());
                 int y = (int) (t.getY() * replay.bufferHeight / imageBounds.getHeight());
                 final String coords = "[" + x + "," + y + "]\n";
-                final String provinceHint = coords + replay.colors.get(replay.getProvinceColor(x, y)).toString();
+                final ProvinceInfo pi = replay.colors.get(replay.getProvinceColor(x, y));
+                final String provinceHint = coords + (pi != null ? pi.toString() : "");
                 if (!scrollPane.getTooltip().getText().equals(provinceHint)) {
                     scrollPane.setTooltip(new Tooltip(provinceHint));
                 }
