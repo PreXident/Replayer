@@ -17,10 +17,10 @@ import java.util.Set;
 public class SaveGame implements java.io.Serializable {
 
     /** Year 1 is speacial, we will treat it as null. */
-    static private final Date YEAR1 = new Date((short) 1, (byte) 1, (byte) 1);
+    static private final Date YEAR1_START = new Date((short) 1, (byte) 1, (byte) 1);
 
     /** Year 2 is speacial, we will treat it as null. */
-    static private final Date YEAR2 = new Date((short) 1, (byte) 1, (byte) 1);
+    static private final Date YEAR2_END = new Date((short) 2, (byte) 12, (byte) 31);
 
     /** Current date, meaning the end date of the SaveGame. */
     public Date date = new Date();
@@ -51,7 +51,8 @@ public class SaveGame implements java.io.Serializable {
      * @param event displayable event
      */
     public void addEvent(Date date, final Event event) {
-        if (YEAR1.equals(date) || YEAR2.equals(date)) {
+        if (YEAR1_START.compareTo(date) <= 0 && YEAR2_END.compareTo(date) >= 0
+                && !System.getProperty("fix.not.years.1.2", "false").equals("true")) {
             date = null;
         }
         final List<Event> list = getEventList(date);
@@ -64,7 +65,8 @@ public class SaveGame implements java.io.Serializable {
      * @param tagChange TagChange to be added
      */
     public void addEvent(Date date, final TagChange tagChange) {
-        if (YEAR1.equals(date) || YEAR2.equals(date)) {
+        if (YEAR1_START.compareTo(date) <= 0 && YEAR2_END.compareTo(date) >= 0
+                && !System.getProperty("fix.not.years.1.2", "false").equals("true")) {
             date = null;
         }
         final List<Event> list = getEventList(date);
