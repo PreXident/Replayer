@@ -31,6 +31,9 @@ public class CountryInfo {
     /** Set of subject nations' tags. */
     public final Set<String> subjects = new HashSet<>();
 
+    /** Set of enacted decisions. */
+    public final Set<String> decisions = new HashSet<>();
+
     /** Administration technology level. */
     public int adm = 0;
 
@@ -59,6 +62,7 @@ public class CountryInfo {
         tagChangeFrom.clear();
         overlord = null;
         subjects.clear();
+        decisions.clear();
         adm = 0;
         dip = 0;
         mil = 0;

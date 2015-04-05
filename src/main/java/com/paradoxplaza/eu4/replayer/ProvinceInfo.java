@@ -54,6 +54,9 @@ public class ProvinceInfo {
     /** Flag indicating id this province is a wasteland. */
     public boolean isWasteland = false;
 
+    /** Trade goods of the province. */
+    public String goods = null;
+
     /**
      * Only constructor.
      * @param id province id
@@ -112,13 +115,14 @@ public class ProvinceInfo {
     public String getLog() {
         return String.format(
                 "<html><body>" +
-                    "<p>%8$s=%1$s<br>%9$s=%2$s<br>%10$s=%3$s<br>%11$s=%4$s<br>%12$s=%5$s<br>%13$s=%6$s</p>" +
+                    "<p>%8$s=%1$s<br>%9$s=%2$s<br>%10$s=%3$s<br>%11$s=%4$s<br>%12$s=%5$s<br>%13$s=%6$s<br>%14$s=%15$s</p>" +
                     "<p>%7$s</p>" +
                 "</body></html>",
                 id, name, controller, owner, religion, culture, eventLog(),
                 l10n("province.log.id"), l10n("province.log.name"),
                 l10n("province.log.controller"), l10n("province.log.owner"),
-                l10n("province.log.religion"), l10n("province.log.culture"));
+                l10n("province.log.religion"), l10n("province.log.culture"),
+                l10n("province.log.goods"), goods);
     }
 
     /**
@@ -143,16 +147,18 @@ public class ProvinceInfo {
         culture = null;
         religion = null;
         name = origName;
+        goods = null;
         events.clear();
     }
 
     @Override
     public String toString() {
         return String.format(
-                "%7$s=%1$s\n%8$s=%2$s\n%9$s=%3$s\n%10$s=%4$s\n%11$s=%5$s\n%12$s=%6$s",
+                "%7$s=%1$s\n%8$s=%2$s\n%9$s=%3$s\n%10$s=%4$s\n%11$s=%5$s\n%12$s=%6$s\n%13$s=%14$s",
                 id, name, controller, owner, religion, culture,
                 l10n("province.log.id"), l10n("province.log.name"),
                 l10n("province.log.controller"), l10n("province.log.owner"),
-                l10n("province.log.religion"), l10n("province.log.culture"));
+                l10n("province.log.religion"), l10n("province.log.culture"),
+                l10n("province.log.goods"), goods);
     }
 }

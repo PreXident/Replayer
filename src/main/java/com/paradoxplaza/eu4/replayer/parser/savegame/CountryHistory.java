@@ -2,6 +2,7 @@ package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import com.paradoxplaza.eu4.replayer.Date;
 import com.paradoxplaza.eu4.replayer.SaveGame;
+import com.paradoxplaza.eu4.replayer.events.Decision;
 import com.paradoxplaza.eu4.replayer.events.TagChange;
 import com.paradoxplaza.eu4.replayer.parser.CompoundState;
 import com.paradoxplaza.eu4.replayer.parser.Empty;
@@ -33,8 +34,11 @@ class CountryHistory extends CompoundState<SaveGame> {
     /** SaveGame to modify. */
     SaveGame saveGame;
 
-    /** Adds addCore to savegame. */
+    /** Adds tag change to savegame. */
     final TagChangeWriteListener tagChange = new TagChangeWriteListener();
+
+    /** Adds decision to savegame. */
+    final DecisionWriteListener decision = new DecisionWriteListener();
 
     /** State processsing simple events. */
     final StringState<SaveGame> stringState = new StringState<>(this);
@@ -104,6 +108,8 @@ class CountryHistory extends CompoundState<SaveGame> {
         switch (word) {
             case "changed_tag_from":
                 return stringState.withOutput(tagChange);
+            case "decision":
+                return stringState.withOutput(decision);
             default:
                 return ignore;
         }
@@ -129,6 +135,18 @@ class CountryHistory extends CompoundState<SaveGame> {
             final TagChange tagChange = new TagChange(newTag, word);
             saveGame.addEvent(date, tagChange);
             saveGame.tagChanges.add(new Pair<>(date, tagChange));
+        }
+    }
+
+    /**
+     * Mimicks WritableValue, but adds event to saveGame when value is written.
+     */
+    class DecisionWriteListener implements WritableValue<String> {
+
+        @Override
+        public final void setValue(final String word) {
+            final Decision decision = new Decision(tag, word);
+            saveGame.addEvent(date, decision);
         }
     }
 }

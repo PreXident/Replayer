@@ -4,6 +4,7 @@ import com.paradoxplaza.eu4.replayer.events.AlwaysNotable;
 import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Core;
 import com.paradoxplaza.eu4.replayer.events.Culture;
+import com.paradoxplaza.eu4.replayer.events.Decision;
 import com.paradoxplaza.eu4.replayer.events.Event;
 import com.paradoxplaza.eu4.replayer.events.Goods;
 import com.paradoxplaza.eu4.replayer.events.Name;
@@ -483,22 +484,39 @@ public class EventProcessor {
     }
 
     /**
+     * Processes Decision event.
+     * @param date date of the event
+     * @param decision enacted decision
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean process(final Date date, final Decision decision) {
+        final CountryInfo country = replay.countries.get(decision.tag.val);
+        country.decisions.add(decision.name);
+        return true;
+    }
+
+    /**
      * Processes province trade goods chage event. Handles goods2owner fix.
      * @param date date of the event
      * @param goods goods change event
      * @return true if event should be logged, false otherwise
      */
     public boolean process(final Date date, final Goods goods) {
+        final ProvinceInfo province = replay.provinces.get(goods.id);
         if (replay.fixGoods2Owner && "unknown".equals(goods.value)
                 && replay.notableEvents.contains("Owner")) {
-            final ProvinceInfo province = replay.provinces.get(goods.id);
-            if (province.owner != null) {
+            final CountryInfo country = replay.countries.get(province.owner);
+            if (province.owner != null
+                    && (!country.decisions.contains("abolish_slavery_act")
+                    || !"slaves".equals(province.goods))) {
                 if (goods.owner == null) {
                     goods.owner = new Owner(goods.id, goods.name, null);
                 }
                 goods.owner.beProcessed(date, this);
             }
         }
+        goods.previousValue = province.goods;
+        province.goods = goods.value;
         return true;
     }
 
@@ -691,6 +709,18 @@ public class EventProcessor {
     }
 
     /**
+     * Unprocesses decision event.
+     * @param date date of the event
+     * @param decision decision event
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean unprocess(final Date date, final Decision decision) {
+        final CountryInfo country = replay.countries.get(decision.tag.val);
+        country.decisions.remove(decision.name);
+        return true;
+    }
+
+    /**
      * Unprocesses province trade goods change event. Handles goods2owner fix.
      * @param date date of the event
      * @param goods goods change event
@@ -700,6 +730,9 @@ public class EventProcessor {
         if (goods.owner != null) {
             goods.owner.beUnprocessed(date, this);
         }
+        final ProvinceInfo province = replay.provinces.get(goods.id);
+        province.goods = goods.previousValue;
+        province.remove(goods);
         return true;
     }
 
