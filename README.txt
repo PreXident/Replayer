@@ -94,6 +94,10 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 
 1.13
 Less strict requirements on definition.csv format
+Implemented core2owner feature - when cheats are used to change owner of a province, it is not saved in the province history. Use fix.core2owner=true in replayer.properties to force changing owner if core is added. This should make the map more accurate eventually, but of course if the country already has core, it does not help. So if cheats are used to change province owner, consider also removing the new owner's core if it exists.
+Improved compatibility with EU4 1.10
+Fixed silent NPE when using province borders
+System (use "javaw -Dfix.not.years.1.2=true" instead of "javaw" in run.bat) property "fix.not.years.1.2" now controls whether years 1 and 2 will be treated as null
 
 
 1.12
