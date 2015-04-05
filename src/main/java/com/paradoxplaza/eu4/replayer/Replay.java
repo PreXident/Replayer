@@ -133,6 +133,9 @@ public class Replay {
     /** Flag indicating that adding core to non-owner should change province ownership. */
     public boolean fixCore2Owner = false;
 
+    /** Flag indicating that removing trade goods should remove provinceownership. */
+    public boolean fixGoods2Owner = true;
+
     /** Flag whether the Random New World feature is on. */
     public final boolean rnw;
 
@@ -209,6 +212,7 @@ public class Replay {
 
         subjectsAsOverlords = settings.getProperty("subjects.as.overlord", "false").equals("true");
         fixCore2Owner = settings.getProperty("fix.core2owner", "false").equals("true");
+        fixGoods2Owner = !settings.getProperty("fix.goods2owner", "true").equals("false");
     }
 
     /**

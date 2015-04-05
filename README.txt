@@ -98,7 +98,7 @@ Implemented core2owner feature - when cheats are used to change owner of a provi
 Improved compatibility with EU4 1.10
 Fixed silent NPE when using province borders
 System (use "javaw -Dfix.not.years.1.2=true" instead of "javaw" in run.bat) property "fix.not.years.1.2" now controls whether years 1 and 2 will be treated as null
-
+Implemented fix goods2owner for migration and colony destruction. In short, if trade goods is removed (set to unknown) from a  province, the province is removed from its owner. Of course, Trade Goods must be checked in Settings. I think this should work well for vanilla, not sure about mods. Use "fix.goods2owner=false" in replayer.properties to switch it off.
 
 1.12
 Improved compatibility with EU4 1.9

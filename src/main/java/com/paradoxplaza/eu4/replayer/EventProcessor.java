@@ -5,6 +5,7 @@ import com.paradoxplaza.eu4.replayer.events.Controller;
 import com.paradoxplaza.eu4.replayer.events.Core;
 import com.paradoxplaza.eu4.replayer.events.Culture;
 import com.paradoxplaza.eu4.replayer.events.Event;
+import com.paradoxplaza.eu4.replayer.events.Goods;
 import com.paradoxplaza.eu4.replayer.events.Name;
 import com.paradoxplaza.eu4.replayer.events.Owner;
 import com.paradoxplaza.eu4.replayer.events.ProvinceEvent;
@@ -482,6 +483,26 @@ public class EventProcessor {
     }
 
     /**
+     * Processes province trade goods chage event. Handles goods2owner fix.
+     * @param date date of the event
+     * @param goods goods change event
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean process(final Date date, final Goods goods) {
+        if (replay.fixGoods2Owner && "unknown".equals(goods.value)
+                && replay.notableEvents.contains("Owner")) {
+            final ProvinceInfo province = replay.provinces.get(goods.id);
+            if (province.owner != null) {
+                if (goods.owner == null) {
+                    goods.owner = new Owner(goods.id, goods.name, null);
+                }
+                goods.owner.beProcessed(date, this);
+            }
+        }
+        return true;
+    }
+
+    /**
      * Processes province name changed event.
      * @param date date of the event
      * @param name province name changed event
@@ -667,6 +688,19 @@ public class EventProcessor {
         final ProvinceInfo province = replay.provinces.get(culture.id);
         province.remove(culture);
         return changeCulture(date, culture.id, culture.previousValue);
+    }
+
+    /**
+     * Unprocesses province trade goods change event. Handles goods2owner fix.
+     * @param date date of the event
+     * @param goods goods change event
+     * @return true if event should be logged, false otherwise
+     */
+    public boolean unprocess(final Date date, final Goods goods) {
+        if (goods.owner != null) {
+            goods.owner.beUnprocessed(date, this);
+        }
+        return true;
     }
 
     /**
