@@ -44,6 +44,8 @@ class ReligionGroup extends CompoundState<Map<String, Integer>> {
             case "defender_of_faith":
             case "center_of_religion":
             case "can_form_personal_unions":
+            case "flags_with_emblem_percentage":
+            case "flag_emblem_index_range":
                 return ignore;
             default:
                 return religion.withName(word);
