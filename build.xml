@@ -1,6 +1,6 @@
 <project name="Replayer" default="dist" xmlns:fx="javafx:com.sun.javafx.tools.ant">
 	<property file="version.properties" />
-	<property name="project.version" value="${ext.projectVersion}"/>
+	<property name="project.version" value="${ext.antProjectVersion}"/>
 	<property environment="env"/>
 	<property name="dir.javafx" value="${env.JAVA_HOME}/jre/lib" />
 	<property name="jar.javafx" value="${dir.javafx}/jfxrt.jar" />
