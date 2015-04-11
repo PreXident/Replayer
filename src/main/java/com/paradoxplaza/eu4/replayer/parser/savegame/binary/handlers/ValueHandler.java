@@ -35,7 +35,8 @@ public class ValueHandler extends DefaultHandler {
                 || token.index == 0xF02C //antagonize
                 || token.index == 0xF12C //befriend
                 || token.index == 0xF72C //rival
-                || token.index == 0x1A2F) { //protectorate
+                || token.index == 0x1A2F //protectorate
+                || token.index == 0xF22C) { //convert_prov
             flags.add(Flag.INTEGER);
         } else {
             flags.add(Flag.FLOAT);

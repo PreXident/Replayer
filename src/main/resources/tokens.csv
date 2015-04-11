@@ -155,7 +155,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xB928;manuever;I;;
 0xBA28;leader;I,QS;;
 0xBB28;admiral;;;
-0xBC28;explorer;;;
+0xBC28;explorer;I;;
 0xBD28;conquistador;;;
 0xBE28;general;;;
 0xC028;activation;QD;;
@@ -298,7 +298,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xC529;who;QS;;
 0xC729;papacy;;;
 0xC829;cardinal;I;;
-0xCC29;flags;S,D;;
+0xCC29;flags;S,D;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.FlagsHandler;switches between D and I
 0xDE29;terms;;;
 0xDF29;demand;QS;;
 0xE329;front;I;;
@@ -351,7 +351,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x812A;influence;F;;
 0x882A;old_influence;F;;
 0x8B2A;hidden_flags;S,D;;
-0x8D2A;finish;I;;//TODO ???
+0x8D2A;FINISH;I;;//TODO something ironman related
 0x982A;production_leader;I;;
 0x9C2A;integrationaction;;;
 0x9E2A;trade_range_modifier;F;;
@@ -433,6 +433,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x852B;last_major_mission;QS;;
 0x922B;colonysize;F;;
 0x932B;is_city;;;
+0x9B2B;colony_claim;S;;
 0x9D2B;imperial_influence;F;;
 0x9E2B;papal_influence;F;;
 0xA02B;num_of_missionaries;I;;
@@ -471,7 +472,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x932C;current_route_target;I;;
 0x942C;has_capital;;;
 0x982C;discipline;F;;
-0x992C;setgameplayoptions;I;;
+0x992C;setgameplayoptions;I;;10th flag = editable save (can be loaded in SP)
 0x9B2C;gameplaysettings;;;
 0xA02C;land_attrition;F;;
 0xA12C;naval_attrition;F;;
@@ -496,16 +497,18 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xDA2C;last_excom;QD;;
 0xE22C;trust;I;;
 0xE32C;distrust;I;;
+0xE52C;colonial;QS;;
 0xE72C;hre_interest;;;
 0xE82C;papacy_interest;;;
 0xE92C;colonize_prov;;;
 0xEA2C;conquer_prov;;;
 0xEC2C;building_prov;;;
+0xED2C;explore_prov;I;;
 0xEE2C;threat;;;
 0xEF2C;protect;;;
 0xF02C;antagonize;;;
 0xF12C;befriend;;;
-0xF22C;SOMETHING_AI_PROVINCE_RELATED;;;TODO ???
+0xF22C;convert_prov;;;
 0xF32C;initialized;;;
 0xF72C;rival;QS;;
 0xFB2C;colonial_maintenance;F;;
@@ -532,6 +535,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x442D;monarch_name;QS;;
 0x4C2D;annul;QS;;
 0x512D;last_focus_move;QD;;
+0x522D;flag;I;;
 0x5B2D;local_production_efficiency;F;;
 0x5C2D;defender_date;QD;;
 0x5D2D;land_maintenance_modifier;F;;
@@ -589,7 +593,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xE32D;ruler_modifier;;;
 0xE42D;attacker_score;F;;
 0xE52D;defender_score;F;;
-0xE62D;war_goal;I;;TODO guessed I?
+0xE62D;war_goal;I;;
 0xE72D;take_colony;;;
 0xE82D;take_core;I;;
 0xE92D;take_border;;;
@@ -614,7 +618,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x142E;initialized_attitudes;;;
 0x152E;military_rating;I;;
 0x172E;last_strategy_index;I;;
-0x182E;file_name;QS;;TODO ???
+0x182E;FILE_NAME;QS;;TODO ironman related
 0x1A2E;target_provinces;I;;
 0x242E;war_direction_quarter;I;;
 0x252E;war_direction_year;I;;
@@ -764,7 +768,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x3B2F;score_rating;F;;
 0x3C2F;score_rank;I;;
 0x3D2F;country_color;I;;
-0x3F2F;players;QS;;TODO ???
+0x3F2F;PLAYERS;QS;;TODO multiplayer related
 0x462F;can_attach;;;
 0x472F;opportunism;;;
 0x482F;update_supply_range;;;
@@ -783,6 +787,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x922F;trade_company_region;;;
 0x942F;fervor;;;
 0x972F;fixed_capital;I;;
+0x9C2F;SOMETHING_COUNTRY_RELATED_FOLLOWED_BY_NUMBER;I;;
 0xA62F;trade_company;;;
 0xA82F;old_name;QS;;
 0xB02F;current_power_projection;F;;
@@ -799,7 +804,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xCB2F;transferred_out;F;;
 0xCC2F;transferred_in;F;;
 0xD62F;was_player;;;
-0xD72F;file_name;QS;;TODO ???
+0xD72F;FILE_NAME;QS;;TODO ironman related
 0xD82F;capped_opinion_value;I;;
 0xD92F;original_tax;F;;
 0xDB2F;original_capital;I;;
@@ -809,10 +814,10 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xE32F;statists_vs_orangists;F;;
 0xED2F;last_warscore;I;;
 0xEF2F;foreign_heir;;;
-0xF32F;SOMETHING_PLC_RELATED;;;TODO ???
+0xF32F;ruler_is_foreigner;;;
 0xF42F;national_focus;S;;
 0xF62F;support_heir;;;
-0xFF2F;ruler_flags;;;
+0xFF2F;ruler_flags;S;;
 0x0830;previous_government_type;S;;
 0x0930;active_trade_company;;;
 0x1130;unrest;F;;
@@ -853,6 +858,8 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x9630;change_price;S;;
 0x9830;current_price;F;;
 0x9930;last_conversion;QD;;
+0x9D30;subject_color;I;;
+0x9E30;subject_symbol_index;I;;
 0xA130;war_reparations;;;
 0xA430;humiliate_rival;;;
 0xA530;winner_alliance;F;;
@@ -881,4 +888,32 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xF830;disaster_progress;F;;
 0x0231;original_hre_religion;;;
 0x0331;original_hre_heretic_religion;;;
+0x0531;doom;F;;
 0x0F31;update_overseas_cores;;;
+0x1031;overseas_core;S;;
+0x1131;active_days_this_month;I;;
+0x1231;active_fraction_last_month;I;;
+0x1631;country_colors;;;
+0x1831;treasure_fleet_gold;F;;
+0x1A31;flag_colors;I;;
+0x2231;active_religious_reform;S,I;;
+0x2631;has_friendly_reformation_center;;;
+0x2731;has_hostile_reformation_center;;;
+0x2C31;authority;F;;
+0x3A31;disaster_started;I;;
+0x4531;revolutionary_colors;I;;
+0x4631;extra_cost;F;;
+0x4731;revolutionary_flag_texture;I;;
+0x5231;preferred_coalition_target;QS;;
+0x5331;preferred_coalition_score;F;;
+0x5431;preferred_coalition_against_us;QS;;
+0x5531;explore_mission;I;;
+0x5631;explore;;;
+0x5831;explore_target;I;;
+0x5931;in_debt;;;
+0x6331;last_sacrifice;D;;
+0x6631;colonial_name_source;I;;
+0x6D31;last_spy_discovery;D;;
+0x7931;last_month_treasure_fleet_gold;F;;
+0x9031;recalculate_strategy;;;
+0x3C31;pirate_hunt;F;;

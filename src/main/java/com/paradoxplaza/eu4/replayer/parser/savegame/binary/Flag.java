@@ -66,6 +66,7 @@ public enum Flag {
                     break;
                 case "P":
                     flags.add(PRETTY_LIST);
+                    break;
                 case "":
                     break;
                 default:
