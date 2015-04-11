@@ -185,7 +185,7 @@ public class IronmanStream extends InputStream implements IParserContext {
     @Override
     public int read() throws IOException {
         if (bufPos < buff.size()) {
-            return buff.getByte(bufPos++);
+            return buff.getByte(bufPos++) & 0xFF;
         }
         switch (state) {
             case START:
@@ -202,7 +202,7 @@ public class IronmanStream extends InputStream implements IParserContext {
             case END:
                 return -1;
         }
-        return state == State.END ? -1 : buff.getByte(bufPos++);
+        return state == State.END ? -1 : buff.getByte(bufPos++) & 0xFF;
     }
 
     /**
