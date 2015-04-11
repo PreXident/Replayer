@@ -47,8 +47,10 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x2C27;elector;;;
 0x3527;set_country_flag;QS;;
 0x3627;clr_country_flag;QS;;
+0x3727;set_province_flag;QS;;
+0x3827;clr_province_flag;QS;;
 0x3927;set_global_flag;QS;;
-0x4027;clr_global_flag;QS;;TODO guessed index?
+0x4027;clr_global_flag;QS;;
 0x4327;missionaries;;;
 0x4427;merchants;;;
 0x4527;colonists;;;
