@@ -49,10 +49,11 @@ public class Converter {
             options.files.add(save.getAbsolutePath());
         }
         //convert files
+        final String suffix = options.deironman ? "dei.eu4" : "txt.eu4";
         for (String path : options.files) {
             try (InputStream is = chooseStream(new FileInputStream(path), options.deironman).getFirst();
                     OutputStream os = !options.test ?
-                            new FileOutputStream(path + "txt.eu4")
+                            new FileOutputStream(path + suffix)
                             : new UnclosableOutputStream(System.out)) {
                 if (is instanceof IronmanStream) {
                     ((IronmanStream)is).setPrettyPrint(options.prettyPrint);
