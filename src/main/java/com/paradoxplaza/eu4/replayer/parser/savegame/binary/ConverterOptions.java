@@ -28,6 +28,12 @@ public class ConverterOptions {
             names = { "-p", "/P", "--pretty-print" })
     boolean prettyPrint = true;
 
+    /** Just deironman. */
+    @Parameter(
+            description = "should the save be just de-ironmanned?",
+            names = { "-d", "/D", "--de-ironman" })
+    boolean deironman = false;
+
     /** List of saves to convert. */
     @Parameter(description = "[list of saves to convert]")
     List<String> files = new ArrayList<>();

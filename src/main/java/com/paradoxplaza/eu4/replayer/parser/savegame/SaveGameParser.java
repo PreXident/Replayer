@@ -31,7 +31,7 @@ class SaveGameParser extends TextParser<SaveGame> {
     public SaveGameParser(final SaveGame saveGame, final long size,
             final InputStream input, final ITaskBridge<SaveGame> bridge)
             throws IOException {
-        this(saveGame, size, chooseStream(input), bridge);
+        this(saveGame, size, chooseStream(input, false), bridge);
     }
 
     /**

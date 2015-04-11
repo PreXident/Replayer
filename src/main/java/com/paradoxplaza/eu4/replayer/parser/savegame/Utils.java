@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.parser.savegame.binary.DeIronmanStream;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.IronmanStream;
 import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.io.BufferedInputStream;
@@ -44,11 +45,12 @@ public class Utils {
      * Wraps stream into IronmanStream/ZipStream if needed.
      * Long part of returned pair is the size of the zip stream, or -1.
      * @param stream save game stream
+     * @param deironman use DeIronmanStream istead of IronmanStream
      * @return stream wrapped to IronmanStream if needed, size of zip stream
      * @throws IOException if IO error occurs
      */
-    static public Pair<InputStream, Long> chooseStream(final InputStream stream)
-            throws IOException {
+    static public Pair<InputStream, Long> chooseStream(final InputStream stream,
+            final boolean deironman) throws IOException {
         long size = -1;
         final BufferedInputStream buff = new BufferedInputStream(stream);
         PushbackInputStream push = new PushbackInputStream(buff, 6);
@@ -70,7 +72,11 @@ public class Utils {
             }
         }
         if (startsWith(bytes, EU4BIN_PREFIX)) {
-            return new Pair<InputStream, Long>(new IronmanStream(push), size); //it's ok, this stream's buffer is 6
+            if (deironman) {
+                return new Pair<InputStream, Long>(new DeIronmanStream(push), size); //it's ok, this stream's buffer is 6
+            } else {
+                return new Pair<InputStream, Long>(new IronmanStream(push), size); //it's ok, this stream's buffer is 6
+            }
         } else if (startsWith(bytes, EU4TXT_PREFIX)) {
             return new Pair<InputStream, Long>(push, size);
         } else {

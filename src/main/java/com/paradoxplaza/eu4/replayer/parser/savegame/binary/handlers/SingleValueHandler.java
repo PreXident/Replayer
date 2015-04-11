@@ -17,18 +17,20 @@ public abstract class SingleValueHandler extends DefaultHandler {
      * @param bytes convert these bytes
      * @return converted integer
      */
-    static protected int toNumber(final byte[] bytes) {
-        int number = 0;
-        for(int i = bytes.length - 1; i >= 0; --i) {
-            number <<= 8;
-            number += bytes[i] & 0xff;
-        }
-        return number;
+    static public int toNumber(final byte[] bytes) {
+        return toNumber(bytes, 0, bytes.length);
     }
 
-    static protected int toNumber2(final byte[] bytes) {
+    /**
+     * Converts byte array to integer it represents.
+     * @param bytes convert these bytes
+     * @param offset start from this index
+     * @param length use this number of bytes
+     * @return converted integer
+     */
+    static public int toNumber(final byte[] bytes, final int offset, final int length) {
         int number = 0;
-        for(int i = 0; i < bytes.length; ++i) {
+        for(int i = length + offset - 1; i >= offset; --i) {
             number <<= 8;
             number += bytes[i] & 0xff;
         }

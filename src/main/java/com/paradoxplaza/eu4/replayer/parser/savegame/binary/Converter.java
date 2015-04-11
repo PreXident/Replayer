@@ -2,9 +2,7 @@ package com.paradoxplaza.eu4.replayer.parser.savegame.binary;
 
 import com.beust.jcommander.JCommander;
 import static com.paradoxplaza.eu4.replayer.parser.savegame.Utils.chooseStream;
-import com.paradoxplaza.eu4.replayer.utils.Pair;
 import com.paradoxplaza.eu4.replayer.utils.UnclosableOutputStream;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,6 +24,7 @@ public class Converter {
      * @param args see {@link ConverterOptions}
      */
     static public void main(String[] args) {
+        //args = new String[] { "-d" };
         //parse command line options
         final ConverterOptions options = new ConverterOptions();
         final JCommander jCommander = new JCommander(options, args);
@@ -51,7 +50,7 @@ public class Converter {
         }
         //convert files
         for (String path : options.files) {
-            try (InputStream is = chooseStream(new FileInputStream(path)).getFirst();
+            try (InputStream is = chooseStream(new FileInputStream(path), options.deironman).getFirst();
                     OutputStream os = !options.test ?
                             new FileOutputStream(path + "txt.eu4")
                             : new UnclosableOutputStream(System.out)) {
