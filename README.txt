@@ -92,6 +92,9 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 #Change log#
 ############
 
+1.14
+Improved compatibility with EU4 1.12
+
 1.13
 Less strict requirements on definition.csv format
 Implemented core2owner feature - when cheats are used to change owner of a province, it is not saved in the province history. Use fix.core2owner=true in replayer.properties to force changing owner if core is added. This should make the map more accurate eventually, but of course if the country already has core, it does not help. So if cheats are used to change province owner, consider also removing the new owner's core if it exists.

@@ -334,6 +334,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
             case "trade_goods":
                 return stringState.withOutput(goods);
             case "manpower":
+            case "base_manpower":
                 return stringState.withOutput(manpower);
             case "capital":
                 return stringState.withOutput(capital);
@@ -367,6 +368,7 @@ class ProvinceHistory extends CompoundState<SaveGame> {
             case "citysize":
             case "extra_cost":
             case "set_province_flag":
+            case "base_production":
                 return ignore;
             default:
                 return stringState.withOutput(building);
