@@ -1,0 +1,116 @@
+	BUL=
+	{
+		human=yes
+		UNKNOWN_0x402E=
+		{
+			UNKNOWN_0x412E=yes
+			UNKNOWN_0x432E=yes
+			UNKNOWN_0x442E=yes
+			UNKNOWN_0x452E=yes
+			UNKNOWN_0x462E=-1
+		}
+		was_player=yes
+		subject_focus=0
+		last_focus_move="1387.10.3"
+		last_conversion="1.1.1"
+		last_sacrifice=1.1.1
+		history=
+		{
+			government=feudal_monarchy_2
+			mercantilism=0.100
+      
+      
+      
+      
+      
+      
+		army=
+		{
+			id=
+			{
+				id=139
+				type=54
+			}
+			name="1st Army"
+			leader=
+			{
+				id=7778
+				type=49
+			}
+			previous=1145
+			path=
+			{
+				1142 2974
+			}
+			location=1146
+			retreat=yes
+			retreat_shattered=yes
+			UNKNOWN_0xF22D=yes
+			regiment=
+			{
+				id=
+				{
+					id=135
+					type=54
+				}
+				name="Nfelo's 1st Regiment"
+				home=1144
+				type="niger_kongolese_tribal_warfare"
+				morale=0
+				strength=0.846
+			}
+      
+      
+      
+      
+		enemy="BYZ"
+		enemy="NAP"
+		enemy="HAF"
+		enemy="PAP"
+		enemy="SMO"
+		goldtype=2
+		preferred_coalition_target="PAP"
+		preferred_coalition_score=656.250
+		luck=yes
+		UNKNOWN_0xD92C=yes
+		is_at_war=yes
+		last_election="1356.1.10"
+		diplomatic_power_cache=0
+		available_diplo_relations_cache=0
+		relations_over_limit=4
+		delayed_treasure=1.502
+		active_policy=
+		{
+			policy="harbour_administration"
+			date="1463.5.2"
+		}
+		current_power_projection=76.000
+    
+    
+    
+imperial_ban_allowed=yes
+internal_hre_cb=yes
+hre_inheritable=no
+allows_female_emperor=no
+hre_leagues_status=0
+hre_religion_status=0
+UNKNOWN_0x592D=10315
+old_emperor=
+{
+	id=1909
+	country="BOH"
+	date="1346.8.26"
+}
+old_emperor=
+{
+	id=13869
+	country="BOH"
+	date="1390.10.19"
+}
+old_emperor=
+{
+	id=2022
+	country="BRA"
+	date="1414.5.5"
+}
+      

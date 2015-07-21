@@ -109,6 +109,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x6928;discovery_dates;QD;;
 0x6A28;discovered_by;QS;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.DiscoveredByHandler;switches between QS and S
 0x6D28;once;;;
+0x6F28;level;I;;
 0x7028;location;I;;
 0x7128;trade;QS,I;;
 0x7328;trade_efficiency;F;;
@@ -134,7 +135,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x8928;inflation_reduction;F;;
 0x8B28;enable;QD;;
 0x9D28;country;QS;;
-0xA028;army;;;
+0xA028;army;I;;
 0xA128;navy;;;
 0xA228;regiment;;;
 0xA328;ship;;;
@@ -150,6 +151,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xAE28;interest;F;;
 0xAF28;lender;QS;;
 0xB028;expiry_date;QD;;
+0xB128;cancelled_loans;I;;
 0xB428;last_bankrupt;QD;;
 0xB628;siege;I;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.SiegeHandler;switches between I and F
 0xB728;fire;I;;
@@ -206,6 +208,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x0229;wartax;QD;;
 0x0329;land_morale;F;;
 0x0429;naval_morale;F;;
+0x0629;index;I;;
 0x0729;global_manpower_modifier;F;;
 0x0829;local_manpower_modifier;F;;
 0x0929;global_manpower;F;;
@@ -235,6 +238,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x2929;supply_limit;F;;
 0x2A29;breach;I;;
 0x2B29;garrison;F;;
+0x2C29;assault;;;
 0x2D29;blockade;I;;
 0x3129;actor;QS;;
 0x3229;recipient;QS;;
@@ -250,6 +254,8 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x3F29;annexationaction;;;
 0x4229;warningaction;;;
 0x4329;milaccess;;;
+0x4429;offermilaccess;;;
+0x4729;insultaction;;;
 0x4A29;last_war;QD;;
 0x4B29;last_send_diplomat;QD;;
 0x4C29;war_exhaustion_cost;F;;
@@ -287,6 +293,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x8529;num_of_unions;I;;
 0x9229;from;I,QS;;
 0x9329;to;I,QS;;
+0x9729;desc;QS;;
 0x9929;scope;;;
 0x9A29;seed;I;;
 0x9C29;death_date;QD;;
@@ -303,6 +310,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xCC29;flags;S,D;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.FlagsHandler;switches between D and I
 0xDE29;terms;;;
 0xDF29;demand;QS;;
+0xE029;releasevassal;QS;;
 0xE329;front;I;;
 0xE429;back;I;;
 0xE529;reserves;;;
@@ -322,6 +330,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x182A;female;;;
 0x1B2A;advisor_cost;F;;
 0x222A;winter;I;;
+0x252A;warsubsidy;;;
 0x2A2A;subsidies;;;
 0x2E2A;last_command_date;QD;;
 0x2F2A;previous_monarch;;;
@@ -335,7 +344,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x492A;prestige;F;;
 0x4A2A;global_colonial_growth;F;;
 0x4B2A;local_colonial_growth;QS;;
-0x4D2A;variables;;;
+0x4D2A;variables;S,F;;
 0x502A;revolt;;;
 0x562A;is_subject;;;
 0x572A;defensiveness;F;;
@@ -611,6 +620,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xFC2D;possible_provinces;I;;
 0xFD2D;build_core_construction;;;
 0xFE2D;change_culture_construction;;;
+0xFF2D;return_core;;;
 0x052E;revoke_elector;;;
 0x082E;num_uncontested_cores;I;;
 0x092E;transfer_trade_power;;;
@@ -764,6 +774,8 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x262F;adjective;QS;;
 0x292F;num_owned_home_cores;I;;
 0x2C2F;dirty_colony;;;
+0x2E2F;support_independence_action;;;
+0x2F2F;support_independence;S;;
 0x302F;num_of_independence_supporters;I;;
 0x382F;native_size_before_migration;F;;
 0x3A2F;westernisation_needed;F;;
@@ -805,6 +817,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xC82F;navy_strength;F5;;
 0xCB2F;transferred_out;F;;
 0xCC2F;transferred_in;F;;
+0xD32F;attacker_call_all;;;
 0xD62F;was_player;;;
 0xD72F;FILE_NAME;QS;;TODO ironman related
 0xD82F;capped_opinion_value;I;;
@@ -837,7 +850,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x3930;min_autonomy;F;;
 0x3E30;transfered_to;F,S;;
 0x3F30;transfered_from;F,S;;
-0x4C30;full_ally;;;
+0x4C30;full_ally;QS;;
 0x5730;num_of_clients;I;;
 0x5A30;reformation_center;;;
 0x5930;auto_transfer_mode;;;
@@ -852,6 +865,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x7630;allow_foreign_armies;;;
 0x8130;transfer_home_bonus;F;;
 0x8630;spread;I;;
+0x8730;unit_templates;;;
 0x8830;army_templates;;;
 0x8930;navy_templates;;;
 0x8D30;hre_leagues_status;I;;
@@ -873,7 +887,9 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xCB30;total_centers;I;;
 0xD430;is_small_march;;;
 0xD730;last_war_status;I;;
+0xD930;auto_transfer_army;;;
 0xDC30;joined_war;QS;;
+0xDE30;target_merge_province;I;;
 0xDF30;t_in;F;;
 0xE030;t_out;F;;
 0xE130;max_pow;F;;
@@ -882,6 +898,9 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xE430;t_from;S;;
 0xE530;add;F;;
 0xE630;p_pow;F;;
+0xE730;auto_transfer_navy;;;
+0xEB30;auto_fleet_transport;;;
+0xEC30;graphical_auto_transport_path;I;;
 0xF230;active_disaster;S;;
 0xFA30;num_ships_privateering;I;;
 0xFC30;average_autonomy;F;;
@@ -903,6 +922,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x2731;has_hostile_reformation_center;;;
 0x2C31;authority;F;;
 0x3A31;disaster_started;I;;
+0x3F31;custom_national_ideas_level;I;;
 0x4531;revolutionary_colors;I;;
 0x4631;extra_cost;F;;
 0x4731;revolutionary_flag_texture;I;;
@@ -919,3 +939,4 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x7931;last_month_treasure_fleet_gold;F;;
 0x9031;recalculate_strategy;;;
 0x3C31;pirate_hunt;F;;
+0x3E31;custom_national_ideas;;;
