@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers;
 
+import com.paradoxplaza.eu4.replayer.parser.savegame.Utils;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.Flag;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.IParserContext;
 import static com.paradoxplaza.eu4.replayer.parser.savegame.binary.IronmanStream.NEW_LINE;
@@ -46,7 +47,7 @@ public class StringHandler extends SingleValueHandler {
         if (number > string.length) {
             string = new byte[number];
         }
-        context.getInputStream().read(string, 0, number);
+        Utils.ensureRead(context.getInputStream(), string, number);
         //hack: ignore last character if newline
         if (number > 0 && string[number-1] == 0x0A) {
             --number;

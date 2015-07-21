@@ -60,10 +60,9 @@ public class Converter {
                 }
                 final byte[] bytes = new byte[READ_BLOCK_SIZE];
                 int length;
-                while ((length = is.read(bytes)) == READ_BLOCK_SIZE) {
-                    os.write(bytes);
+                while ((length = is.read(bytes)) != -1) {
+                    os.write(bytes, 0, length);
                 }
-                os.write(bytes, 0, length);
             } catch (Exception e) {
                 System.err.println("Exception while processing file " + path);
                 e.printStackTrace();

@@ -92,7 +92,7 @@ public class ModGenerator {
                 file.getParentFile().mkdirs();
                 try (FileOutputStream fos = new FileOutputStream(file)) {
                     int len;
-                    while ((len = zip.read(buf)) > 0) {
+                    while ((len = zip.read(buf)) >= 0) {
                         fos.write(buf, 0, len);
                     }
                 } catch (Exception e) {

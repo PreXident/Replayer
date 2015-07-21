@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame.binary;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.parser.savegame.Utils;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.DefaultHandler;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.IHandler;
 import java.io.BufferedReader;
@@ -196,7 +197,13 @@ public class IronmanStream extends InputStream implements IParserContext {
                 bufPos = 0;
                 //read until something is in buffer or eof
                 while (buff.size() == 0 && state != State.END) {
-                    readToken();
+                    try {
+                        readToken();
+                    } catch (IOException e) {
+                        //log the exception as super.read discards it silently
+                        e.printStackTrace();
+                        throw e;
+                    }
                 }
                 break;
             case END:
@@ -211,7 +218,7 @@ public class IronmanStream extends InputStream implements IParserContext {
      */
     private void readStart() throws IOException {
         final byte[] header = new byte[6];
-        final int count = in.read(header);
+        final int count = Utils.ensureRead(in, header);
         if (count != 6 || !new String(header, charset).equals("EU4bin")) {
             throw new IOException(l10n("parser.binary.notEU4"));
         }

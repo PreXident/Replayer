@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame.binary;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.parser.savegame.Utils;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.IronmanStream.State;
 import static com.paradoxplaza.eu4.replayer.parser.savegame.binary.IronmanStream.charset;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.SingleValueHandler;
@@ -73,7 +74,7 @@ public class DeIronmanStream extends InputStream {
      */
     private void readStart() throws IOException {
         final byte[] header = new byte[6];
-        final int count = in.read(header);
+        final int count = Utils.ensureRead(in, header);
         if (count != 6 || !new String(header, charset).equals("EU4bin")) {
             throw new IOException(l10n("parser.binary.notEU4"));
         }
@@ -115,24 +116,24 @@ public class DeIronmanStream extends InputStream {
             case 0x0F00: //string
                 buff.write(b1);
                 buff.write(b2);
-                in.read(inBuff, 0, 2);
+                Utils.ensureRead(in, inBuff, 2);
                 length = SingleValueHandler.toNumber(inBuff, 0, 2);
                 buff.write(inBuff, 0, 2);
                 bytes = new byte[length];
-                in.read(bytes);
+                Utils.ensureRead(in, bytes);
                 buff.write(bytes);
                 break;
             case 0x182E: //FILE_NAME
             case 0xD72F: //FILE_NAME
-                in.read(inBuff, 0, 6); //read "= STR LEN"
+                Utils.ensureRead(in, inBuff, 6); //read "= STR LEN"
                 length = SingleValueHandler.toNumber(inBuff, 4, 2);
                 bytes = new byte[length];
-                in.read(bytes);
+                Utils.ensureRead(in, bytes);
                 break;
             case 0x992C: //setgameplayoptions
                 buff.write(b1);
                 buff.write(b2);
-                in.read(inBuff, 0, 4 + 10 * 6); //read "= {" and 10 times number
+                Utils.ensureRead(in, inBuff, 4 + 10 * 6); //read "= {" and 10 times number
                 inBuff[63] = 0;
                 inBuff[62] = 0;
                 inBuff[61] = 0;
@@ -140,13 +141,13 @@ public class DeIronmanStream extends InputStream {
                 buff.write(inBuff);
                 break;
             case 0x8D2A: //FINISH
-                in.read(inBuff, 0, 4); //read "= {"
+                Utils.ensureRead(in, inBuff, 4); //read "= {"
                 while (true) {
-                    in.read(inBuff, 0, 2);
+                    Utils.ensureRead(in, inBuff, 2);
                     if (inBuff[0] == 0x04 && inBuff[1] == 0x00) { // }
                         break;
                     }
-                    in.read(inBuff, 0, 4); //number;
+                    Utils.ensureRead(in, inBuff, 4); //number;
                 }
                 break;
             default:
@@ -159,7 +160,7 @@ public class DeIronmanStream extends InputStream {
     private void copyToken(int b1, int b2, int len) throws IOException {
         buff.write(b1);
         buff.write(b2);
-        in.read(inBuff, 0, len);
+        Utils.ensureRead(in, inBuff, len);
         buff.write(inBuff, 0, len);
     }
 }

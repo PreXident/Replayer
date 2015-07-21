@@ -1,6 +1,7 @@
 package com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers;
 
 import static com.paradoxplaza.eu4.replayer.localization.Localizator.l10n;
+import com.paradoxplaza.eu4.replayer.parser.savegame.Utils;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.IParserContext;
 import com.paradoxplaza.eu4.replayer.parser.savegame.binary.IronmanStream;
 import static com.paradoxplaza.eu4.replayer.parser.savegame.binary.IronmanStream.NEW_LINE;
@@ -46,9 +47,7 @@ public class DefaultHandler implements IHandler {
      */
     static protected void readBytes(final InputStream is, final byte[] out)
             throws IOException {
-        if (is.read(out) != out.length) {
-            throw new IOException(l10n("parser.eof.unexpected"));
-        }
+        Utils.ensureRead(is, out);
     }
 
     /**

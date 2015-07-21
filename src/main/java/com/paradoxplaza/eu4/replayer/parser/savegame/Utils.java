@@ -55,7 +55,7 @@ public class Utils {
         final BufferedInputStream buff = new BufferedInputStream(stream);
         PushbackInputStream push = new PushbackInputStream(buff, 6);
         final byte[] bytes = new byte[6];
-        push.read(bytes);
+        ensureRead(push, bytes);
         push.unread(bytes);
         if (startsWith(bytes, ZIP_PREFIX)) {
             final ZipInputStream zip = new ZipInputStream(push);
@@ -64,7 +64,7 @@ public class Utils {
                 if (!"meta".equals(entry.getName())) {
                     size = entry.getSize();
                     push = new PushbackInputStream(zip, 6);
-                    push.read(bytes);
+                    ensureRead(push, bytes);
                     push.unread(bytes);
                     break;
                 }
@@ -85,6 +85,40 @@ public class Utils {
         }
     }
 
+    /**
+     * Reads bytes from input stream filling array.
+     * If there are not enough bytes in the is, exception is thrown.
+     * @param is input stream
+     * @param array buffer to read bytes to
+     * @return number of bytes read
+     * @throws IOException if IO error occurs or not enough bytes are left
+     */
+    static public int ensureRead(final InputStream is, final byte[] array) throws IOException {
+        return ensureRead(is, array, array.length);
+    }
+    
+    /**
+     * Reads bytes from input stream filling array to the length.
+     * If there are not enough bytes in the is, exception is thrown.
+     * @param is input stream
+     * @param array buffer to read bytes to
+     * @param length number of bytes to read
+     * @return number of bytes read
+     * @throws IOException if IO error occurs or not enough bytes are left
+     */
+    static public int ensureRead(final InputStream is, final byte[] array, final int length) throws IOException {
+        int read = 0;
+        int left = length;
+        int len = 0;
+        while (len > -1 && left > 0) {
+            len = is.read(array, read += len, left -= len);
+        }
+        if (len == -1) {
+            throw new IOException(l10n("parser.eof.unexpected"));
+        }
+        return read;
+    }
+    
     /**
      * Utility classes need no constructor.
      */
