@@ -98,7 +98,8 @@ public class DefaultHandler implements IHandler {
             return;
         }
         final Token token = context.getLastToken();
-        if (token.index != 0x0100) { // =
+        if (token.index != 0x0100 // =
+                && token.index != 0x0000) { // EU4txt and empty tokens
             context.getOutputStream().write(NEW_LINE);
             final int indent = context.getIndent();
             for (int i = 0; i < indent; ++i) {
