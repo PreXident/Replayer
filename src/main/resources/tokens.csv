@@ -807,6 +807,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x632F;is_great_power;;;
 0x682F;is_enforced;;;
 0x702F;privateer_mission;I;;
+0x7A2F;blockade_ports;;;
 0x732F;trade_port;I;;
 0x762F;has_privateers;;;
 0x7B2F;active_policy;;;
