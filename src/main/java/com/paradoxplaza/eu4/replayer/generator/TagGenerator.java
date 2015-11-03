@@ -12,7 +12,7 @@ import java.util.Set;
 public class TagGenerator {
 
     /** Three letter strings not suitable for country tags. */
-    static final Set<String> forbiddenTags = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("HRE", "AND", "NOT", "AUX", "NAT", "PIR", "REB")));
+    static final Set<String> forbiddenTags = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("HRE", "AND", "NOT", "AUX", "NAT", "PIR", "REB", "CON")));
 
     /** Lastly returned tag. */
     String lastTag = "AA@";

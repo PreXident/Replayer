@@ -1,0 +1,7 @@
+tutorial = {
+	index = 1
+	category = 1
+	country = REB
+	window = "hints_window"	# default window
+	moveable = yes
+}

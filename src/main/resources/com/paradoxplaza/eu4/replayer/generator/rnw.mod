@@ -15,5 +15,8 @@ replace_path = "history/diplomacy"
 replace_path = "history/wars"
 replace_path = "events"
 replace_path = "common/bookmarks"
+replace_path = "tutorial"
+replace_path = "common/disasters"
 
 disallow_random_new_world=no
+supported_version="1.13"
