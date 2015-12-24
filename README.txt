@@ -97,6 +97,7 @@ Improved compatibility with EU4 1.13
 Updated token definitions for binary savegame format
 Improved mod generator for RNW support
 Minor fixes
+Compatibility with EU4 1.14 (both textual and binary formats)
 
 1.13
 Less strict requirements on definition.csv format
