@@ -32,15 +32,15 @@ gif.subimage.y=0
 gif.subimage.width=1100
 gif.subimage.height=900
 
-##################
-#Random New World#
-##################
+################################
+#Random New World (EU4 pre 1.4)#
+################################
 
 Random New World feature is supported however it is a bit clumsy and needs user to take part in the process. You also need at least two saves to display the RNW properly - first from the very start of your game and second the actual save to replay. This is needed as the randomizer does not log its actions to province histories, so they do not match the actual game situation. I am not sure if this works with mods, you have to try it.
 If you think you can handle it, follow this procedure:
 1. Start replayer (if you are using mods, specify them in mod.list property)
 2. Select Generator->Generate, which creates new mod RNW in your EU4 mod directory. Close the replayer.
-3. Start EU4 with the mods including RNW. It will take a long time as there is a tag for every colonizable province (1400+)
+3. Start EU4 with the mods including RNW (you may need to change supported_version inside rnw.mod to match your EU4 version). It will take a long time as there is a tag for every colonizable province (1400+)
 4. Start a new game, select a nation to play (just to be sure from the old world), do NOT check Random New World!!!
 5. After the start do not unpause and immediately save the game
 6. Edit this new save (it will be circa 300MB, so not every editor can handle it, I use PSPad in hex mode), add random_world=XXX after mod section, replacing XXX for the value in saves you want to replay. Also in setgameplayoptions section change the 7th number to 1
@@ -95,6 +95,7 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 1.14
 Improved compatibility with EU4 1.13
 Updated token definitions for binary savegame format
+Improved mod generator for RNW support
 
 1.13
 Less strict requirements on definition.csv format
