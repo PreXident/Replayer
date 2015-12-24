@@ -96,6 +96,7 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 Improved compatibility with EU4 1.13
 Updated token definitions for binary savegame format
 Improved mod generator for RNW support
+Minor fixes
 
 1.13
 Less strict requirements on definition.csv format

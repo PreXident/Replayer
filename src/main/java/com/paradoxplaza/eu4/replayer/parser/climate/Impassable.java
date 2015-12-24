@@ -31,7 +31,7 @@ class Impassable extends CompoundState<Map<String, ProvinceInfo>> {
         if (province != null) {
             province.isWasteland = true;
         } else {
-            System.out.printf(l10n("parser.unknown.province"), word);
+            System.out.println(String.format(l10n("parser.unknown.province"), word));
         }
         return this;
     }
