@@ -39,6 +39,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xA101;amount;I;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.AmountHandler;switches between F and I
 0xB101;roll;I;;
 0xB801;event;QS;;
+0x0C02;index;I;;
 0xA402;max;F;;
 0x1927;war_exhaustion;F;;
 0x2327;add_core;QS;;
@@ -136,6 +137,16 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x8828;inflation;F;;
 0x8928;inflation_reduction;F;;
 0x8B28;enable;QD;;
+0x8C28;maneuver;I;;type guessed
+0x8D28;offensive_morale;I;;type guessed
+0x8E28;defensive_morale;I;;type guessed
+0x8F28;offensive_fire;I;;type guessed
+0x9028;defensive_fire;I;;type guessed
+0x9128;offensive_shock;I;;type guessed
+0x9228;defensive_shock;I;;type guessed
+0x9328;hull_size;I;;type guessed
+0x9428;base_cannons;I;;type guessed
+0x9528;sail_speed;I;;type guessed
 0x9D28;country;QS;;
 0xA028;army;I;;
 0xA128;navy;;;
@@ -233,6 +244,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x1D29;land_combat;;;
 0x1E29;naval_combat;;;
 0x1F29;siege_combat;;;
+0x2029;sprite_level;I;;type guessed
 0x2429;retreat;;;
 0x2629;convert;;;
 0x2729;attrition;F;;
@@ -347,6 +359,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x4A2A;global_colonial_growth;F;;
 0x4B2A;local_colonial_growth;QS;;
 0x4D2A;variables;S,F;;
+0x4E2A;region;QS;;
 0x502A;revolt;;;
 0x562A;is_subject;;;
 0x572A;defensiveness;F;;
@@ -573,6 +586,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x8A2D;base;I;;
 0x902D;hidden;;;
 0x962D;interesting_countries;I;;
+0x982D;root;;;
 0x992D;prev;F;;
 0x9A2D;from_scope;;;
 0x9C2D;prev_scope;;;
@@ -781,6 +795,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x1B2F;is_protectorate;;;
 0x1C2F;num_of_protectorates;I;;
 0x1D2F;protectorates;QS;;
+0x202F;po_demand_provinces;;;
 0x212F;humiliate;;;
 0x232F;has_subject;;;
 0x252F;map_color;I;;
@@ -860,6 +875,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x2030;is_march;;;
 0x2A30;unit_naming;;;
 0x2E30;enforce_rebel_demands;;;
+0x2F30;has_supportive_war;;;
 0x3530;needs_regiments;;;
 0x3630;needs_ships;;;
 0x3730;needs_buildings;;;
@@ -874,7 +890,9 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x5930;auto_transfer_mode;;;
 0x6430;max_autonomy;F;;
 0x6630;dismantle_revolution;;;
+0x6930;revolution_target_original_name;QS;;
 0x6B30;previous_controller;QS;;
+0x6C30;has_first_revolution_started;;;
 0x6D30;mothball_command;;;
 0x6E30;papal_investment;F;;
 0x6F30;hre_religion;;;
@@ -905,11 +923,13 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xC130;new_monarch;;;
 0xC830;in_debt;;;
 0xCB30;total_centers;I;;
+0xCE30;supportive_country;QS;;
 0xD430;is_small_march;;;
 0xD730;last_war_status;I;;
 0xD930;auto_transfer_army;;;
 0xDB30;client_parent;S;;
 0xDC30;joined_war;QS;;
+0xDD30;center_of_religion;;
 0xDE30;target_merge_province;I;;
 0xDF30;t_in;F;;
 0xE030;t_out;F;;
@@ -978,6 +998,8 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x4B31;savegame_versions;QS;;
 0x4F31;is_demand;;;
 0x5131;offer_giver;I;;
+0xA931;mercenary_infantry;I;;
+0xAA31;mercenary_cavalry;I;;
 0xB931;highest_possible_fort;I;;
 0xBB31;development;F;;
 0xBE31;num_of_rebel_controlled_provinces;I;;
@@ -989,6 +1011,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xD231;aspect;S;;
 0xE231;influencing_fort;;;
 0xD431;karma;F;;
+0xDB31;interaction;I;;
 0xDC31;subject_interactions;;;
 0xE331;last_debate;D;;
 0xED31;mothballed_forts;I;;
@@ -1004,18 +1027,72 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x2A32;last_forced_election;D;;
 0x2B32;promote_investments;;;
 0x3432;customized_flag;;;
+0x3532;forts;I;;
 0x3832;givers;S;;
 0x3932;takers;S;;
 0x3A32;war_givers;S;;
 0x3B32;war_takers;S;;
 0x3E32;fort_flipper;S;;
+0x4132;study_technology;;;
+0x4232;agitate_for_liberty;;;
+0x4332;is_studying_technology;;;
+0x4432;is_agitating_for_liberty;;;
+0x4532;is_agitated_for_liberty;;;
+0x4632;concede_colonial_region;;;
+0x4732;liberty_agitation;F;;;
 0x4F32;offer_taker;I;;
+0x5332;original_culture;S;;
 0x5532;former_native_size;F;;
 0x7932;parliament_modifier;;;
-0x8F32;is_embargoing;;;
-0x9F32;discount;;;
-0xCB32;military_strength_with_allies;F5;;
-0x3532;forts;I;;
+0x7E32;last_razed;D;;
+0x7F32;secondary_religion;S;;
 0x8B32;cached_relation_costing_power;;;
 0x8C32;truce;;;
+0x8F32;is_embargoing;;;
 0x9132;average_unrest;F;;
+0x9F32;discount;;;
+0xB832;displayed_country_name;QS;;
+0xBF32;automatic_maintenance;;;
+0xC132;last_razed_by;QS;;
+0xC232;original_religion;S;;
+0x7C32;expanded_dip_action_groups;I;;
+0xC932;favors;I;;
+0xCB32;military_strength_with_allies;F5;;
+0xCC32;player_attitude;I;;
+0xCF32;vital_provinces;I;;
+0xD332;promised_land;;;
+0xD532;trust_value;I;;
+0xD632;estate;QS,I;;
+0xDB32;loyalty;F;;
+0xE132;last_estate_grant;D;;
+0xE232;province_influence;F;;
+0xE332;non_overseas_development;F;;
+0xE432;influence_modifier;;;
+0xE832;horde_unity;F;;
+0xEE32;native_policy;I;;
+0xF432;last_conversion_secondary;D;;
+0xF532;target_unit_templates;;;
+0xF732;card_score;F;;
+0x0A33;last_sent_alliance_offer;D;;
+0x0B33;highest_possible_fort_building;QS;;
+0x0933;last_threatened;D;;
+0x0C33;mercenary_artillery;I;;
+0x0E33;last_study_tech;D;;
+0x2433;target_unit_id;;;
+0x2B33;total_loyalty;F;;
+0x2D33;recovery_motivation;F;;
+0x2833;achievement_ok;;;
+0x2933;multi_player;;;
+0x3F33;loyalty_modifier;;;
+0x4033;assigned_estates;;;
+0x4133;territory;F;;
+0x5933;interaction_use;;;
+0x6A33;buffer;I;;
+0x7333;last_betrayed_ally;D;;
+0x7E33;fort_flipper_prov;I;;
+0x7F33;campaign_id;QS;;
+0x8033;anti_nation_ruining_end_date;D;;
+0x8233;campaign_length;I;;
+0x8A33;FINISH2;I;;TODO something ironman related
+0x9D33;leader_id;;;
+0x9E33;monarch_id;;;
