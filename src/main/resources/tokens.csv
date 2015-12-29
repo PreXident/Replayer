@@ -219,7 +219,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xFD28;losses_type;F;;
 0x0029;policy;QS;;
 0x0229;wartax;QD;;
-0x0329;land_morale;F;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.TestHandler;
+0x0329;land_morale;F;;
 0x0429;naval_morale;F;;
 0x0629;index;I;;
 0x0729;global_manpower_modifier;F;;
