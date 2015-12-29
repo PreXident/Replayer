@@ -1,6 +1,11 @@
 <project name="Replayer" default="dist" xmlns:fx="javafx:com.sun.javafx.tools.ant">
 	<property file="version.properties" />
 	<property name="project.version" value="${ext.antProjectVersion}"/>
+	<!-- remove quotes from version -->
+	<script language="javascript">
+		var before = project.getProperty("project.version");
+		project.setProperty("project.version", before.replaceAll("\"", ""));
+	</script>
 	<property environment="env"/>
 	<property name="dir.javafx" value="${env.JAVA_HOME}/jre/lib" />
 	<property name="jar.javafx" value="${dir.javafx}/jfxrt.jar" />
