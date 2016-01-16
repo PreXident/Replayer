@@ -81,6 +81,7 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 #Planned features#
 ##################
 
+- button for easy focusing player countries
 - RNW past 1.14
 - unrest map mode
 - support for dynamic province names
