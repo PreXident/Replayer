@@ -94,6 +94,9 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 #Change log#
 ############
 
+1.14.2
+Improved handling of tag changes for correct displaying of subjects as overlords
+
 1.14
 Improved compatibility with EU4 1.13
 Updated token definitions for binary savegame format
