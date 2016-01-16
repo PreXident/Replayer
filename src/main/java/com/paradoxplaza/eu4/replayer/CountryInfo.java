@@ -1,5 +1,6 @@
 package com.paradoxplaza.eu4.replayer;
 
+import com.paradoxplaza.eu4.replayer.utils.Pair;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,7 +27,7 @@ public class CountryInfo {
     public final Set<String> owns = new HashSet<>();
 
     /** Country tags changing to this country. */
-    public List<String> tagChangeFrom = new ArrayList<>();
+    public List<Pair<Date, String>> tagChangeFrom = new ArrayList<>();
 
     /** Set of subject nations' tags. */
     public final Set<String> subjects = new HashSet<>();

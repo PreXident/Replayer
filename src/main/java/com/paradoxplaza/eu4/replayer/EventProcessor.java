@@ -174,9 +174,26 @@ public class EventProcessor {
     }
 
     public boolean changeOverlord(final Date date,
-            final String subjectTag, final String newOverlordTag) {
+            final String subjectTag, String newOverlordTag) {
         final CountryInfo subject = replay.countries.get(subjectTag);
-        final CountryInfo overlord = replay.countries.get(newOverlordTag);
+        CountryInfo overlord = replay.countries.get(newOverlordTag);
+        if (overlord != null) {
+            while (!overlord.tagChangeFrom.isEmpty()) {
+                int i;
+                for (i = 0; i < overlord.tagChangeFrom.size(); ++i) {
+                    final Date tagChangeDate = overlord.tagChangeFrom.get(i).getFirst();
+                    if (tagChangeDate.compareTo(date) >= 0) {
+                        break;
+                    }
+                }
+                if (i < overlord.tagChangeFrom.size()) {
+                    newOverlordTag = overlord.tagChangeFrom.get(i).getSecond();
+                    overlord = replay.countries.get(newOverlordTag);
+                } else {
+                    break;
+                }
+            }
+        }
         subject.overlord = newOverlordTag;
         if (overlord != null) {
             overlord.subjects.add(subjectTag);

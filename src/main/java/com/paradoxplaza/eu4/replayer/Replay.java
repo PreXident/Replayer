@@ -308,8 +308,8 @@ public class Replay {
                         continue;
                     }
                     boolean ignore = false;
-                    for (String from : newController.tagChangeFrom) {
-                        if (others.contains(from)) {
+                    for (Pair<Date, String> from : newController.tagChangeFrom) {
+                        if (others.contains(from.getSecond())) {
                             ignore = true;
                             break;
                         }
@@ -749,7 +749,8 @@ public class Replay {
         for (Pair<Date, TagChange> pair : saveGame.tagChanges) {
             final CountryInfo country = countries.get(pair.getSecond().tag.val);
             if (country != null) {
-                country.tagChangeFrom.add(pair.getSecond().fromTag);
+                country.tagChangeFrom.add(
+                        new Pair<>(pair.getFirst(), pair.getSecond().fromTag));
             } else {
                 System.err.printf(l10n("replay.tagchange.unknowntag"), pair.getSecond().tag.val);
             }
