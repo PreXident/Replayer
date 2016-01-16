@@ -83,6 +83,7 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 
 - add option to stripe subject countries when displayed as overlords
 - button for easy focusing player countries
+- wasteland painting
 - RNW past 1.14
 - unrest map mode
 - support for dynamic province names
@@ -97,6 +98,7 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 
 1.14.2
 Improved handling of tag changes for correct displaying of subjects as overlords
+Date from end_date of subject diplomacy is also used, so manually added subjects can also break free
 
 1.14
 Improved compatibility with EU4 1.13

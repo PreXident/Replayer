@@ -23,6 +23,9 @@ public abstract class Subject extends CompoundState<SaveGame> {
 
     /** Date of becoming a subject. */
     final Ref<Date> date = new Ref<>();
+    
+    /** Date of releasing a subject. */
+    final Ref<Date> endDate = new Ref<>();
 
     /** State processing string values. */
     final StringState<SaveGame> stringState = new StringState<>(this);
@@ -65,7 +68,16 @@ public abstract class Subject extends CompoundState<SaveGame> {
     @Override
     protected void endCompound(final SaveGame saveGame) {
         saveGame.addEvent(date.val, createSubjectEvent());
-        saveGame.addSubject(subject.val);
+        final Date end = endDate.getValue();
+        if (end == null
+                || !end.isBetween(saveGame.startDate, saveGame.date)) {
+            //country is subject at the save game end
+            saveGame.addSubject(subject.val);
+        } else {
+            //create free event as the relationship has end_date set correctly
+            overlord.setValue(null);
+            saveGame.addEvent(endDate.val, createSubjectEvent());
+        }
     }
 
     @Override
@@ -77,6 +89,8 @@ public abstract class Subject extends CompoundState<SaveGame> {
                 return stringState.withOutput(subject);
             case "start_date":
                 return dateState.withOutput(date);
+            case "end_date":
+                return dateState.withOutput(endDate);
             default:
                 return ignore;
         }

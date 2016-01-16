@@ -160,6 +160,16 @@ public class Date implements Comparable<Date>, java.io.Serializable {
     }
 
     /**
+     * Returns whether the date is between low and high dates inclusive.
+     * @param low bottom boundary
+     * @param high upper boundary
+     * @return true if the date is between low and high
+     */
+    public boolean isBetween(final Date low, final Date high) {
+        return compareTo(low) >= 0 && compareTo(high) <= 0;
+    }
+    
+    /**
      * Returns next date.
      * @return next date
      */

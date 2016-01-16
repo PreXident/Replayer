@@ -39,10 +39,20 @@ class Start extends StartAdapter<SaveGame> {
     final Diplomacy diplomacy = new Diplomacy(this);
 
     /** Current date in save game. */
-    final Ref<Date> currentDate = new Ref<>();
+    final SaveGameDateWriter currentDate = new SaveGameDateWriter() {
+        @Override
+        protected void setSaveGameDate(final Date val) {
+            saveGame.date = val;
+        }
+    };
 
     /** Save game's starting date. */
-    final Ref<Date> startDate = new Ref<>();
+    final SaveGameDateWriter startDate = new SaveGameDateWriter() {
+        @Override
+        protected void setSaveGameDate(final Date val) {
+            saveGame.startDate = val;
+        }
+    };
 
     @Override
     public State<SaveGame> end(final SaveGame saveGame) {
@@ -52,8 +62,6 @@ class Start extends StartAdapter<SaveGame> {
         if (startDate.val == null) {
             throw new RuntimeException(l10n("parser.savegame.error.startdate"));
         }
-        saveGame.date = currentDate.val;
-        saveGame.startDate = startDate.val;
         return this;
     }
 
@@ -68,9 +76,9 @@ class Start extends StartAdapter<SaveGame> {
             case "EU4txt":
                 return this;
             case "date":
-                return date.withOutput(currentDate);
+                return date.withOutput(currentDate.withSaveGame(saveGame));
             case "start_date":
-                return date.withOutput(startDate);
+                return date.withOutput(startDate.withSaveGame(saveGame));
             case "flags":
                 return flags;
             case "old_emperor":
@@ -96,6 +104,37 @@ class Start extends StartAdapter<SaveGame> {
         }
         if (startDate != null) {
             startDate.setVal(null);
+        }
+    }
+    
+    /**
+     * Simply writes date also to propriate field of the save game.
+     */
+    protected abstract class SaveGameDateWriter extends Ref<Date> {
+        
+        /** Currently processed save game. */
+        protected SaveGame saveGame = null;
+
+        /**
+         * Sets appropriate date field of the save game class.
+         * @param val parsed date
+         */
+        protected abstract void setSaveGameDate(final Date val);
+        
+        @Override
+        public void setVal(final Date val) {
+            setSaveGameDate(val);
+            this.val = val;
+        }
+        
+        /**
+         * Sets save game.
+         * @param saveGame new save game
+         * @return this
+         */
+        public SaveGameDateWriter withSaveGame(final SaveGame saveGame) {
+            this.saveGame = saveGame;
+            return this;
         }
     }
 }
