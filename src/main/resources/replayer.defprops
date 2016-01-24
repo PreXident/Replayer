@@ -42,3 +42,7 @@ fix.colonials.date=1444.11.11
 subjects.as.overlord=false
 #localization
 locale.language=en
+#if core is created on not owned province it becomes owned as well
+fix.core2owner=false
+#if unknown becomes province goods, the province is no longer owned
+fix.goods2owner=false
