@@ -10,6 +10,15 @@ import java.util.Formatter;
  */
 public abstract class SimpleProvinceEvent extends ProvinceEvent {
 
+    /**
+     * Escapes % from the string to use in printf and such.
+     * @param s string to escape
+     * @return escaped string
+     */
+    static private String escapePrintf(final String s) {
+        return s.replace("%", "%%");
+    }
+    
     /** Type of event type. */
     final public String type;
 
@@ -38,7 +47,7 @@ public abstract class SimpleProvinceEvent extends ProvinceEvent {
     @Override
     public void formatTo(final Formatter formatter, final int flags, final int width, final int precision) {
         if ((flags & ALTERNATE) != ALTERNATE) {
-            formatter.format(toString());
+            formatter.format(escapePrintf(toString()));
         } else {
             formatter.format(
                     l10n("event.province." + type),
