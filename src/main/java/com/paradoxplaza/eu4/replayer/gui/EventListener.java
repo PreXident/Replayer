@@ -21,7 +21,9 @@ public class EventListener implements EventProcessor.IEventListener {
 
     @Override
     public void appendLog(String text) {
-        controller.logContent.append(text);
+        if (!controller.disableLog) {
+            controller.logContent.append(text);
+        }
     }
 
     @Override

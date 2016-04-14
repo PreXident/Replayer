@@ -101,6 +101,9 @@ public class ReplayerController implements Initializable {
     /** JavaScript call to scroll to the bottom of the page. */
     static final String SCROLL_DOWN = "window.scrollTo(0,document.body.scrollHeight)";
 
+    /** Key of property disabling the log. */
+    static final String LOG_DISABLE_KEY = "log.disable";
+    
     /**
      * Translates {@link #map} coordinate to {@link #scrollPane} procentual HValue/VValue.
      * @param mapCoord map coordinate
@@ -259,6 +262,9 @@ public class ReplayerController implements Initializable {
 
     /** How many pixels are added to width and height when zooming in/out. */
     int zoomStep;
+    
+    /** Flag indicating whether the event log should be disabled. */
+    boolean disableLog = false;
 
     /** Directory containing save games. */
     File saveDirectory;
@@ -1379,6 +1385,7 @@ public class ReplayerController implements Initializable {
         gifSubimageHeightEdit.setText(settings.getProperty("gif.subimage.height", ""));
 
         bordersCheckMenuItem.setSelected(settings.getProperty("borders", "false").equals("true"));
+        disableLog = settings.getProperty("log.disable", "false").equals("true");
 
         eu4Directory = new File(settings.getProperty("eu4.dir"));
         try {
