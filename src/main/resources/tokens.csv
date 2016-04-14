@@ -107,7 +107,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x5B28;global_revolt_risk;F;;
 0x5C28;terrain;QS;;
 0x6228;technology;S,I;;
-0x6328;technology_group;S;;
+0x6328;technology_group;S,I;;
 0x6628;government;S;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.GovernmentHandler;switches between S and QS
 0x6928;discovery_dates;QD;;
 0x6A28;discovered_by;QS;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.DiscoveredByHandler;switches between QS and S
@@ -359,7 +359,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x4A2A;global_colonial_growth;F;;
 0x4B2A;local_colonial_growth;QS;;
 0x4D2A;variables;S,F;;
-0x4E2A;region;QS;;
+0x4E2A;region;QS,I;;
 0x502A;revolt;;;
 0x562A;is_subject;;;
 0x572A;defensiveness;F;;
@@ -671,6 +671,12 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x3A2E;stalled_years;I;;
 0x3E2E;country_modifiers;;;
 0x3F2E;province_modifiers;;;
+0x402E;UKNOWN_0x402E;;;TODO MULTIPLAYER SETTINGS
+0x412E;UKNOWN_0x412E;;;TODO MULTIPLAYER SETTINGS
+0x432E;UKNOWN_0x432E;;;TODO MULTIPLAYER SETTINGS
+0x442E;UKNOWN_0x442E;;;TODO MULTIPLAYER SETTINGS
+0x452E;UKNOWN_0x452E;;;TODO MULTIPLAYER SETTINGS
+0x462E;UKNOWN_0x462E;I;;TODO MULTIPLAYER SETTINGS
 0x422E;opinion_cache;I;;
 0x482E;possible_mercenary;;;
 0x4D2E;religions;S;;
@@ -888,6 +894,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x5730;num_of_clients;I;;
 0x5A30;reformation_center;;;
 0x5930;auto_transfer_mode;;;
+0x6330;saved_event_target;;;
 0x6430;max_autonomy;F;;
 0x6630;dismantle_revolution;;;
 0x6930;revolution_target_original_name;QS;;
@@ -987,6 +994,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x7631;loot_remaining;F;;
 0x7831;church;;;
 0x7931;last_month_treasure_fleet_gold;F;;
+0x8131;saved_character;;;IS THIS CORRECT?
 0x9031;recalculate_strategy;;;
 0x9A31;government_rank;I;;
 0x3C31;pirate_hunt;F;;
@@ -1032,6 +1040,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x3932;takers;S;;
 0x3A32;war_givers;S;;
 0x3B32;war_takers;S;;
+0x3D32;fort_flip_progress;F;;
 0x3E32;fort_flipper;S;;
 0x4132;study_technology;;;
 0x4232;agitate_for_liberty;;;
@@ -1053,9 +1062,11 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x9F32;discount;;;
 0xB832;displayed_country_name;QS;;
 0xBF32;automatic_maintenance;;;
+0xC032;autojoin;;;
 0xC132;last_razed_by;QS;;
 0xC232;original_religion;S;;
 0x7C32;expanded_dip_action_groups;I;;
+0xC432;original_total;I;;
 0xC932;favors;I;;
 0xCB32;military_strength_with_allies;F5;;
 0xCC32;player_attitude;I;;
@@ -1073,26 +1084,52 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xF432;last_conversion_secondary;D;;
 0xF532;target_unit_templates;;;
 0xF732;card_score;F;;
+0xFE32;regions;I;;
+0x0333;UNKNOWN_0x0333;S;;
 0x0A33;last_sent_alliance_offer;D;;
 0x0B33;highest_possible_fort_building;QS;;
 0x0933;last_threatened;D;;
 0x0C33;mercenary_artillery;I;;
 0x0E33;last_study_tech;D;;
+0x1433;num_of_regulars;I;;
+0x1533;UNKNOWN_0x1533;;;TODO SOMETHING AI RELATED
+0x1733;not_observer;;;
+0x1833;UNKOWN_0x1833;I;;TODO SOMETHING ARMY RELATED
+0x1933;UNKNOWN_0x1933;I;;TODO SOMETHING ARMY RELATED
+0x1A33;UNKNOWN_0x1A33;;;TODO SOMETHING ARMY RELATED
 0x2433;target_unit_id;;;
 0x2B33;total_loyalty;F;;
 0x2D33;recovery_motivation;F;;
 0x2833;achievement_ok;;;
 0x2933;multi_player;;;
+0x2F33;UNKNOWN_0x2F33;;;TODO SOMETHING AI RELATED
 0x3F33;loyalty_modifier;;;
 0x4033;assigned_estates;;;
 0x4133;territory;F;;
 0x5933;interaction_use;;;
+0x5F33;UNKNOWN_0x5F33;D;;TODO NO CLUE
 0x6A33;buffer;I;;
+0x6D33;active_influence;I;;
+0x6E33;active_loyalty;I;;
 0x7333;last_betrayed_ally;D;;
+0x7533;UNKNOWN_0x7533;;;TODO NO CLUE
 0x7E33;fort_flipper_prov;I;;
 0x7F33;campaign_id;QS;;
 0x8033;anti_nation_ruining_end_date;D;;
 0x8233;campaign_length;I;;
+0x8533;regions_discovered;;;
 0x8A33;FINISH2;I;;TODO something ironman related
+0x9633;border_pct;I;;
+0x9733;border_sit;IF;;
+0x9833;range_cache;I;;
+0x9933;is_home_nb;I;;
+0x9A33;is_core_nb;I;;
+0x9B33;is_nb;I;;
+0x9C33;friend_bools;I;;
 0x9D33;leader_id;;;
 0x9E33;monarch_id;;;
+0xA033;discovery;;;
+0xA133;fully_discovered;;;
+0xA833;UNKNOWN_0xA833;;;TODO SOMETHING MP RELATED???
+0xA233;discovery_date;D;;
+0xC333;was_previous;;;TODO IS THIS CORRECT?

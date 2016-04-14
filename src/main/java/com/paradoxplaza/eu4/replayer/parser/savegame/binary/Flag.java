@@ -23,6 +23,8 @@ public enum Flag {
     FLOAT,
     /** Output should be real number with five decimal places. */
     FLOAT5,
+    /** Output should be integral number equals real number with three decimals. */
+    INTEQFLOAT,
     /** Empty list, do not print close braces. */
     EMPTY_LIST,
     /** Use pretty indenting even for usually not indented lists. */
@@ -63,6 +65,9 @@ public enum Flag {
                     break;
                 case "F5":
                     flags.add(FLOAT5);
+                    break;
+                case "IF":
+                    flags.add(INTEQFLOAT);
                     break;
                 case "P":
                     flags.add(PRETTY_LIST);

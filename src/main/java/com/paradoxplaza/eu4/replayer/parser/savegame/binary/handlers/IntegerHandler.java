@@ -168,7 +168,15 @@ public class IntegerHandler extends SingleValueHandler {
         final EnumSet<Flag> flags = context.getContext().peek().flags;
         final OutputStream output = context.getOutputStream();
         buf.reset();
-        if (flags.contains(Flag.DATE) || flags.contains(Flag.QUOTED_DATE)) {
+        if (flags.contains(Flag.INTEQFLOAT)) {
+            if (context.getContext().peek().index == 0x0C00) { //int before equals
+                outputFloat(number);
+                buf.writeTo(output);
+            } else {
+                outputInt(number);
+                buf.writeTo(output);
+            }
+        }else if (flags.contains(Flag.DATE) || flags.contains(Flag.QUOTED_DATE)) {
             outputDate(flags, number);
             buf.writeTo(output);
         } else if (flags.contains(Flag.INTEGER)) {
