@@ -98,6 +98,8 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 
 1.15.0
 Partial support for EU4 1.15
+Using % in province names no longer causes crash
+Added property log.disable for disabling event log to speed up the replaying
 
 1.14.2
 Improved handling of tag changes for correct displaying of subjects as overlords
