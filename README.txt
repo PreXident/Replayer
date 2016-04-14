@@ -96,6 +96,9 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 #Change log#
 ############
 
+1.15.0
+Partial support for EU4 1.15
+
 1.14.2
 Improved handling of tag changes for correct displaying of subjects as overlords
 Date from end_date of subject diplomacy is also used, so manually added subjects can also break free
