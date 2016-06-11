@@ -38,6 +38,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xA001;end;;;
 0xA101;amount;I;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.AmountHandler;switches between F and I
 0xB101;roll;I;;
+0xB701;state;QS;;
 0xB801;event;QS;;
 0x0C02;index;I;;
 0xA402;max;F;;
@@ -68,6 +69,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x8627;transport;I,QS;;
 0x8727;galley;I,QS;;
 0x8827;loan_size;I;;
+0x8927;remove_fow;;;
 0xA227;kill_heir;;;
 0xAD27;internal_hre_cb;;;
 0xAE27;imperial_ban_allowed;;;
@@ -270,6 +272,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x4329;milaccess;;;
 0x4429;offermilaccess;;;
 0x4729;insultaction;;;
+0x4829;giftaction;;;
 0x4A29;last_war;QD;;
 0x4B29;last_send_diplomat;QD;;
 0x4C29;war_exhaustion_cost;F;;
@@ -342,9 +345,11 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x0B2A;mercenary;I;;
 0x152A;total;I;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.TotalHandler;switches between F and I
 0x182A;female;;;
+0xA12A;hunt_rebel;;;
 0x1B2A;advisor_cost;F;;
 0x222A;winter;I;;
 0x252A;warsubsidy;;;
+0xA92A;members;S;;
 0x2A2A;subsidies;;;
 0x2E2A;last_command_date;QD;;
 0x2F2A;previous_monarch;;;
@@ -410,7 +415,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xEA2A;enemy;QS;;
 0xEB2A;trade_prov;;;
 0xEE2A;max;F;;
-0xF12A;fabricate_claim;;;
+0xF12A;fabricate_claim;F;;
 0xF32A;relations_decay_of_me;F;;
 0xF72A;fraction;F;;
 0xF92A;global_prov_trade_power_modifier;F;;
@@ -419,6 +424,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xFC2A;actual_added_value;F;;
 0xFE2A;fired_events;;;
 0xFF2A;inflation_history;F;;
+0x002B;arranged;;;
 0x042B;vassal_income;F;;
 0x052B;pirates;;;
 0x062B;trade_goods_size;F;;
@@ -518,6 +524,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xBF2C;tolerance_heretic;F;;
 0xC02C;tolerance_heathen;F;;
 0xC72C;rebel_faction;;;
+0xC92C;area;QS;;
 0xD02C;defection;QS;;
 0xD22C;independence;I,QS;;
 0xD72C;crusade_target;QS;;
@@ -624,8 +631,10 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xD92D;total_count;I;;
 0xDA2D;enforce_peace;;;
 0xDB2D;improve_relation;;;
-0xDD2D;sabotage_reputation;;;
-0xDF2D;sow_discontent;;;
+0xDC2D;infiltrate_administration;F;;
+0xDD2D;sabotage_reputation;F;;
+0xDE2D;support_rebels;F;;
+0xDF2D;sow_discontent;F;;
 0xE22D;coalition_against_us;QS;;
 0xE32D;ruler_modifier;;;
 0xE42D;attacker_score;F;;
@@ -1046,7 +1055,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x4232;agitate_for_liberty;;;
 0x4332;is_studying_technology;;;
 0x4432;is_agitating_for_liberty;;;
-0x4532;is_agitated_for_liberty;;;
+0x4532;is_agitated_for_liberty;D;;
 0x4632;concede_colonial_region;;;
 0x4732;liberty_agitation;F;;;
 0x4F32;offer_taker;I;;
@@ -1067,6 +1076,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xC232;original_religion;S;;
 0x7C32;expanded_dip_action_groups;I;;
 0xC432;original_total;I;;
+0xC532;movement_progress_last_updated;D;;
 0xC932;favors;I;;
 0xCB32;military_strength_with_allies;F5;;
 0xCC32;player_attitude;I;;
@@ -1083,6 +1093,7 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0xEE32;native_policy;I;;
 0xF432;last_conversion_secondary;D;;
 0xF532;target_unit_templates;;;
+0xF632;victory_card;;;
 0xF732;card_score;F;;
 0xFE32;regions;I;;
 0x0333;UNKNOWN_0x0333;S;;
@@ -1091,18 +1102,20 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x0933;last_threatened;D;;
 0x0C33;mercenary_artillery;I;;
 0x0E33;last_study_tech;D;;
+0x1133;was_fulfilled;;;
 0x1433;num_of_regulars;I;;
-0x1533;UNKNOWN_0x1533;;;TODO SOMETHING AI RELATED
+0x1533;is_ceiling;;;
 0x1733;not_observer;;;
 0x1833;UNKOWN_0x1833;I;;TODO SOMETHING ARMY RELATED
 0x1933;UNKNOWN_0x1933;I;;TODO SOMETHING ARMY RELATED
 0x1A33;UNKNOWN_0x1A33;;;TODO SOMETHING ARMY RELATED
+0x1C33;trade_league;;;
 0x2433;target_unit_id;;;
 0x2B33;total_loyalty;F;;
 0x2D33;recovery_motivation;F;;
 0x2833;achievement_ok;;;
 0x2933;multi_player;;;
-0x2F33;UNKNOWN_0x2F33;;;TODO SOMETHING AI RELATED
+0x2F33;estate_influence;;;
 0x3F33;loyalty_modifier;;;
 0x4033;assigned_estates;;;
 0x4133;territory;F;;
@@ -1111,14 +1124,21 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x6A33;buffer;I;;
 0x6D33;active_influence;I;;
 0x6E33;active_loyalty;I;;
+0x7B33;slander_merchants;F;;
 0x7333;last_betrayed_ally;D;;
 0x7533;UNKNOWN_0x7533;;;TODO NO CLUE
+0x7833;spy_network;I;;
+0x7933;is_building_spy_network;;;
+0x7A33;was_colony;;;
+0x7C33;corrupt_officials;F;;
 0x7E33;fort_flipper_prov;I;;
 0x7F33;campaign_id;QS;;
 0x8033;anti_nation_ruining_end_date;D;;
 0x8233;campaign_length;I;;
 0x8533;regions_discovered;;;
 0x8A33;FINISH2;I;;TODO something ironman related
+0x9033;num_of_provinces_in_states;I;;
+0x9133;num_of_provinces_in_territories;I;;
 0x9633;border_pct;I;;
 0x9733;border_sit;IF;;
 0x9833;range_cache;I;;
@@ -1130,6 +1150,41 @@ token;text;flags(D,QD,S,QS,E,I,F,P);handler;comment
 0x9E33;monarch_id;;;
 0xA033;discovery;;;
 0xA133;fully_discovered;;;
-0xA833;UNKNOWN_0xA833;;;TODO SOMETHING MP RELATED???
 0xA233;discovery_date;D;;
-0xC333;was_previous;;;TODO IS THIS CORRECT?
+0xA833;UNKNOWN_0xA833_RUBBISH;;com.paradoxplaza.eu4.replayer.parser.savegame.binary.handlers.RubbishHandler;TODO SOMETHING MP RELATED???
+0xAB33;sailors;F;;
+0xAC33;max_sailors;F;;
+0xB733;discovery_dates2;ID;;
+0xB833;discovery_religion_dates2;ID;;
+0xBF33;sabotage_recruitment;F;;
+0xC333;was_previous;;;
+0xC833;stealmap;F;;
+0xC933;retreat_port;I;;
+0xCE33;spy_propensity;F;;
+0xCD33;diplomatic_biases;;;
+0xD033;extended_allies;QS;;
+0xD133;fake_owner;QS;;
+0xD333;average_effective_unrest;F;;
+0xD533;defended_home_strait;I;;
+0xD933;was_safe_retreat_port;;;
+0xD733;ai_condottieri_malus_until;D;;
+0xE033;power_balance_threat;QS;;
+0xE533;protect_mission;;;
+0xE633;privateer_mission_2;;;
+0xE733;hunt_pirates_mission;;;
+0xEB33;blockade_mission;F;;
+0xF133;corruption;F;;
+0xF533;our_spy_network;QS;;
+0xF733;root_out_corruption;F;;
+0xF933;counterespionage;;;
+0x0F34;colonial_core;I;;
+0x2334;changed_country_name_from;QS;;
+0x2434;changed_country_mapcolor_from;I;;
+0x2534;changed_country_adjective_from;QS;
+0x2634;total_military_power;F5;;
+0x2734;average_military_power;F5;;
+0x3734;on_my_way;;;
+0x3834;root_out_corruption_slider;F;;
+0x3934;current_cycle_begin;I;;
+0x4434;realm_development;F;;
+0x1D34;territorial_core;QS;;

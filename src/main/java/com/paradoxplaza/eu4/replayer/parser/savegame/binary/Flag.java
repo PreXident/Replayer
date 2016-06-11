@@ -25,6 +25,8 @@ public enum Flag {
     FLOAT5,
     /** Output should be integral number equals real number with three decimals. */
     INTEQFLOAT,
+    /** Output should be integral number equals date. */
+    INTEQDATE,
     /** Empty list, do not print close braces. */
     EMPTY_LIST,
     /** Use pretty indenting even for usually not indented lists. */
@@ -67,6 +69,9 @@ public enum Flag {
                     flags.add(FLOAT5);
                     break;
                 case "IF":
+                    flags.add(INTEQFLOAT);
+                    break;
+                case "ID":
                     flags.add(INTEQFLOAT);
                     break;
                 case "P":

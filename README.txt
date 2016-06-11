@@ -96,6 +96,9 @@ In such situations the replayer knows nothing about FRA->RFR->FRA, so the replay
 #Change log#
 ############
 
+1.17.0
+Partial support for EU4 1.17
+
 1.15.0
 Partial support for EU4 1.15
 Using % in province names no longer causes crash

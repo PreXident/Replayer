@@ -24,7 +24,7 @@ public class Converter {
      * @param args see {@link ConverterOptions}
      */
     static public void main(String[] args) {
-        //args = new String[] { "-p", "c:\\Users\\System_Lords\\Documents\\Paradox Interactive\\Europa Universalis IV\\save games\\Russia2.eu4" };
+        //args = new String[] { "-p", "c:\\Users\\System_Lords\\Documents\\Paradox Interactive\\Europa Universalis IV\\save games\\mp_Bohemia1821_01_01.eu4" };
         //parse command line options
         final ConverterOptions options = new ConverterOptions();
         final JCommander jCommander = new JCommander(options, args);

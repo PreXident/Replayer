@@ -75,7 +75,7 @@ public class IntegerHandler extends SingleValueHandler {
         final byte[] out  = string.getBytes(charset);
         context.getOutputStream().write(out);
     }
-
+    
     /**
      * Outputs number with three decimal places.
      * @param number float to output
@@ -176,7 +176,15 @@ public class IntegerHandler extends SingleValueHandler {
                 outputInt(number);
                 buf.writeTo(output);
             }
-        }else if (flags.contains(Flag.DATE) || flags.contains(Flag.QUOTED_DATE)) {
+        } else if (flags.contains(Flag.INTEQFLOAT)) {
+            if (context.getContext().peek().index == 0x0C00) { //int before equals
+                outputDate(flags, number);
+                buf.writeTo(output);
+            } else {
+                outputInt(number);
+                buf.writeTo(output);
+            }
+        } else if (flags.contains(Flag.DATE) || flags.contains(Flag.QUOTED_DATE)) {
             outputDate(flags, number);
             buf.writeTo(output);
         } else if (flags.contains(Flag.INTEGER)) {
